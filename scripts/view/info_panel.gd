@@ -130,7 +130,7 @@ func _refresh() -> void:
 	_house.visible = data.has("tiers") and instance["tier"] > 0
 	if _house.visible:
 		_house.text = _house_text(instance)
-	var keeps_goods: bool = data.has("storage") or data.has("produces")
+	var keeps_goods: bool = data.has("storage") or data.has("produces") or data.has("market")
 	_stock.visible = keeps_goods
 	_stock.text = "\n".join(lines) if not lines.is_empty() else tr("UI_STOCK_EMPTY")
 
@@ -169,6 +169,8 @@ func _house_text(instance: Dictionary) -> String:
 			if not city.houses.is_met(instance, need):
 				lines.append(_need_line(instance, need))
 	lines.append("")
+	lines.append_array(_walker_lines(instance))
+	lines.append("")
 	if tier >= Houses.max_tier():
 		lines.append(tr("UI_HOUSE_TOP_TIER"))
 		return "\n".join(lines)
@@ -176,6 +178,31 @@ func _house_text(instance: Dictionary) -> String:
 	for need in Houses.needs_for(tier + 1):
 		lines.append(_need_line(instance, need))
 	return "\n".join(lines)
+
+
+## The pantry, and which walkers passed and when (red when one never came or long ago).
+func _walker_lines(instance: Dictionary) -> Array[String]:
+	var id: int = instance["id"]
+	var houses = city.houses
+	var lines: Array[String] = []
+	if houses.state[id]["food"] > 0:
+		lines.append(tr("UI_HOUSE_PANTRY") % houses.pantry_days(id))
+	else:
+		lines.append(_red(tr("UI_HOUSE_PANTRY_EMPTY")))
+	lines.append(_passed_line(houses.days_since(id, "market"), "UI_HOUSE_VENDOR"))
+	lines.append(_passed_line(houses.days_since(id, "seonangdang"), "UI_HOUSE_KEEPER"))
+	return lines
+
+
+func _passed_line(days: int, key: String) -> String:
+	if days < 0:
+		return _red(tr(key + "_NEVER"))
+	var text := tr(key + "_PASSED") % days
+	return _red(text) if days >= Balance.SERVICE_DAYS else text
+
+
+func _red(text: String) -> String:
+	return "[color=%s]%s[/color]" % [ACCENT.to_html(false), text]
 
 
 func _need_line(instance: Dictionary, need: String) -> String:

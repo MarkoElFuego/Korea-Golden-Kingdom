@@ -83,7 +83,9 @@ func find_storage(start: Vector2i, good: String) -> Dictionary:
 		var known: Dictionary = city.buildings.get_instance(cached["id"])
 		if not known.is_empty() and city.economy.free_space(known, good) > 0:
 			return {"id": cached["id"], "path": cached["path"].duplicate()}
-	var found := _search_storage(start, good)
+	var economy = city.economy
+	var found := _search(start, func(instance: Dictionary) -> bool:
+		return economy.accepts(instance["type"], good) and economy.free_space(instance, good) > 0)
 	if not found.is_empty():
 		if not _nearest.has(good):
 			_nearest[good] = {}
@@ -91,7 +93,19 @@ func find_storage(start: Vector2i, good: String) -> Dictionary:
 	return found
 
 
-func _search_storage(start: Vector2i, good: String) -> Dictionary:
+## Nearest staffed storage (by road) that holds `good`: {"id", "path"}, or {} (Market buyers).
+func find_source(start: Vector2i, good: String) -> Dictionary:
+	var city = _city.get_ref()
+	if not city.grid.is_road(start):
+		return {}
+	_ensure_index()
+	var economy = city.economy
+	return _search(start, func(instance: Dictionary) -> bool:
+		return economy.accepts(instance["type"], good) and economy.state[instance["id"]]["eff"] > 0.0 			and economy.stock(instance["id"], good) > 0)
+
+
+## Breadth-first walk along the streets from `start` to the first storage `wanted` accepts.
+func _search(start: Vector2i, wanted: Callable) -> Dictionary:
 	var city = _city.get_ref()
 	var grid = city.grid
 	var w: int = grid.width
@@ -107,8 +121,7 @@ func _search_storage(start: Vector2i, good: String) -> Dictionary:
 		@warning_ignore("integer_division")
 		var t := Vector2i(i % w, i / w)
 		for id: int in _storage_at.get(t, []):
-			var instance: Dictionary = city.buildings.get_instance(id)
-			if city.economy.accepts(instance["type"], good) and city.economy.free_space(instance, good) > 0:
+			if wanted.call(city.buildings.get_instance(id)):
 				return {"id": id, "path": _path_to(i, w)}
 		for d in DIRS:
 			var n := t + d

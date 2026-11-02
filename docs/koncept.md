@@ -246,11 +246,25 @@ Najbolje mesto je **Myeongdang**.
   najstariju kuću koja ima mesta. Prazan plac postaje Choga Hut kad stignu.
 - Nivo 1 je donja granica naseljene kuće. Kuća raste kad ima sve potrebe sledećeg nivoa, a pada
   nivo posle 10 dana bez neke potrebe svog nivoa (višak stanovnika odlazi). *predlog*
-- Do Faze 4b: „pirinač" znači da neka Granary sa radnicima ima pirinča; „Seonangdang" znači da je
-  kuća na ulicama do kojih stiže šetač Seonangdang-a sa radnicima.
 - Radnici: 40% stanovnika; zgrade ih dobijaju redom kojim su građene; brzina rada je srazmerna
   broju radnika; skladište bez radnika ne prima robu.
 - Porez: 2 Silver po stanovniku na kraju svakog godišnjeg doba (MVP, bez Tax Office). *predlog*
+
+## Pijaca, službe i ishrana (odluke iz Faze 4b)
+
+- Market drži do 16 tovara pirinča. Kad mu ostane 8 ili manje, šalje **Buyer**-a (šetač sa ciljem,
+  prolazi pored Jangseung-a) u najbližu Granary sa pirinčem i radnicima; donosi do 8 tovara. *predlog*
+- **Vendor** nosi do 4 tovara i puni ostavu svake kuće pored koje prođe. Neprodati celi tovari se
+  vraćaju na pijacu. *predlog*
+- Ishrana: svaki stanovnik pojede jednu porciju dnevno; tovar = 320 porcija, pa jedna njiva sa svim
+  radnicima hrani oko 40 stanovnika. Ostava drži hranu za 30 dana. Potreba „Rice" važi dok ostava
+  nije prazna. *predlog*
+- Šetač Seonangdang-a (shrine keeper): poseta važi 30 dana; isto pravilo važi za buduće službe. *predlog*
+- Lutajući šetači: na raskrsnici biraju ulicu kojom nisu prošli (slučajno, iz jednog seed-a), kod
+  slepe ulice ili Jangseung-a se okreću, posle 30 polja idu kući najkraćim putem i usput više ne
+  služe. Zgrada šalje novog na 5 dana (sporije sa manje radnika), najviše 4 napolju. *predlog*
+- Overlay: F1 voda, F2 hrana, F3 Seonangdang; zgrade blede, kuće dobijaju stubiće (zeleno = ima,
+  crveno = nema). Prozor kuće kaže koliko dana traje ostava i kad je koji šetač poslednji put prošao.
 
 ## Zgrade
 

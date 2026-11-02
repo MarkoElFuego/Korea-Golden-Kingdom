@@ -31,11 +31,12 @@ func _total_stock(c: City, good: String) -> int:
 	return n
 
 
-## Every load ever produced is in a store, on a carrier, or was destroyed by demolish.
+## Every load ever produced is in a store, on a carrier or a buyer, went out with a Market
+## vendor, or was destroyed by demolish.
 func _check_conservation(c: City, label: String) -> void:
 	for good in Goods.ids():
 		var produced: int = c.economy.produced.get(good, 0)
-		var accounted: int = _total_stock(c, good) + c.carriers.carried(good) + c.economy.lost.get(good, 0)
+		var accounted: int = _total_stock(c, good) + c.carriers.carried(good) + c.services.carried(good) 			+ c.economy.sold.get(good, 0) + c.economy.lost.get(good, 0)
 		check_eq(accounted, produced, "%s: %s conserved" % [label, good])
 
 

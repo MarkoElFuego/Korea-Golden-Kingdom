@@ -1,6 +1,6 @@
 extends RefCounted
 ## The whole simulated city, without graphics: map, clock, treasury, buildings, roads,
-## goods, carriers, houses, settlers and the labour pool.
+## goods, carriers, houses, settlers, service walkers and the labour pool.
 ## The view only reads this state and sends the player's commands here.
 ## Every command checks its rules first; when a rule fails nothing changes.
 
@@ -18,6 +18,7 @@ const Goods = preload("res://scripts/data/goods.gd")
 const Labor = preload("res://scripts/sim/labor.gd")
 const Houses = preload("res://scripts/sim/houses.gd")
 const Settlers = preload("res://scripts/sim/settlers.gd")
+const Services = preload("res://scripts/sim/services.gd")
 
 signal treasury_changed(value: int)
 signal building_added(instance: Dictionary)
@@ -37,6 +38,10 @@ var carriers: Carriers
 var labor: Labor
 var houses: Houses
 var settlers: Settlers
+var services: Services
+## The one random generator of the simulation (seeded from the map seed), so the same
+## commands always give the same city.
+var rng := RandomNumberGenerator.new()
 ## Road tile on the map edge where settlers come into the valley (cannot be demolished).
 var entrance: Vector2i
 ## Player commands in order, each [tick, name, args...], for replays and determinism tests.
@@ -45,6 +50,7 @@ var command_log: Array = []
 
 func _init(seed_value: int = Balance.DEFAULT_MAP_SEED) -> void:
 	map_seed = seed_value
+	rng.seed = seed_value
 	var map := MapGenerator.generate_with_entrance(map_seed, Balance.MAP_WIDTH, Balance.MAP_HEIGHT)
 	var terrain: PackedByteArray = map["terrain"]
 	grid = Grid.new(Balance.MAP_WIDTH, Balance.MAP_HEIGHT, terrain)
@@ -60,6 +66,7 @@ func _init(seed_value: int = Balance.DEFAULT_MAP_SEED) -> void:
 	labor = Labor.new()
 	houses = Houses.new(self)
 	settlers = Settlers.new(self)
+	services = Services.new(self)
 	settlers.arrived.connect(_on_settlers_arrived)
 	clock.day_changed.connect(_on_day)
 	clock.season_changed.connect(_on_season)
@@ -71,11 +78,12 @@ func advance(delta: float) -> int:
 	return clock.advance(delta)
 
 
-## One simulation tick: production, carriers, settlers.
+## One simulation tick: production, carriers, settlers, service walkers.
 func _on_tick(_tick: int) -> void:
 	economy.produce_tick()
 	carriers.tick()
 	settlers.tick()
+	services.tick()
 
 
 # --- Buildings ---
@@ -137,6 +145,7 @@ func place_building(type: String, origin: Vector2i, rotation := 0) -> String:
 	economy.add_building(instance)
 	carriers.on_building_added(instance)
 	houses.add_building(instance)
+	services.on_building_added(instance)
 	_change_treasury(-data["cost"])
 	command_log.append([clock.tick, "place", type, origin, rotation])
 	_recompute_labor()
@@ -247,6 +256,7 @@ func demolish(a: Vector2i, b: Vector2i) -> int:
 		else:
 			grid.vacate(instance["origin"], instance["size"])
 		refund += floori(Buildings.get_building(instance["type"])["cost"] * Balance.DEMOLISH_REFUND)
+		services.on_building_removed(instance)
 		carriers.on_building_removed(instance)
 		settlers.on_building_removed(instance)
 		houses.remove_building(instance)
@@ -263,6 +273,7 @@ func demolish(a: Vector2i, b: Vector2i) -> int:
 	if not plan["roads"].is_empty():
 		carriers.on_roads_changed()
 		settlers.on_roads_changed()
+		services.on_roads_changed()
 		roads_changed.emit()
 	return removed
 
@@ -271,6 +282,7 @@ func _on_roads_changed() -> void:
 	network.rebuild(grid)
 	carriers.on_roads_changed()
 	settlers.on_roads_changed()
+	services.on_roads_changed()
 	roads_changed.emit()
 
 
@@ -318,6 +330,8 @@ func status(instance: Dictionary) -> Dictionary:
 			var key := "STATUS_NO_GRANARY" if Goods.kind(p["good"]) == "food" else "STATUS_NO_STOREHOUSE"
 			return {"key": key, "args": []}
 		return {"key": "STATUS_PRODUCING", "args": [roundi(economy.progress(instance) * 100)]}
+	if Services.roamer(instance["type"]) != "" and has_road_access(instance):
+		return services.status(instance)
 	if not Economy.storage(instance["type"]).is_empty():
 		var used := economy.total_stock(instance["id"])
 		var cap := Economy.capacity(instance["type"])
@@ -365,7 +379,7 @@ func _on_season(_season: int) -> void:
 func _recompute_labor() -> void:
 	var before := labor.population
 	labor.recompute(buildings.all(), houses, economy)
-	houses.clear_cache() # staffing changes what Granaries and shrines provide
+	houses.clear_cache()
 	if labor.population != before:
 		population_changed.emit()
 

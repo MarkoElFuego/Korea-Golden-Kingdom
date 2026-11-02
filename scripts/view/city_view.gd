@@ -12,12 +12,14 @@ const Goods = preload("res://scripts/data/goods.gd")
 const ROAD_COLOR := "#cbb994"
 const ROAD_HEIGHT := 0.12
 const WARNING_COLOR := "#b8473a"
+const FADED := 0.75 # building transparency while a service overlay is shown
 
 var city # scripts/sim/city.gd
 var _models := {} # instance id -> Node3D
 var _warnings := {} # instance id -> Label3D
 var _roads: MultiMeshInstance3D
 var _goods_materials := {} # good -> material
+var _faded := false
 
 
 func setup(city_ref) -> void:
@@ -87,6 +89,22 @@ func _on_building_added(instance: Dictionary) -> void:
 	_models[instance["id"]] = model
 	_update_warning(instance)
 	_update_goods(instance["id"])
+	if _faded:
+		_set_transparency(model, FADED)
+
+
+## Fades every building so overlay columns stand out (and brings them back).
+func set_faded(on: bool) -> void:
+	_faded = on
+	for model: Node3D in _models.values():
+		_set_transparency(model, FADED if on else 0.0)
+
+
+static func _set_transparency(node: Node, value: float) -> void:
+	if node is GeometryInstance3D:
+		(node as GeometryInstance3D).transparency = value
+	for child in node.get_children():
+		_set_transparency(child, value)
 
 
 ## Goods shown in the yard: sacks of rice by the Granary, piles in the Storehouse slots,

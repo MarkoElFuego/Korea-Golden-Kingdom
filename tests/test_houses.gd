@@ -1,5 +1,5 @@
 extends "res://tests/test_base.gd"
-## Houses, settlers, the labour pool and the seasonal tax (phase 4a).
+## Houses, settlers, the labour pool and the seasonal tax (phases 4a and 4b).
 
 const Balance = preload("res://scripts/data/balance.gd")
 const Terrain = preload("res://scripts/data/terrain.gd")
@@ -7,6 +7,7 @@ const Grid = preload("res://scripts/sim/grid.gd")
 const City = preload("res://scripts/sim/city.gd")
 const MapGenerator = preload("res://scripts/sim/map_generator.gd")
 const Houses = preload("res://scripts/sim/houses.gd")
+const WalkerMotion = preload("res://scripts/sim/walker_motion.gd")
 
 const ENTRANCE := Vector2i(0, 5)
 
@@ -117,25 +118,50 @@ func test_house_demolished_while_settlers_walk() -> void:
 	check_eq(c.houses.state[_house(c, Vector2i(10, 6))["id"]]["incoming"], 0, "nobody counted twice")
 
 
+func test_road_cut_under_settlers_frees_the_house_for_the_next_group() -> void:
+	var c := _city()
+	c.place_building("common_house", Vector2i(30, 6))
+	_run_days(c, 3)
+	check_eq(c.settlers.count(), 1, "settlers on the way")
+	var at: Vector2i = WalkerMotion.here(c.settlers.all()[0])
+	c.demolish(at, at) # the road under their feet
+	check_eq(c.settlers.count(), 0, "they leave the valley")
+	check_eq(c.houses.state[_house(c, Vector2i(30, 6))["id"]]["incoming"], 0, "the house stops waiting for them")
+	c.build_road(at, at)
+	_run_days(c, 30)
+	check_eq(_residents(c, Vector2i(30, 6)), 6, "the next group moves in")
+
+
 # --- Tiers ---
 
-## A house at (8, 6) with water, rice in a staffed Granary and a Seonangdang on the street.
+## A house at (8, 6) with a Well, a Seonangdang and a Market on a short street
+## (0..19, so every roaming walker passes the house), and rice in a staffed Granary.
 func _comfortable_city() -> City:
 	var c := _city()
+	c.demolish(Vector2i(20, 5), Vector2i(39, 5))
 	c.labor.extra_workers = 50
 	c.place_building("common_house", Vector2i(8, 6))
 	c.place_building("well", Vector2i(10, 6))
-	c.place_building("granary", Vector2i(20, 6))
-	c.economy.add(c.building_at(Vector2i(20, 6))["id"], "rice", 10)
-	c.place_building("seonangdang", Vector2i(14, 6))
+	c.place_building("seonangdang", Vector2i(11, 6))
+	c.place_building("market", Vector2i(12, 6))
+	c.place_building("granary", Vector2i(16, 6))
+	c.economy.add(c.building_at(Vector2i(16, 6))["id"], "rice", 30)
 	return c
+
+
+## Runs day by day until `done` is true (at most `days`). Returns the days it took.
+func _run_until(c: City, done: Callable, days: int) -> int:
+	for d in days:
+		if done.call():
+			return d
+		_run_days(c, 1)
+	return days
 
 
 func test_house_rises_to_choga_house() -> void:
 	var c := _comfortable_city()
-	_run_days(c, 12)
-	var house := _house(c, Vector2i(8, 6))
-	check_eq(house["tier"], 2, "Choga House")
+	var days := _run_until(c, func() -> bool: return _house(c, Vector2i(8, 6))["tier"] == 2, 60)
+	check(days < 60, "Choga House after %d days" % days)
 	_run_days(c, 20)
 	check_eq(_residents(c, Vector2i(8, 6)), 12, "more settlers fill the bigger house")
 
@@ -151,14 +177,14 @@ func test_tier_3_waits_for_jang_and_onggi() -> void:
 
 func test_no_seonangdang_no_choga_house() -> void:
 	var c := _comfortable_city()
-	c.demolish(Vector2i(14, 6), Vector2i(14, 6))
-	_run_days(c, 30)
+	c.demolish(Vector2i(11, 6), Vector2i(11, 6))
+	_run_days(c, 60)
 	check_eq(_house(c, Vector2i(8, 6))["tier"], 1, "stays a Choga Hut")
 
 
 func test_house_drops_a_tier_after_10_days_without_water() -> void:
 	var c := _comfortable_city()
-	_run_days(c, 40)
+	_run_until(c, func() -> bool: return _residents(c, Vector2i(8, 6)) == 12, 80)
 	check_eq(_residents(c, Vector2i(8, 6)), 12, "full Choga House")
 	c.demolish(Vector2i(10, 6), Vector2i(10, 6)) # the Well
 	_run_days(c, Balance.HOUSE_DOWN_DAYS - 1)
@@ -237,7 +263,7 @@ func test_city_with_settlers_replays_the_same() -> void:
 	a.labor.extra_workers = 20
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 11
-	var types: Array[String] = ["common_house", "common_house", "well", "granary", "seonangdang"]
+	var types: Array[String] = ["common_house", "common_house", "well", "granary", "seonangdang", "market"]
 	for i in 120:
 		var t := Vector2i(rng.randi_range(1, 37), rng.randi_range(0, 21))
 		match rng.randi_range(0, 3):
@@ -259,3 +285,4 @@ func test_city_with_settlers_replays_the_same() -> void:
 	check_eq(b.population(), a.population(), "same population")
 	check_eq(b.treasury, a.treasury, "same treasury")
 	check_eq(b.settlers.walkers, a.settlers.walkers, "same settlers on the road")
+	check_eq(b.services.walkers, a.services.walkers, "same vendors, keepers and buyers")

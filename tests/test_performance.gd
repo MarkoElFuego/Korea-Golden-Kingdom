@@ -45,3 +45,47 @@ func test_400_carriers_tick_fast() -> void:
 	var ms := (Time.get_ticks_usec() - start) / 1000.0 / ticks
 	print("        %d buildings, %d carriers: %.2f ms per tick" % [c.buildings.count(), c.carriers.count(), ms])
 	check(ms < TICK_BUDGET_MS, "tick takes %.2f ms (budget %.1f ms)" % [ms, TICK_BUDGET_MS])
+
+
+## A town of houses with Markets and Seonangdangs: hundreds of roaming walkers serving
+## the houses they pass, settlers moving in, buyers fetching rice.
+func test_400_service_walkers_tick_fast() -> void:
+	var c := City.new()
+	c.grid = Grid.new(128, 96)
+	c.treasury = 10000000
+	c.labor.extra_workers = 100000
+	for y in range(0, 96, 4):
+		c.build_road(Vector2i(0, y), Vector2i(127, y))
+	for x in range(0, 128, 16):
+		c.build_road(Vector2i(x, 0), Vector2i(x, 95))
+	c.set_entrance(Vector2i(0, 0))
+	var slot := 0
+	for y in range(1, 96, 4):
+		for x in range(1, 125, 3):
+			slot += 1
+			match slot % 10:
+				0:
+					c.place_building("market", Vector2i(x, y))
+					var id: int = c.building_at(Vector2i(x, y)).get("id", 0)
+					if id != 0:
+						c.economy.add(id, "rice", 8)
+				5:
+					c.place_building("seonangdang", Vector2i(x, y))
+				7:
+					c.place_building("granary", Vector2i(x, y))
+					var id: int = c.building_at(Vector2i(x, y)).get("id", 0)
+					if id != 0:
+						c.economy.add(id, "rice", 32)
+				_:
+					c.place_building("common_house", Vector2i(x, y))
+	for i in 30 * Balance.TICKS_PER_DAY:
+		c.clock.step()
+	check(c.services.count() >= 400, "at least 400 service walkers (%d)" % c.services.count())
+	var ticks := 300
+	var start := Time.get_ticks_usec()
+	for i in ticks:
+		c.clock.step()
+	var ms := (Time.get_ticks_usec() - start) / 1000.0 / ticks
+	print("        %d buildings, %d service walkers, %d settlers: %.2f ms per tick" % [
+		c.buildings.count(), c.services.count(), c.settlers.count(), ms])
+	check(ms < TICK_BUDGET_MS, "tick takes %.2f ms (budget %.1f ms)" % [ms, TICK_BUDGET_MS])

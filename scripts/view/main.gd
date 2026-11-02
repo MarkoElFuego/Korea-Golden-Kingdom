@@ -16,10 +16,15 @@ const SceneSetup = preload("res://scripts/view/scene_setup.gd")
 const UiTheme = preload("res://scripts/view/ui_theme.gd")
 const WalkerView = preload("res://scripts/view/walker_view.gd")
 const InfoPanel = preload("res://scripts/view/info_panel.gd")
+const OverlayView = preload("res://scripts/view/overlay_view.gd")
+
+const OVERLAY_KEYS := {"water": "F1", "food": "F2", "seonangdang": "F3"}
 
 var city: City
 var camera_rig: CameraRig
 var build_tool: BuildTool
+var overlay: OverlayView
+var _overlay_label: Label
 
 
 func _ready() -> void:
@@ -43,6 +48,11 @@ func _ready() -> void:
 	walker_view.name = "Walkers"
 	add_child(walker_view)
 	walker_view.setup(city)
+
+	overlay = OverlayView.new()
+	overlay.name = "Overlay"
+	add_child(overlay)
+	overlay.setup(city, city_view)
 
 	camera_rig = CameraRig.new()
 	camera_rig.name = "CameraRig"
@@ -85,6 +95,37 @@ func _ready() -> void:
 	build_tool.building_selected.connect(info.show_building)
 	build_tool.mode_changed.connect(func(_m: int, _t: String) -> void: info.close_panel())
 
+	_overlay_label = _make_overlay_label()
+	ui_root.add_child(_overlay_label)
+	overlay.changed.connect(_on_overlay_changed)
+
+
+## Paper label under the top bar naming the overlay that is shown.
+func _make_overlay_label() -> Label:
+	var label := Label.new()
+	label.name = "OverlayLabel"
+	label.visible = false
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	label.add_theme_font_size_override("font_size", 20)
+	label.add_theme_color_override("font_color", Color("#3a2e22"))
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color("#ece6d8")
+	style.border_color = Color("#8a5c35")
+	style.set_border_width_all(1)
+	style.border_width_bottom = 3
+	style.set_content_margin_all(10)
+	label.add_theme_stylebox_override("normal", style)
+	label.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	label.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	label.offset_top = 72
+	return label
+
+
+func _on_overlay_changed(mode: String) -> void:
+	_overlay_label.visible = mode != ""
+	if mode != "":
+		_overlay_label.text = tr("UI_OVERLAY_FORMAT") % [tr("OVERLAY_" + mode.to_upper()), OVERLAY_KEYS[mode]]
+
 
 ## Small paper note that follows the cursor while a build tool is active.
 func _make_cursor_note() -> Label:
@@ -115,3 +156,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		city.clock.set_speed(2)
 	elif event.is_action_pressed("game_speed_3", false, true):
 		city.clock.set_speed(3)
+	else:
+		for mode: String in OVERLAY_KEYS:
+			if event.is_action_pressed("overlay_" + mode, false, true):
+				overlay.toggle(mode)
+				get_viewport().set_input_as_handled()

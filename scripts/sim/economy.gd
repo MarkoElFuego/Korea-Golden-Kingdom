@@ -26,6 +26,7 @@ signal stock_changed(id: int)
 var state := {}
 var produced := {} # good -> loads produced since the start
 var lost := {} # good -> loads destroyed with demolished buildings
+var sold := {} # good -> loads Market vendors took out to the houses
 ## Producers with a load waiting and no carrier out: id -> true.
 var waiting := {}
 

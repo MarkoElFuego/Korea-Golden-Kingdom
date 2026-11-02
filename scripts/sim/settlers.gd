@@ -56,7 +56,7 @@ func on_roads_changed() -> void:
 	var city = _city.get_ref()
 	for w in all():
 		if not city.grid.is_road(WalkerMotion.here(w)):
-			walkers.erase(w["id"]) # the road under their feet is gone: they leave the valley
+			_vanish(w) # the road under their feet is gone: they leave the valley
 		elif not WalkerMotion.path_still_open(w, city.grid):
 			if w["state"] == "in":
 				_find_house(w)
@@ -131,6 +131,17 @@ func _find_house(w: Dictionary) -> void:
 		WalkerMotion.follow(w, path)
 		return
 	_leave(w)
+
+
+## Gone from the map. The house they were walking to stops waiting for them, so the next
+## group can fill it.
+func _vanish(w: Dictionary) -> void:
+	var city = _city.get_ref()
+	if w["state"] == "in":
+		var s: Dictionary = city.houses.state.get(w["target"], {})
+		if not s.is_empty():
+			s["incoming"] -= w["people"]
+	walkers.erase(w["id"])
 
 
 func _leave(w: Dictionary) -> void:

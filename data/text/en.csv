@@ -111,3 +111,19 @@ UI_TIP_POPULATION,"People living in the city. Settlers come through the valley e
 UI_TIP_WORKFORCE,"Workers available / workers the buildings need. 40% of residents work."
 ADVICE_CONNECT_ENTRANCE,Connect a road to the valley entrance so settlers can come.
 ENTRANCE_NAME,Valley Entrance
+UI_HOUSE_PANTRY,"Pantry: rice for %d days."
+UI_HOUSE_PANTRY_EMPTY,The pantry is empty.
+UI_HOUSE_VENDOR_PASSED,"Market vendor last passed %d days ago."
+UI_HOUSE_VENDOR_NEVER,No Market vendor walks past this house.
+UI_HOUSE_KEEPER_PASSED,"Shrine keeper last passed %d days ago."
+UI_HOUSE_KEEPER_NEVER,No shrine keeper walks past this house.
+STATUS_BUYER_OUT,The Buyer is fetching rice from a Granary.
+STATUS_VENDORS_OUT,"Vendors on the streets: %d."
+STATUS_NO_RICE_TO_SELL,"No rice to sell: the Buyer finds no Granary with rice and workers by road."
+STATUS_MARKET_READY,A vendor sets out soon.
+STATUS_KEEPER_OUT,"Shrine keepers walking the streets: %d."
+STATUS_KEEPER_RESTS,The shrine keeper sets out soon.
+UI_OVERLAY_FORMAT,"Overlay: %s   (press %s again to close)"
+OVERLAY_WATER,Water
+OVERLAY_FOOD,Food
+OVERLAY_SEONANGDANG,Seonangdang

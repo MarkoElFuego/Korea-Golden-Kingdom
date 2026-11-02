@@ -7,17 +7,17 @@ extends RefCounted
 ## tier after missing a need of its own tier for HOUSE_DOWN_DAYS days. Tier 1 is the floor
 ## for a settled house.
 ##
-## Phase 4a stand-ins until walkers bring services (phase 4b):
-##   food = some staffed Granary holds rice;
-##   seonangdang = the house lies on the streets a staffed Seonangdang's walker can reach.
+## Water comes from a Well within its radius. Food and services come with walkers
+## (services.gd): a Market vendor fills the pantry, which the residents eat from every day;
+## a shrine keeper's visit counts for SERVICE_DAYS days.
 
 const Balance = preload("res://scripts/data/balance.gd")
 const Buildings = preload("res://scripts/data/buildings.gd")
-const Coverage = preload("res://scripts/sim/coverage.gd")
 
 const HOUSE := "common_house"
 
-## id -> {"residents": people, "incoming": people walking here, "missing_days": days}
+## id -> {"residents": people, "incoming": people walking here, "missing_days": days,
+##        "food": portions in the pantry, "visits": {service: tick of the last walker}}
 var state := {}
 var _city: WeakRef
 var _cache := {} # coverage maps, built at most once per day (cleared in daily())
@@ -29,7 +29,7 @@ func _init(city) -> void:
 
 func add_building(instance: Dictionary) -> void:
 	if instance["type"] == HOUSE:
-		state[instance["id"]] = {"residents": 0, "incoming": 0, "missing_days": 0}
+		state[instance["id"]] = {"residents": 0, "incoming": 0, "missing_days": 0, "food": 0, "visits": {}}
 
 
 func remove_building(instance: Dictionary) -> void:
@@ -80,17 +80,52 @@ func is_met(instance: Dictionary, need: String) -> bool:
 		"water":
 			return _covered(instance, _water_tiles())
 		"food":
-			return _granary_has_rice()
+			return state[instance["id"]]["food"] > 0
 		"seonangdang":
-			return _covered(instance, _shrine_tiles())
+			var since := days_since(instance["id"], "seonangdang")
+			return since >= 0 and since < Balance.SERVICE_DAYS
 	return false # goods that do not exist yet (Jang, Onggi Jars)
 
 
-## Once a day: rise, fall, or stay.
+## Portions the pantry holds when full (PANTRY_DAYS for the house's people at its tier).
+static func pantry_size(tier: int) -> int:
+	return 0 if tier == 0 else capacity(tier) * Balance.PANTRY_DAYS
+
+
+## A vendor offers `portions`; returns how many the pantry took.
+func give_food(id: int, portions: int) -> int:
+	var tier: int = _city.get_ref().buildings.get_instance(id)["tier"]
+	var s: Dictionary = state[id]
+	var n := clampi(pantry_size(tier) - s["food"], 0, portions)
+	s["food"] += n
+	return n
+
+
+## Days the pantry lasts at the current number of residents.
+func pantry_days(id: int) -> int:
+	var s: Dictionary = state[id]
+	return 0 if s["residents"] == 0 else floori(s["food"] / float(s["residents"]))
+
+
+func visit(id: int, service: String, tick: int) -> void:
+	state[id]["visits"][service] = tick
+
+
+## Whole days since a walker of `service` last passed, or -1 when none ever has.
+func days_since(id: int, service: String) -> int:
+	var visits: Dictionary = state[id]["visits"]
+	if not visits.has(service):
+		return -1
+	return floori((_city.get_ref().clock.tick - visits[service]) / float(Balance.TICKS_PER_DAY))
+
+
+## Once a day: everyone eats from the pantry, then each house rises, falls, or stays.
 func daily() -> Array[Dictionary]:
 	var changed: Array[Dictionary] = []
 	_cache.clear()
 	var city = _city.get_ref()
+	for s: Dictionary in state.values():
+		s["food"] = maxi(0, s["food"] - s["residents"])
 	for id: int in state:
 		var instance: Dictionary = city.buildings.get_instance(id)
 		var tier: int = instance["tier"]
@@ -133,8 +168,6 @@ func _covered(instance: Dictionary, tiles: Dictionary) -> bool:
 	return false
 
 
-
-
 func clear_cache() -> void:
 	_cache.clear()
 
@@ -148,27 +181,3 @@ func _water_tiles() -> Dictionary:
 				tiles.merge(city.coverage_preview("well", instance["origin"], instance["rotation"]))
 		_cache["water"] = tiles
 	return _cache["water"]
-
-
-func _shrine_tiles() -> Dictionary:
-	if not _cache.has("shrine"):
-		var city = _city.get_ref()
-		var tiles := {}
-		for instance: Dictionary in city.buildings.all():
-			if instance["type"] == "seonangdang" and city.economy.state[instance["id"]]["eff"] > 0.0:
-				tiles.merge(Coverage.walker_tiles(city.grid, instance["origin"], instance["size"]))
-		_cache["shrine"] = tiles
-	return _cache["shrine"]
-
-
-func _granary_has_rice() -> bool:
-	if not _cache.has("food"):
-		var city = _city.get_ref()
-		var found := false
-		for instance: Dictionary in city.buildings.all():
-			if instance["type"] == "granary" and city.economy.state[instance["id"]]["eff"] > 0.0 \
-					and city.economy.stock(instance["id"], "rice") > 0:
-				found = true
-				break
-		_cache["food"] = found
-	return _cache["food"]

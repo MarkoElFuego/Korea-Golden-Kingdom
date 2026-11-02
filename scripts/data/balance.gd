@@ -29,6 +29,12 @@ const CARRIER_SPEED := 1.5 # tiles per second at 1x (one load on the jige)
 const CARRIER_RETRY_TICKS := 10 # a building with no storage in reach asks again after this long
 const WALKER_MAX_ROAD_TILES := 30 # a roaming walker turns back after this many road tiles
 const WALKER_SERVICE_RANGE := 2 # tiles from the road a walker serves
+const ROAMER_SPEED := 1.5 # tiles per second at 1x (Market vendor, shrine keeper)
+const ROAMER_INTERVAL_DAYS := 5 # a service building sends a roaming walker this often (full staff)
+const ROAMER_MAX_OUT := 4 # roaming walkers one building may have out at once
+const BUYER_SPEED := 1.5 # tiles per second at 1x
+const BUYER_RETRY_TICKS := 10 # a Market that found no rice asks again after this long
+const SERVICE_DAYS := 30 # a walker's visit counts this many days (Seonangdang)
 
 # --- People ---
 const HUMAN_HEIGHT := 1.7 # meters
@@ -38,6 +44,8 @@ const HOUSE_DOWN_DAYS := 10 # days a house may miss a need before it drops a tie
 const SETTLER_GROUP := 6 # people one settler walker brings at most
 const SETTLER_INTERVAL_TICKS := 20 # a new group leaves the entrance at most this often
 const SETTLER_SPEED := 1.5 # tiles per second at 1x
+const FOOD_PORTIONS_PER_LOAD := 320 # one resident eats one portion a day: a load feeds 40 for 8 days
+const PANTRY_DAYS := 30 # a full house pantry feeds the house this many days
 
 # --- Models (docs/art-bible.md) ---
 const MAX_EAVE_OVERHANG := 0.6 # meters past the footprint edge

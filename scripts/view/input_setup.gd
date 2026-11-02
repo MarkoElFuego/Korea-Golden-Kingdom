@@ -16,6 +16,9 @@ const ACTIONS := {
 	"tool_demolish": [KEY_X, KEY_DELETE],
 	"tool_rotate": [KEY_R],
 	"tool_cancel": [KEY_ESCAPE],
+	"overlay_water": [KEY_F1],
+	"overlay_food": [KEY_F2],
+	"overlay_seonangdang": [KEY_F3],
 }
 
 
