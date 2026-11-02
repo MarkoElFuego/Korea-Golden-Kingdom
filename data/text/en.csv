@@ -90,3 +90,24 @@ STATUS_STORAGE_FULL,"Full: %d of %d loads. Build another storage."
 UI_STOCK_LINE,%s: %d
 UI_STOCK_EMPTY,Nothing stored.
 UI_PANEL_CLOSE_TIP,Close (Esc)
+FLAVOR_CHOGA_HUT,"Straw roof, mud walls, and a jar of rice by the door."
+FLAVOR_CHOGA_HOUSE,"Two rooms, one fire, and a little shrine for luck."
+FLAVOR_GIWA_HOUSE,The first tiles on the street. The neighbors noticed.
+NEED_ROAD,Road
+NEED_WATER,Water from a Well
+NEED_FOOD,Rice
+NEED_SEONANGDANG,Seonangdang
+NEED_JANG,Jang
+NEED_ONGGI_JARS,Onggi Jars
+NEED_NOT_YET,(not in the valley yet)
+UI_HOUSE_RESIDENTS,"Residents: %d of %d"
+UI_HOUSE_NEXT_TIER,"To become %s:"
+UI_HOUSE_KEEP_TIER,"Missing, the house will drop a level in %d days:"
+UI_HOUSE_TOP_TIER,This is the highest level for now.
+UI_WORKERS_LINE,"Workers: %d of %d"
+UI_POPULATION_FORMAT,"Population %s"
+UI_WORKFORCE_FORMAT,"Workers %d / %d"
+UI_TIP_POPULATION,"People living in the city. Settlers come through the valley entrance when houses have room."
+UI_TIP_WORKFORCE,"Workers available / workers the buildings need. 40% of residents work."
+ADVICE_CONNECT_ENTRANCE,Connect a road to the valley entrance so settlers can come.
+ENTRANCE_NAME,Valley Entrance

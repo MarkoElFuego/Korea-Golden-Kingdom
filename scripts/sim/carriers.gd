@@ -12,6 +12,7 @@ extends RefCounted
 
 const Balance = preload("res://scripts/data/balance.gd")
 const Coverage = preload("res://scripts/sim/coverage.gd")
+const WalkerMotion = preload("res://scripts/sim/walker_motion.gd")
 
 const NO_TILE := Vector2i(-1, -1)
 const DIRS: Array[Vector2i] = [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]
@@ -61,12 +62,7 @@ func tick() -> void:
 	for w in all():
 		if not walkers.has(w["id"]):
 			continue
-		w["progress"] += step
-		while w["progress"] >= 1.0 and w["index"] < w["path"].size() - 1:
-			w["index"] += 1
-			w["progress"] -= 1.0
-		if w["index"] >= w["path"].size() - 1:
-			w["progress"] = 0.0
+		if WalkerMotion.advance(w, step):
 			_arrive(w)
 
 
@@ -193,12 +189,7 @@ func on_roads_changed() -> void:
 		if not city.grid.is_road(here):
 			_give_up(w) # the road under its feet is gone
 			continue
-		var still_ok := true
-		for i in range(w["index"], w["path"].size()):
-			if not city.grid.is_road(w["path"][i]):
-				still_ok = false
-				break
-		if still_ok:
+		if WalkerMotion.path_still_open(w, city.grid):
 			continue
 		if w["state"] == "deliver":
 			city.economy.reserve(w["target"], w["cargo"], -1)
@@ -268,7 +259,7 @@ func _retarget(w: Dictionary) -> void:
 	city.economy.reserve(target["id"], w["cargo"], 1)
 	w["target"] = target["id"]
 	w["state"] = "deliver"
-	_set_path(w, target["path"])
+	WalkerMotion.follow(w, target["path"])
 
 
 func _go_home(w: Dictionary) -> void:
@@ -285,7 +276,7 @@ func _go_home(w: Dictionary) -> void:
 	if path.is_empty():
 		_give_up(w)
 		return
-	_set_path(w, path)
+	WalkerMotion.follow(w, path)
 
 
 ## The carrier cannot walk on: it leaves the map and its load goes back to its building
@@ -301,9 +292,3 @@ func _give_up(w: Dictionary) -> void:
 	elif w["cargo"] != "":
 		city.economy.lost[w["cargo"]] = city.economy.lost.get(w["cargo"], 0) + 1
 	walkers.erase(w["id"])
-
-
-func _set_path(w: Dictionary, path: Array[Vector2i]) -> void:
-	w["path"] = path
-	w["index"] = 0
-	w["progress"] = 0.0

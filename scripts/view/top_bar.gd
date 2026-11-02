@@ -1,5 +1,6 @@
 extends PanelContainer
-## Top bar: date, game speed and treasury. Reads the city; speed buttons call the clock.
+## Top bar: date, advisor note, game speed, population, workers and treasury.
+## Reads the city; speed buttons call the clock.
 ## Calm hanji paper and wood look (no glossy buttons).
 
 const Balance = preload("res://scripts/data/balance.gd")
@@ -13,12 +14,16 @@ const ACCENT := Color("#b8473a") # dancheong red, only for the active speed
 var city # scripts/sim/city.gd
 var _date_label: Label
 var _treasury_label: Label
+var _advice_label: Label
+var _population_label: Label
+var _workers_label: Label
 var _speed_buttons := {} # 0 = pause, 1..3 = speeds
 
 
 func setup(city_ref) -> void:
 	city = city_ref
-	city.clock.day_changed.connect(func(_d: int) -> void: _refresh_date())
+	city.clock.day_changed.connect(func(_d: int) -> void: refresh())
+	city.population_changed.connect(_refresh_people)
 	city.clock.speed_changed.connect(func(_s: int, _p: bool) -> void: _refresh_speed())
 	city.treasury_changed.connect(func(_v: int) -> void: _refresh_treasury())
 	refresh()
@@ -35,9 +40,13 @@ func _ready() -> void:
 	_date_label.custom_minimum_size.x = 320
 	row.add_child(_date_label)
 
-	var spacer := Control.new()
-	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(spacer)
+	# Advisor note in the free space; empty when all is well.
+	_advice_label = _label("")
+	_advice_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_advice_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_advice_label.add_theme_color_override("font_color", ACCENT)
+	_advice_label.add_theme_font_size_override("font_size", 18)
+	row.add_child(_advice_label)
 
 	var speeds := HBoxContainer.new()
 	speeds.add_theme_constant_override("separation", 4)
@@ -52,6 +61,10 @@ func _ready() -> void:
 	spacer2.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(spacer2)
 
+	_population_label = _label(tr("UI_TIP_POPULATION"))
+	row.add_child(_population_label)
+	_workers_label = _label(tr("UI_TIP_WORKFORCE"))
+	row.add_child(_workers_label)
 	_treasury_label = _label(tr("UI_TIP_TREASURY"))
 	_treasury_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_treasury_label.custom_minimum_size.x = 240
@@ -62,6 +75,7 @@ func refresh() -> void:
 	_refresh_date()
 	_refresh_speed()
 	_refresh_treasury()
+	_refresh_people()
 
 
 func _refresh_date() -> void:
@@ -75,6 +89,12 @@ func _refresh_speed() -> void:
 		var active: bool = c.paused if key == 0 else (not c.paused and c.speed == key)
 		var button: Button = _speed_buttons[key]
 		button.set_pressed_no_signal(active)
+
+
+func _refresh_people() -> void:
+	_population_label.text = tr("UI_POPULATION_FORMAT") % _thousands(city.population())
+	_workers_label.text = tr("UI_WORKFORCE_FORMAT") % [city.labor.workforce, city.labor.needed]
+	_advice_label.text = "" if city.settlers.entrance_connected else tr("ADVICE_CONNECT_ENTRANCE")
 
 
 func _refresh_treasury() -> void:

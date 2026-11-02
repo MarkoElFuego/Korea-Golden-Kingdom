@@ -32,6 +32,12 @@ const WALKER_SERVICE_RANGE := 2 # tiles from the road a walker serves
 
 # --- People ---
 const HUMAN_HEIGHT := 1.7 # meters
+const WORKER_SHARE := 0.4 # share of residents who work (common labour pool)
+const TAX_PER_RESIDENT := 2 # Silver per resident at the end of every season (MVP, no Tax Office)
+const HOUSE_DOWN_DAYS := 10 # days a house may miss a need before it drops a tier
+const SETTLER_GROUP := 6 # people one settler walker brings at most
+const SETTLER_INTERVAL_TICKS := 20 # a new group leaves the entrance at most this often
+const SETTLER_SPEED := 1.5 # tiles per second at 1x
 
 # --- Models (docs/art-bible.md) ---
 const MAX_EAVE_OVERHANG := 0.6 # meters past the footprint edge

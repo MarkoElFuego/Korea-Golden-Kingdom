@@ -238,6 +238,20 @@ Najbolje mesto je **Myeongdang**.
 - Soybean Field i Salt Pans ne proizvode do Faze 7 (Jangdokdae); prozor zgrade to kaže.
 - Prozor zgrade (klik na zgradu) pokazuje zalihu i jednu rečenicu o stanju ili o tome šta fali.
 
+## Kuće, doseljenici i radnici (odluke iz Faze 4a)
+
+- Ulaz u dolinu je polje puta na zapadnoj ivici mape, gde stari put prolazi kroz greben White
+  Tiger (generator seče prolaz kroz šumu). Ne može se srušiti; pored njega stoji kameni putokaz.
+- Doseljenici (šetači sa ciljem, sa zavežljajem) dolaze kroz ulaz, najviše 6 u grupi, i idu u
+  najstariju kuću koja ima mesta. Prazan plac postaje Choga Hut kad stignu.
+- Nivo 1 je donja granica naseljene kuće. Kuća raste kad ima sve potrebe sledećeg nivoa, a pada
+  nivo posle 10 dana bez neke potrebe svog nivoa (višak stanovnika odlazi). *predlog*
+- Do Faze 4b: „pirinač" znači da neka Granary sa radnicima ima pirinča; „Seonangdang" znači da je
+  kuća na ulicama do kojih stiže šetač Seonangdang-a sa radnicima.
+- Radnici: 40% stanovnika; zgrade ih dobijaju redom kojim su građene; brzina rada je srazmerna
+  broju radnika; skladište bez radnika ne prima robu.
+- Porez: 2 Silver po stanovniku na kraju svakog godišnjeg doba (MVP, bez Tax Office). *predlog*
+
 ## Zgrade
 
 Footprint je u poljima (4 m). Cena u Silver i radnici su *predlog* za MVP zgrade; ostalo se

@@ -16,6 +16,7 @@ func test_400_carriers_tick_fast() -> void:
 	c.grid = Grid.new(128, 96)
 	c.grid.terrain.fill(Terrain.FERTILE_PLAIN)
 	c.treasury = 10000000
+	c.labor.extra_workers = 100000
 	# Streets every 4 rows, one north-south avenue every 32 columns.
 	for y in range(0, 96, 4):
 		c.build_road(Vector2i(0, y), Vector2i(127, y))

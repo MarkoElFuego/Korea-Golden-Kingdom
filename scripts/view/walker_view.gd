@@ -1,6 +1,7 @@
 extends Node3D
-## Draws the carriers: body (capsule, 1.7 m), jige (wooden A-frame on the back) and the
-## load on it, colored by good. Three MultiMeshes, so hundreds of walkers stay cheap.
+## Draws the walkers. Carriers: body (capsule, 1.7 m), jige (wooden A-frame on the back)
+## and the load on it, colored by good. Settlers: travel clothes and a cloth bundle (bojagi).
+## Three MultiMeshes, so hundreds of walkers stay cheap.
 ## Positions are smoothed between simulation ticks; only reads the city.
 
 const Balance = preload("res://scripts/data/balance.gd")
@@ -9,6 +10,8 @@ const Grid = preload("res://scripts/sim/grid.gd")
 
 const BODY_COLOR := "#ece6d8" # white hemp clothes
 const JIGE_COLOR := "#8a5c35"
+const SETTLER_COLOR := "#a88a52" # dusty travel clothes
+const BUNDLE_COLOR := "#3f8f7a" # bojagi wrapping cloth
 const SIDE_OFFSET := 0.6 # meters to the right of the road center, so two-way traffic passes
 
 var city # scripts/sim/city.gd
@@ -53,31 +56,40 @@ func _layer(layer_name: String, mesh: Mesh) -> MultiMeshInstance3D:
 func _process(_delta: float) -> void:
 	if city == null:
 		return
-	var walkers: Array[Dictionary] = city.carriers.all()
-	var count := walkers.size()
-	var loaded := 0
-	for w in walkers:
+	var carriers: Array[Dictionary] = city.carriers.all()
+	var settlers: Array[Dictionary] = city.settlers.all()
+	var loaded := settlers.size() # every settler carries a bundle
+	for w in carriers:
 		if w["cargo"] != "":
 			loaded += 1
-	_body.multimesh.instance_count = count
-	_jige.multimesh.instance_count = count
+	_body.multimesh.instance_count = carriers.size() + settlers.size()
+	_jige.multimesh.instance_count = carriers.size()
 	_load.multimesh.instance_count = loaded
-	var step := Balance.CARRIER_SPEED / Balance.TICKS_PER_SECOND
-	var ahead: float = city.clock.tick_fraction() * step
-	var body_color := Color(BODY_COLOR)
-	var jige_color := Color(JIGE_COLOR)
+	var fraction: float = city.clock.tick_fraction()
+	var carrier_ahead := fraction * Balance.CARRIER_SPEED / Balance.TICKS_PER_SECOND
+	var settler_ahead := fraction * Balance.SETTLER_SPEED / Balance.TICKS_PER_SECOND
 	var li := 0
-	for i in count:
-		var w := walkers[i]
-		var frame := _walker_frame(w, ahead)
+	for i in carriers.size():
+		var w := carriers[i]
+		var frame := _walker_frame(w, carrier_ahead)
 		_body.multimesh.set_instance_transform(i, frame.translated_local(Vector3(0, Balance.HUMAN_HEIGHT * 0.5, 0)))
-		_body.multimesh.set_instance_color(i, body_color)
+		_body.multimesh.set_instance_color(i, Color(BODY_COLOR))
 		_jige.multimesh.set_instance_transform(i, frame.translated_local(Vector3(0, 1.0, 0.3)))
-		_jige.multimesh.set_instance_color(i, jige_color)
+		_jige.multimesh.set_instance_color(i, Color(JIGE_COLOR))
 		if w["cargo"] != "":
 			_load.multimesh.set_instance_transform(li, frame.translated_local(Vector3(0, 1.45, 0.55)))
 			_load.multimesh.set_instance_color(li, Color(Goods.GOODS[w["cargo"]]["color"]))
 			li += 1
+	# Settlers: travel clothes and a big cloth bundle on the back.
+	for k in settlers.size():
+		var frame := _walker_frame(settlers[k], settler_ahead)
+		var i := carriers.size() + k
+		_body.multimesh.set_instance_transform(i, frame.translated_local(Vector3(0, Balance.HUMAN_HEIGHT * 0.5, 0)))
+		_body.multimesh.set_instance_color(i, Color(SETTLER_COLOR))
+		var bundle := frame.translated_local(Vector3(0, 1.2, 0.35)).scaled_local(Vector3(1.3, 1.3, 1.3))
+		_load.multimesh.set_instance_transform(li, bundle)
+		_load.multimesh.set_instance_color(li, Color(BUNDLE_COLOR))
+		li += 1
 
 
 ## Where the walker stands and which way it faces (local -Z = walking direction,

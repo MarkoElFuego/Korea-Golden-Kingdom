@@ -14,6 +14,7 @@ func _city() -> City:
 	c.grid = Grid.new(40, 20)
 	c.grid.terrain.fill(Terrain.FERTILE_PLAIN)
 	c.treasury = 100000
+	c.labor.extra_workers = 100000 # these tests are about carriers, not about staffing
 	c.build_road(Vector2i(0, 5), Vector2i(39, 5))
 	return c
 
@@ -185,6 +186,7 @@ func test_producer_demolished_while_carrier_is_out() -> void:
 func test_long_random_city_conserves_goods_and_replays() -> void:
 	var a := City.new(Balance.DEFAULT_MAP_SEED)
 	a.treasury = 100000
+	a.labor.extra_workers = 100000
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 7
 	var types: Array[String] = ["rice_paddy", "granary", "storehouse", "woodcutter", "clay_pit", "market", "common_house"]
@@ -209,6 +211,7 @@ func test_long_random_city_conserves_goods_and_replays() -> void:
 	_check_conservation(a, "random city")
 	var b := City.new(Balance.DEFAULT_MAP_SEED)
 	b.treasury = 100000
+	b.labor.extra_workers = 100000
 	b.replay(a.command_log, a.clock.tick)
 	check_eq(b.economy.produced, a.economy.produced, "replay: same production")
 	check_eq(b.economy.state, a.economy.state, "replay: same stores")

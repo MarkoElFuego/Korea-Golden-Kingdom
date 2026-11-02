@@ -4,6 +4,8 @@ extends PanelContainer
 
 const Buildings = preload("res://scripts/data/buildings.gd")
 const Goods = preload("res://scripts/data/goods.gd")
+const Balance = preload("res://scripts/data/balance.gd")
+const Houses = preload("res://scripts/sim/houses.gd")
 
 const PAPER := Color("#ece6d8")
 const WOOD := Color("#8a5c35")
@@ -17,6 +19,8 @@ var _title: Label
 var _subtitle: Label
 var _stock: Label
 var _status: Label
+var _workers: Label
+var _house: RichTextLabel # residents, flavor line and needs with ✓ / ✗
 
 
 func _ready() -> void:
@@ -57,6 +61,17 @@ func _ready() -> void:
 	_subtitle.modulate = Color(1, 1, 1, 0.75)
 	box.add_child(_subtitle)
 	box.add_child(HSeparator.new())
+	_workers = _label(18)
+	box.add_child(_workers)
+	_house = RichTextLabel.new()
+	_house.bbcode_enabled = true
+	_house.fit_content = true
+	_house.scroll_active = false
+	_house.custom_minimum_size.x = 348
+	_house.add_theme_color_override("default_color", INK)
+	_house.add_theme_font_size_override("normal_font_size", 18)
+	_house.add_theme_font_size_override("italics_font_size", 17)
+	box.add_child(_house)
 	_stock = _label(18)
 	box.add_child(_stock)
 	_status = _label(18)
@@ -107,6 +122,14 @@ func _refresh() -> void:
 	goods.sort()
 	for good: String in goods:
 		lines.append(tr("UI_STOCK_LINE") % [tr(Goods.GOODS[good]["name_key"]), stock[good]])
+	var want: int = data["workers"]
+	_workers.visible = want > 0
+	if want > 0:
+		_workers.text = tr("UI_WORKERS_LINE") % [city.labor.assigned.get(building_id, 0), want]
+		_workers.add_theme_color_override("font_color", ACCENT if city.labor.assigned.get(building_id, 0) < want else INK)
+	_house.visible = data.has("tiers") and instance["tier"] > 0
+	if _house.visible:
+		_house.text = _house_text(instance)
 	var keeps_goods: bool = data.has("storage") or data.has("produces")
 	_stock.visible = keeps_goods
 	_stock.text = "\n".join(lines) if not lines.is_empty() else tr("UI_STOCK_EMPTY")
@@ -128,3 +151,37 @@ func _label(font_size: int) -> Label:
 	l.add_theme_font_size_override("font_size", font_size)
 	l.add_theme_color_override("font_color", INK)
 	return l
+
+
+## Residents, the flavor line, and every need for the next tier with ✓ or ✗
+## (CLAUDE.md: the house window says exactly what is missing).
+func _house_text(instance: Dictionary) -> String:
+	var tier: int = instance["tier"]
+	var s: Dictionary = city.houses.state[instance["id"]]
+	var lines: Array[String] = []
+	lines.append(tr("UI_HOUSE_RESIDENTS") % [s["residents"], Houses.capacity(tier)])
+	lines.append("[i]%s[/i]" % tr(Houses.tier_data(tier)["flavor_key"]))
+	# Needs of its own tier that are missing: the house is about to drop.
+	if tier > 1 and s["missing_days"] > 0:
+		lines.append("")
+		lines.append("[color=%s]%s[/color]" % [ACCENT.to_html(false), tr("UI_HOUSE_KEEP_TIER") % (Balance.HOUSE_DOWN_DAYS - s["missing_days"])])
+		for need in Houses.needs_for(tier):
+			if not city.houses.is_met(instance, need):
+				lines.append(_need_line(instance, need))
+	lines.append("")
+	if tier >= Houses.max_tier():
+		lines.append(tr("UI_HOUSE_TOP_TIER"))
+		return "\n".join(lines)
+	lines.append(tr("UI_HOUSE_NEXT_TIER") % tr(Houses.tier_data(tier + 1)["name_key"]))
+	for need in Houses.needs_for(tier + 1):
+		lines.append(_need_line(instance, need))
+	return "\n".join(lines)
+
+
+func _need_line(instance: Dictionary, need: String) -> String:
+	var text := tr("NEED_" + need.to_upper())
+	if need in ["jang", "onggi_jars"]:
+		text += " " + tr("NEED_NOT_YET")
+	if city.houses.is_met(instance, need):
+		return "[color=#55703a]✓[/color] " + text
+	return "[color=%s]✗ %s[/color]" % [ACCENT.to_html(false), text]

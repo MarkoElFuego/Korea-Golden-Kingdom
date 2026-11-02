@@ -34,9 +34,49 @@ func setup(city_ref) -> void:
 	city.building_removed.connect(_on_building_removed)
 	city.roads_changed.connect(_rebuild_roads)
 	city.economy.stock_changed.connect(_update_goods)
+	city.house_changed.connect(_on_house_changed)
 	for instance in city.buildings.all():
 		_on_building_added(instance)
 	_rebuild_roads()
+	_add_entrance_marker()
+
+
+## A house rose or fell a tier (or a lot got its first settlers): swap the model.
+func _on_house_changed(instance: Dictionary) -> void:
+	var id: int = instance["id"]
+	if not _models.has(id):
+		return
+	_models[id].queue_free()
+	_models.erase(id)
+	_on_building_added(instance)
+
+
+## Granite way-marker with a red cap beside the valley entrance, so the player sees
+## where settlers come in.
+func _add_entrance_marker() -> void:
+	var marker := Node3D.new()
+	marker.name = "EntranceMarker"
+	var stone := MeshInstance3D.new()
+	var box := BoxMesh.new()
+	box.size = Vector3(0.6, 2.4, 0.6)
+	stone.mesh = box
+	stone.position = Vector3(0, 1.2, 0)
+	var granite := StandardMaterial3D.new()
+	granite.albedo_color = Color("#bdb8ad")
+	stone.material_override = granite
+	marker.add_child(stone)
+	var cap := MeshInstance3D.new()
+	var cap_mesh := BoxMesh.new()
+	cap_mesh.size = Vector3(0.75, 0.3, 0.75)
+	cap.mesh = cap_mesh
+	cap.position = Vector3(0, 2.55, 0)
+	var red := StandardMaterial3D.new()
+	red.albedo_color = Color(WARNING_COLOR)
+	cap.material_override = red
+	marker.add_child(cap)
+	# North-west corner of the entrance tile, off the walking line.
+	marker.position = Grid.tile_to_world(city.entrance) + Vector3(-1.4, 0, -1.4)
+	add_child(marker)
 
 
 func _on_building_added(instance: Dictionary) -> void:

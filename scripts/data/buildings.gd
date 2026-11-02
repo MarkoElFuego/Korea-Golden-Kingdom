@@ -13,6 +13,8 @@ extends RefCounted
 ## on_road (optional): stands on an existing road tile, which stays a road
 ##   (Jangseung: turns back roaming walkers, lets destination walkers pass).
 ## hint_key (optional): one line for the build menu tooltip.
+## tiers (houses): residents = people at that tier; needs = what that tier adds (each tier
+##   keeps the needs below it, docs/koncept.md "Stanovanje", MVP simplification).
 ## produces (optional): {"good": id, "days": n} one load every n days into its small store.
 ##   Phase 3: fixed rate, no workers yet (proposal; phase 6 adds workers and chains).
 ## produces_later (optional): produces only once fermentation exists (phase 7).
@@ -40,9 +42,12 @@ const MVP_BUILDINGS: Array[Dictionary] = [
 	{"id": "common_house", "name_key": "BUILDING_COMMON_HOUSE", "korean": "minga", "category": "housing",
 		"footprint": Vector2i(2, 2), "height_class": "low", "cost": 10, "workers": 0, "roof": "thatch", "terrain": [],
 		"tiers": [
-			{"tier": 1, "name_key": "HOUSE_CHOGA_HUT", "height_class": "low", "roof": "thatch", "model": "common_tier1"},
-			{"tier": 2, "name_key": "HOUSE_CHOGA_HOUSE", "height_class": "low", "roof": "thatch", "model": "common_tier2"},
-			{"tier": 3, "name_key": "HOUSE_GIWA_HOUSE", "height_class": "medium", "roof": "giwa", "model": "common_tier3"},
+			{"tier": 1, "name_key": "HOUSE_CHOGA_HUT", "height_class": "low", "roof": "thatch", "model": "common_tier1",
+				"residents": 6, "needs": ["road", "water", "food"], "flavor_key": "FLAVOR_CHOGA_HUT"},
+			{"tier": 2, "name_key": "HOUSE_CHOGA_HOUSE", "height_class": "low", "roof": "thatch", "model": "common_tier2",
+				"residents": 12, "needs": ["seonangdang"], "flavor_key": "FLAVOR_CHOGA_HOUSE"},
+			{"tier": 3, "name_key": "HOUSE_GIWA_HOUSE", "height_class": "medium", "roof": "giwa", "model": "common_tier3",
+				"residents": 20, "needs": ["jang", "onggi_jars"], "flavor_key": "FLAVOR_GIWA_HOUSE"},
 		]},
 	{"id": "well", "name_key": "BUILDING_WELL", "korean": "umul", "category": "infrastructure",
 		"footprint": Vector2i(1, 1), "height_class": "low", "cost": 15, "workers": 0, "roof": "giwa", "terrain": [],

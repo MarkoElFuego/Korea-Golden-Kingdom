@@ -1,6 +1,6 @@
 extends RefCounted
 ## The whole simulated city, without graphics: map, clock, treasury, buildings, roads,
-## goods and carriers.
+## goods, carriers, houses, settlers and the labour pool.
 ## The view only reads this state and sends the player's commands here.
 ## Every command checks its rules first; when a rule fails nothing changes.
 
@@ -15,11 +15,16 @@ const RoadNetwork = preload("res://scripts/sim/road_network.gd")
 const Economy = preload("res://scripts/sim/economy.gd")
 const Carriers = preload("res://scripts/sim/carriers.gd")
 const Goods = preload("res://scripts/data/goods.gd")
+const Labor = preload("res://scripts/sim/labor.gd")
+const Houses = preload("res://scripts/sim/houses.gd")
+const Settlers = preload("res://scripts/sim/settlers.gd")
 
 signal treasury_changed(value: int)
 signal building_added(instance: Dictionary)
 signal building_removed(instance: Dictionary)
 signal roads_changed()
+signal house_changed(instance: Dictionary) # tier or residents changed
+signal population_changed()
 
 var map_seed: int
 var grid: Grid
@@ -29,21 +34,35 @@ var buildings: BuildingRegistry
 var network: RoadNetwork
 var economy: Economy
 var carriers: Carriers
+var labor: Labor
+var houses: Houses
+var settlers: Settlers
+## Road tile on the map edge where settlers come into the valley (cannot be demolished).
+var entrance: Vector2i
 ## Player commands in order, each [tick, name, args...], for replays and determinism tests.
 var command_log: Array = []
 
 
 func _init(seed_value: int = Balance.DEFAULT_MAP_SEED) -> void:
 	map_seed = seed_value
-	var terrain := MapGenerator.generate(map_seed, Balance.MAP_WIDTH, Balance.MAP_HEIGHT)
+	var map := MapGenerator.generate_with_entrance(map_seed, Balance.MAP_WIDTH, Balance.MAP_HEIGHT)
+	var terrain: PackedByteArray = map["terrain"]
 	grid = Grid.new(Balance.MAP_WIDTH, Balance.MAP_HEIGHT, terrain)
 	clock = SimClock.new()
 	treasury = Balance.START_TREASURY
 	buildings = BuildingRegistry.new()
+	entrance = map["entrance"]
+	grid.set_road(entrance)
 	network = RoadNetwork.new()
 	network.rebuild(grid)
 	economy = Economy.new(clock)
 	carriers = Carriers.new(self)
+	labor = Labor.new()
+	houses = Houses.new(self)
+	settlers = Settlers.new(self)
+	settlers.arrived.connect(_on_settlers_arrived)
+	clock.day_changed.connect(_on_day)
+	clock.season_changed.connect(_on_season)
 	clock.ticked.connect(_on_tick)
 
 
@@ -52,10 +71,11 @@ func advance(delta: float) -> int:
 	return clock.advance(delta)
 
 
-## One simulation tick: production, then carriers.
+## One simulation tick: production, carriers, settlers.
 func _on_tick(_tick: int) -> void:
 	economy.produce_tick()
 	carriers.tick()
+	settlers.tick()
 
 
 # --- Buildings ---
@@ -116,8 +136,10 @@ func place_building(type: String, origin: Vector2i, rotation := 0) -> String:
 		grid.occupy(origin, size, instance["id"], Buildings.allowed_terrain(type))
 	economy.add_building(instance)
 	carriers.on_building_added(instance)
+	houses.add_building(instance)
 	_change_treasury(-data["cost"])
 	command_log.append([clock.tick, "place", type, origin, rotation])
+	_recompute_labor()
 	building_added.emit(instance)
 	return ""
 
@@ -200,7 +222,8 @@ func plan_demolish(a: Vector2i, b: Vector2i) -> Dictionary:
 				if not ids.has(grid.blockers[t]):
 					ids.append(grid.blockers[t])
 			elif occ == Grid.ROAD:
-				roads.append(t)
+				if t != entrance: # the valley entrance always stays
+					roads.append(t)
 			elif occ != Grid.EMPTY and not ids.has(occ):
 				ids.append(occ)
 	return {"roads": roads, "buildings": ids}
@@ -225,15 +248,21 @@ func demolish(a: Vector2i, b: Vector2i) -> int:
 			grid.vacate(instance["origin"], instance["size"])
 		refund += floori(Buildings.get_building(instance["type"])["cost"] * Balance.DEMOLISH_REFUND)
 		carriers.on_building_removed(instance)
+		settlers.on_building_removed(instance)
+		houses.remove_building(instance)
+		labor.forget(instance["id"])
 		building_removed.emit(instance)
 	var removed: int = plan["roads"].size() + plan["buildings"].size()
 	if removed == 0:
 		return 0
 	command_log.append([clock.tick, "demolish", a, b])
+	if not plan["buildings"].is_empty():
+		_recompute_labor()
 	if refund > 0:
 		_change_treasury(refund)
 	if not plan["roads"].is_empty():
 		carriers.on_roads_changed()
+		settlers.on_roads_changed()
 		roads_changed.emit()
 	return removed
 
@@ -241,6 +270,7 @@ func demolish(a: Vector2i, b: Vector2i) -> int:
 func _on_roads_changed() -> void:
 	network.rebuild(grid)
 	carriers.on_roads_changed()
+	settlers.on_roads_changed()
 	roads_changed.emit()
 
 
@@ -297,6 +327,47 @@ func status(instance: Dictionary) -> Dictionary:
 	if not has_road_access(instance):
 		return {"key": "WARN_NO_ROAD_ACCESS", "args": []}
 	return {"key": "", "args": []}
+
+
+## Moves the valley entrance (tests and custom maps): the new tile becomes a road.
+func set_entrance(tile: Vector2i) -> void:
+	entrance = tile
+	grid.set_road(tile)
+	_on_roads_changed()
+
+
+func population() -> int:
+	return labor.population
+
+
+func _on_settlers_arrived(house: Dictionary) -> void:
+	_recompute_labor()
+	house_changed.emit(house)
+
+
+## Once a day houses rise or fall a tier.
+func _on_day(_day: int) -> void:
+	var changed := houses.daily()
+	if changed.is_empty():
+		return
+	_recompute_labor()
+	for house in changed:
+		house_changed.emit(house)
+
+
+## At the end of every season the houses pay a small tax (MVP, no Tax Office yet).
+func _on_season(_season: int) -> void:
+	var silver := houses.tax()
+	if silver > 0:
+		_change_treasury(silver)
+
+
+func _recompute_labor() -> void:
+	var before := labor.population
+	labor.recompute(buildings.all(), houses, economy)
+	houses.clear_cache() # staffing changes what Granaries and shrines provide
+	if labor.population != before:
+		population_changed.emit()
 
 
 func _change_treasury(amount: int) -> void:

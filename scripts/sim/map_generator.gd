@@ -13,6 +13,13 @@ const ROCKY_PATCHES := 4 # guaranteed Rocky Hill patches (3x3) at the foot of th
 
 
 static func generate(map_seed: int, w: int, h: int) -> PackedByteArray:
+	return generate_with_entrance(map_seed, w, h)["terrain"]
+
+
+## The map plus the valley entrance: {"terrain": PackedByteArray, "entrance": Vector2i}.
+## Settlers arrive at the entrance, a tile on the west edge where an old road crosses
+## the White Tiger ridge (a pass cut through the forest).
+static func generate_with_entrance(map_seed: int, w: int, h: int) -> Dictionary:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = map_seed
 	var noise := _make_noise(rng.randi(), 0.09)
@@ -29,7 +36,21 @@ static func generate(map_seed: int, w: int, h: int) -> PackedByteArray:
 	_add_sea(t, w, h, noise)
 	_add_river(t, w, h, rng)
 	_add_shore(t, w, h)
-	return t
+	var entrance := _add_pass(t, w, h, rng)
+	return {"terrain": t, "entrance": entrance}
+
+
+## Cuts a two-tile-wide pass from the west edge through the forest ridge, north of the
+## river and south of the mountains, and returns the entrance tile on the edge.
+static func _add_pass(t: PackedByteArray, w: int, h: int, rng: RandomNumberGenerator) -> Vector2i:
+	var row := rng.randi_range(int(h * 0.36), int(h * 0.44))
+	for dy in 2:
+		for x in w:
+			var v := _at(t, w, x, row + dy)
+			if v != Terrain.FOREST and v != Terrain.ROCKY_HILL and v != Terrain.MOUNTAIN:
+				break
+			_put(t, w, x, row + dy, Terrain.GRASS)
+	return Vector2i(0, row)
 
 
 static func _make_noise(noise_seed: int, frequency: float) -> FastNoiseLite:

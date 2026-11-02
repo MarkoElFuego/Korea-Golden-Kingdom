@@ -7,18 +7,22 @@ extends RefCounted
 ## Production is scheduled: a building is looked at only on the tick its next load is
 ## ready, so a big city costs nothing while its fields grow. A full store pauses
 ## production; it starts again (a full period) when a carrier takes a load.
-
+## production; it starts again (a full period) when a carrier takes a load. Workers set the
+## speed: half the workers, half the speed; none, no production (and a storage takes nothing).
 const Balance = preload("res://scripts/data/balance.gd")
 const Buildings = preload("res://scripts/data/buildings.gd")
 const Goods = preload("res://scripts/data/goods.gd")
 const SimClock = preload("res://scripts/sim/sim_clock.gd")
 
-const PAUSED := -1
+const PAUSED := -1 # store full
+const NO_WORKERS := -2 # nobody works here
 
 signal stock_changed(id: int)
 
 ## id -> {"type", "good" (what it makes, or ""), "stock": {good: loads},
-##        "reserved": {good: loads on the way}, "ready_at": tick or PAUSED, "carrier": walker id}
+##        "reserved": {good: loads on the way}, "ready_at": tick, PAUSED or NO_WORKERS,
+##        "remaining": full-speed ticks left while NO_WORKERS, "eff": share of workers 0..1,
+##        "carrier": walker id}
 var state := {}
 var produced := {} # good -> loads produced since the start
 var lost := {} # good -> loads destroyed with demolished buildings
@@ -36,10 +40,12 @@ func _init(clock: SimClock) -> void:
 func add_building(instance: Dictionary) -> void:
 	var p := production(instance["type"])
 	var s := {"type": instance["type"], "good": p.get("good", ""), "stock": {}, "reserved": {},
-		"ready_at": PAUSED, "carrier": 0}
+		"ready_at": NO_WORKERS, "remaining": 0.0, "eff": 0.0, "carrier": 0}
 	state[instance["id"]] = s
+	if Buildings.get_building(instance["type"])["workers"] == 0:
+		s["eff"] = 1.0 # needs nobody (Well, Jangseung, houses)
 	if not p.is_empty():
-		_schedule_next(instance["id"])
+		s["remaining"] = float(_period(instance["type"])) # starts when workers arrive
 
 
 func remove_building(instance: Dictionary) -> void:
@@ -100,7 +106,7 @@ func accepts(type: String, good: String) -> bool:
 
 ## Loads of `good` this storage can still take, counting loads already on the way.
 func free_space(instance: Dictionary, good: String) -> int:
-	if not accepts(instance["type"], good):
+	if not accepts(instance["type"], good) or state[instance["id"]]["eff"] <= 0.0:
 		return 0
 	var st := storage(instance["type"])
 	var s: Dictionary = state[instance["id"]]
@@ -153,7 +159,23 @@ func progress(instance: Dictionary) -> float:
 	if s["ready_at"] == PAUSED:
 		return 1.0
 	var period := _period(s["type"])
-	return 1.0 - float(s["ready_at"] - _clock.tick) / period
+	if s["ready_at"] == NO_WORKERS:
+		return 1.0 - s["remaining"] / period
+	return 1.0 - float(s["ready_at"] - _clock.tick) * s["eff"] / period
+
+
+## New share of workers (0..1). A producer keeps the work already done and finishes
+## the rest at the new speed.
+func set_efficiency(id: int, eff: float) -> void:
+	var s: Dictionary = state[id]
+	var old: float = s["eff"]
+	if is_equal_approx(old, eff):
+		return
+	s["eff"] = eff
+	if s["good"] == "" or s["ready_at"] == PAUSED:
+		return # storage, or a full store that resumes later at the new speed
+	var remaining: float = s["remaining"] if s["ready_at"] == NO_WORKERS else (s["ready_at"] - _clock.tick) * old
+	_continue(id, remaining)
 
 
 static func _period(type: String) -> int:
@@ -173,8 +195,17 @@ func _update_producer(id: int) -> void:
 
 
 func _schedule_next(id: int) -> void:
+	_continue(id, float(_period(state[id]["type"])))
+
+
+## Schedules the next load after `remaining` ticks of full-speed work, at the current speed.
+func _continue(id: int, remaining: float) -> void:
 	var s: Dictionary = state[id]
-	var at: int = _clock.tick + _period(s["type"])
+	if s["eff"] <= 0.0:
+		s["ready_at"] = NO_WORKERS
+		s["remaining"] = remaining
+		return
+	var at: int = _clock.tick + maxi(1, ceili(remaining / s["eff"] - 0.0001))
 	s["ready_at"] = at
 	if not _schedule.has(at):
 		_schedule[at] = []
