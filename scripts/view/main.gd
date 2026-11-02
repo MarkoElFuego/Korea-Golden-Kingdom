@@ -1,18 +1,23 @@
 extends Node3D
-## Main game scene: generates the city, draws the terrain, camera and top bar,
-## and runs the simulation clock.
+## Main game scene: generates the city, draws terrain, buildings and roads, camera,
+## top bar and build menu, and runs the simulation clock.
 
 const Balance = preload("res://scripts/data/balance.gd")
 const City = preload("res://scripts/sim/city.gd")
 const CameraRig = preload("res://scripts/view/camera_rig.gd")
 const TerrainView = preload("res://scripts/view/terrain_view.gd")
+const CityView = preload("res://scripts/view/city_view.gd")
+const BuildTool = preload("res://scripts/view/build_tool.gd")
+const BuildMenu = preload("res://scripts/view/build_menu.gd")
 const TopBar = preload("res://scripts/view/top_bar.gd")
 const InputSetup = preload("res://scripts/view/input_setup.gd")
 const TextLoader = preload("res://scripts/view/text_loader.gd")
 const SceneSetup = preload("res://scripts/view/scene_setup.gd")
+const UiTheme = preload("res://scripts/view/ui_theme.gd")
 
 var city: City
 var camera_rig: CameraRig
+var build_tool: BuildTool
 
 
 func _ready() -> void:
@@ -27,6 +32,11 @@ func _ready() -> void:
 	add_child(terrain)
 	terrain.build(city.grid, false)
 
+	var city_view := CityView.new()
+	city_view.name = "CityView"
+	add_child(city_view)
+	city_view.setup(city)
+
 	camera_rig = CameraRig.new()
 	camera_rig.name = "CameraRig"
 	add_child(camera_rig)
@@ -37,10 +47,45 @@ func _ready() -> void:
 	var ui := CanvasLayer.new()
 	ui.name = "UI"
 	add_child(ui)
+	var ui_root := Control.new()
+	ui_root.name = "Root"
+	ui_root.theme = UiTheme.make()
+	ui_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ui_root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	ui.add_child(ui_root)
 	var bar := TopBar.new()
 	bar.name = "TopBar"
-	ui.add_child(bar)
+	ui_root.add_child(bar)
 	bar.setup(city)
+
+	build_tool = BuildTool.new()
+	build_tool.name = "BuildTool"
+	build_tool.city = city
+	build_tool.camera = camera_rig.camera
+	build_tool.cursor_note = _make_cursor_note()
+	ui_root.add_child(build_tool.cursor_note)
+	add_child(build_tool)
+
+	var menu := BuildMenu.new()
+	menu.name = "BuildMenu"
+	ui_root.add_child(menu)
+	menu.setup(build_tool)
+
+
+## Small paper note that follows the cursor while a build tool is active.
+func _make_cursor_note() -> Label:
+	var note := Label.new()
+	note.name = "CursorNote"
+	note.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	note.visible = false
+	note.add_theme_font_size_override("font_size", 18)
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color("#ece6d8")
+	style.border_color = Color("#8a5c35")
+	style.set_border_width_all(1)
+	style.set_content_margin_all(8)
+	note.add_theme_stylebox_override("normal", style)
+	return note
 
 
 func _process(delta: float) -> void:

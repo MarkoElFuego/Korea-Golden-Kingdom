@@ -7,6 +7,12 @@ extends RefCounted
 ## roof: "giwa" (tile roof, prism), "thatch" (straw dome) or "none".
 ## terrain: allowed terrains for every footprint tile; empty = Terrain.DEFAULT_BUILDABLE.
 ## korean: Revised Romanization, "" when the concept has no term.
+## coverage (optional): {"type": "radius", "tiles": n} serves every tile within n tiles;
+##   {"type": "walker"} serves along the roads its roaming walker can reach.
+## near_terrain (optional): this terrain must lie within "tiles" of the footprint.
+## on_road (optional): stands on an existing road tile, which stays a road
+##   (Jangseung: turns back roaming walkers, lets destination walkers pass).
+## hint_key (optional): one line for the build menu tooltip.
 
 const Terrain = preload("res://scripts/data/terrain.gd")
 
@@ -34,7 +40,8 @@ const MVP_BUILDINGS: Array[Dictionary] = [
 			{"tier": 3, "name_key": "HOUSE_GIWA_HOUSE", "height_class": "medium", "roof": "giwa", "model": "common_tier3"},
 		]},
 	{"id": "well", "name_key": "BUILDING_WELL", "korean": "umul", "category": "infrastructure",
-		"footprint": Vector2i(1, 1), "height_class": "low", "cost": 15, "workers": 0, "roof": "giwa", "terrain": []},
+		"footprint": Vector2i(1, 1), "height_class": "low", "cost": 15, "workers": 0, "roof": "giwa", "terrain": [],
+		"coverage": {"type": "radius", "tiles": 3}},
 	{"id": "rice_paddy", "name_key": "BUILDING_RICE_PADDY", "korean": "non", "category": "food",
 		"footprint": Vector2i(3, 3), "height_class": "flat", "cost": 40, "workers": 6, "roof": "none",
 		"terrain": [Terrain.FERTILE_PLAIN]},
@@ -43,13 +50,17 @@ const MVP_BUILDINGS: Array[Dictionary] = [
 	{"id": "storehouse", "name_key": "BUILDING_STOREHOUSE", "korean": "changgo", "category": "storage",
 		"footprint": Vector2i(3, 3), "height_class": "medium", "cost": 50, "workers": 6, "roof": "giwa", "terrain": []},
 	{"id": "market", "name_key": "BUILDING_MARKET", "korean": "sijang", "category": "distribution",
-		"footprint": Vector2i(3, 3), "height_class": "low", "cost": 40, "workers": 6, "roof": "thatch", "terrain": []},
+		"footprint": Vector2i(3, 3), "height_class": "low", "cost": 40, "workers": 6, "roof": "thatch", "terrain": [],
+		"coverage": {"type": "walker"}},
 	{"id": "seonangdang", "name_key": "BUILDING_SEONANGDANG", "korean": "seonangdang", "category": "religion",
-		"footprint": Vector2i(1, 1), "height_class": "low", "cost": 25, "workers": 2, "roof": "none", "terrain": []},
+		"footprint": Vector2i(1, 1), "height_class": "low", "cost": 25, "workers": 2, "roof": "none", "terrain": [],
+		"coverage": {"type": "walker"}},
 	{"id": "jangseung", "name_key": "BUILDING_JANGSEUNG", "korean": "jangseung", "category": "infrastructure",
-		"footprint": Vector2i(1, 1), "height_class": "low", "cost": 10, "workers": 0, "roof": "none", "terrain": []},
+		"footprint": Vector2i(1, 1), "height_class": "low", "cost": 10, "workers": 0, "roof": "none", "terrain": [],
+		"on_road": true, "hint_key": "HINT_JANGSEUNG"},
 	{"id": "woodcutter", "name_key": "BUILDING_WOODCUTTER", "korean": "", "category": "materials",
-		"footprint": Vector2i(2, 2), "height_class": "low", "cost": 30, "workers": 4, "roof": "thatch", "terrain": []},
+		"footprint": Vector2i(2, 2), "height_class": "low", "cost": 30, "workers": 4, "roof": "thatch", "terrain": [],
+		"near_terrain": {"terrain": Terrain.FOREST, "tiles": 2, "reason_key": "REASON_NEEDS_FOREST_NEARBY"}},
 	{"id": "clay_pit", "name_key": "BUILDING_CLAY_PIT", "korean": "", "category": "materials",
 		"footprint": Vector2i(2, 2), "height_class": "flat", "cost": 30, "workers": 4, "roof": "none",
 		"terrain": [Terrain.ROCKY_HILL]},
@@ -91,3 +102,11 @@ static func allowed_terrain(id: String) -> Array[int]:
 	else:
 		result.assign(b["terrain"])
 	return result
+
+
+## Text key explaining the terrain rule, for when a footprint lands on the wrong terrain.
+static func terrain_reason(id: String) -> String:
+	var allowed := allowed_terrain(id)
+	if allowed.size() == 1:
+		return "REASON_NEEDS_" + String(Terrain.INFO[allowed[0]]["id"]).to_upper()
+	return "REASON_BAD_TERRAIN"

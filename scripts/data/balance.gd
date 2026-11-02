@@ -19,6 +19,11 @@ const MAX_TICKS_PER_FRAME := 30 # safety cap after a long frame (window drag, lo
 
 # --- Economy ---
 const START_TREASURY := 1500 # Silver
+const DEMOLISH_REFUND := 0.0 # share of the cost returned on demolish (none, as in Zeus)
+
+# --- Walkers (docs/koncept.md, "Šetači") ---
+const WALKER_MAX_ROAD_TILES := 30 # a roaming walker turns back after this many road tiles
+const WALKER_SERVICE_RANGE := 2 # tiles from the road a walker serves
 
 # --- People ---
 const HUMAN_HEIGHT := 1.7 # meters

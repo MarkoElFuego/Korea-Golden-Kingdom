@@ -209,6 +209,21 @@ Najbolje mesto je **Myeongdang**.
 - Dilema: najbolji granit, gvožđe i zlato su u planinama.
 - Overlay Gi je obavezan; plemići i palata traže visok Gi.
 
+## Gradnja (odluke iz Faze 2)
+
+- Rušenje ne vraća Silver (kao u Zeusu).
+- Zgrada ne mora da dodiruje put da bi se postavila, ali dobija vidljivo upozorenje
+  „No road access", jer bez puta neće raditi kad stignu šetači.
+- Woodcutter traži šumu najviše 2 polja od zgrade.
+- Put se vuče mišem u obliku slova L; polja na kojima put ne može da ide se preskaču, a plaćaju
+  se samo izgrađena polja.
+- Nova Common House je prazan plac (Vacant Lot); doseljenici dolaze u Fazi 4.
+- Jangseung se gradi samo na postojećem putu i polje ostaje put. Lutajući šetači (Vendor,
+  šetači službi) se kod njega vraćaju; šetači sa ciljem (Carrier, Buyer, doseljenici) prolaze.
+  Radnici ne putuju na posao (zajednički fond), pa blokada ne može da ostavi zgradu bez radnika.
+  Prikaz dometa pri gradnji već staje kod Jangseung-a. Rušenje prvo skida Jangseung, a put
+  ostaje; drugo rušenje skida i put.
+
 ## Zgrade
 
 Footprint je u poljima (4 m). Cena u Silver i radnici su *predlog* za MVP zgrade; ostalo se

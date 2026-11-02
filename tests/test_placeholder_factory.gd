@@ -14,6 +14,7 @@ func _models() -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	for b in Buildings.MVP_BUILDINGS:
 		if b.has("tiers"):
+			result.append({"id": b["id"], "tier": 0}) # vacant lot
 			for t in b["tiers"]:
 				result.append({"id": b["id"], "tier": t["tier"]})
 		else:

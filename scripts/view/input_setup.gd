@@ -12,6 +12,10 @@ const ACTIONS := {
 	"game_speed_1": [KEY_1, KEY_KP_1],
 	"game_speed_2": [KEY_2, KEY_KP_2],
 	"game_speed_3": [KEY_3, KEY_KP_3],
+	"tool_road": [KEY_G], # gil
+	"tool_demolish": [KEY_X, KEY_DELETE],
+	"tool_rotate": [KEY_R],
+	"tool_cancel": [KEY_ESCAPE],
 }
 
 

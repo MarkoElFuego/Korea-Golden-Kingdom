@@ -41,3 +41,37 @@ UI_TIP_SPEED_FORMAT,Game speed %d× (key %d)
 UI_TIP_TREASURY,City treasury. Buildings are paid in Silver.
 UI_GALLERY_TITLE,Placeholder model gallery
 UI_GALLERY_HINT,"Q / E rotate, mouse wheel zoom, WASD or middle mouse to move."
+CATEGORY_INFRASTRUCTURE,Infrastructure
+CATEGORY_HOUSING,Housing
+CATEGORY_FOOD,Food
+CATEGORY_STORAGE,Storage
+CATEGORY_DISTRIBUTION,Distribution
+CATEGORY_RELIGION,Religion
+CATEGORY_MATERIALS,Materials
+CATEGORY_CRAFTS,Crafts
+CATEGORY_FERMENTATION,Fermentation
+HOUSE_VACANT_LOT,Vacant Lot
+REASON_OUT_OF_BOUNDS,Outside the map
+REASON_OCCUPIED,Something is already built here
+REASON_BAD_TERRAIN,Cannot build on this terrain
+REASON_NEEDS_FERTILE_PLAIN,Needs Fertile Plain
+REASON_NEEDS_SHORE,Needs Shore
+REASON_NEEDS_ROCKY_HILL,Needs Rocky Hill
+REASON_NEEDS_FOREST_NEARBY,Needs Forest within 2 tiles
+REASON_NOT_ENOUGH_SILVER,Not enough Silver
+REASON_UNKNOWN_BUILDING,Unknown building
+WARN_NO_ROAD_ACCESS,No road access: it will not work until a road touches it.
+UI_COST_FORMAT,%s Silver
+UI_BUILD_TOOLTIP_FORMAT,"%s
+Size: %d×%d tiles
+Cost: %d Silver
+Workers: %d"
+UI_BUILD_TOOLTIP_KOREAN_FORMAT,"Korean: %s"
+UI_ROAD_PREVIEW_FORMAT,"Road: %d tiles, %s Silver"
+UI_ROAD_TOOLTIP,"Road (G). Click and drag to lay a road. Walkers and carriers move only on roads."
+UI_DEMOLISH,Demolish
+UI_DEMOLISH_TOOLTIP,"Demolish (X). Click or drag over an area. Silver is not returned."
+UI_DEMOLISH_PREVIEW_FORMAT,"Demolish: %d"
+UI_TOOL_HINT,"R rotate · Esc or right click cancel"
+REASON_NEEDS_ROAD,Must stand on a road
+HINT_JANGSEUNG,"Stands on a road. Turns back roaming walkers (vendors, shrine keepers). Carriers, buyers and settlers pass."

@@ -40,7 +40,7 @@ pravim modelima.
 - Zgrade: `art/buildings/<building_id>.glb` — `building_id` je iz `scripts/data/buildings.gd`,
   engleski, snake_case (npr. `rice_paddy.glb`, `jangdokdae.glb`, `onggi_kiln.glb`).
 - Kuće po nivoima: `art/houses/common_tier1.glb` … `common_tier5.glb`, `noble_tier1.glb`,
-  `noble_tier2.glb`.
+  `noble_tier2.glb`. Prazan plac pre doseljenika: `art/houses/vacant_lot.glb` (ravna klasa).
 - Teren: `art/terrain/<terrain_id>.glb` (npr. `grass.glb`, `forest.glb`).
 - Ljudi: `art/walkers/<walker_id>.glb` (npr. `carrier.glb`, `vendor.glb`).
 - Izvorni fajlovi (.max, .blend, .psd) idu u `art_src/`, šabloni u `art_templates/`.

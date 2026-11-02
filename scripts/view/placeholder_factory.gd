@@ -54,6 +54,8 @@ static func building(id: String, tier := 1) -> Node3D:
 static func model_path(id: String, tier := 1) -> String:
 	var data := Buildings.get_building(id)
 	if data.has("tiers"):
+		if tier == 0:
+			return "res://art/houses/vacant_lot.glb"
 		for t in data["tiers"]:
 			if t["tier"] == tier:
 				return "res://art/houses/%s.glb" % t["model"]
@@ -80,6 +82,8 @@ static func human() -> Node3D:
 static func height_range(id: String, tier := 1) -> Dictionary:
 	var data := Buildings.get_building(id)
 	var height_class: String = data["height_class"]
+	if data.has("tiers") and tier == 0:
+		return Buildings.HEIGHT_CLASSES["flat"] # vacant lot
 	if data.has("tiers"):
 		for t in data["tiers"]:
 			if t["tier"] == tier:
@@ -99,6 +103,7 @@ static func _placeholder(id: String, tier: int) -> Node3D:
 		"road": _road(root, w, d)
 		"common_house":
 			match tier:
+				0: _vacant_lot(root)
 				1: _choga_hut(root)
 				2: _choga_house(root)
 				_: _giwa_house(root)
@@ -125,6 +130,15 @@ static func _placeholder(id: String, tier: int) -> Node3D:
 
 static func _road(root: Node3D, w: float, d: float) -> void:
 	_box(root, Vector3(w, 0.12, d), Vector3(0, 0.06, 0), "packed_earth")
+
+
+## Tier 0: a cleared plot with corner stakes and a boundary stone, waiting for settlers.
+static func _vacant_lot(root: Node3D) -> void:
+	_box(root, Vector3(7.6, 0.06, 7.6), Vector3(0, 0.03, 0), "packed_earth")
+	for sx in [-1, 1]:
+		for sz in [-1, 1]:
+			_box(root, Vector3(0.15, 0.4, 0.15), Vector3(sx * 3.6, 0.2, sz * 3.6), "wood_dark")
+	_box(root, Vector3(0.5, 0.45, 0.3), Vector3(0, 0.225, 3.2), "granite")
 
 
 ## Tier 1: straw roof, mud walls, and a jar of rice by the door.
