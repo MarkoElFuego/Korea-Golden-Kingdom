@@ -1,0 +1,43 @@
+keys,en
+GAME_TITLE,Korea: The Golden Kingdom
+BUILDING_ROAD,Road
+BUILDING_COMMON_HOUSE,Common House
+BUILDING_WELL,Well
+BUILDING_RICE_PADDY,Rice Paddy
+BUILDING_GRANARY,Granary
+BUILDING_STOREHOUSE,Storehouse
+BUILDING_MARKET,Market
+BUILDING_SEONANGDANG,Seonangdang
+BUILDING_JANGSEUNG,Jangseung
+BUILDING_WOODCUTTER,Woodcutter
+BUILDING_CLAY_PIT,Clay Pit
+BUILDING_ONGGI_KILN,Onggi Kiln
+BUILDING_SOYBEAN_FIELD,Soybean Field
+BUILDING_SALT_PANS,Salt Pans
+BUILDING_JANGDOKDAE,Jangdokdae
+HOUSE_CHOGA_HUT,Choga Hut
+HOUSE_CHOGA_HOUSE,Choga House
+HOUSE_GIWA_HOUSE,Giwa House
+HOUSE_TIER_FORMAT,%s (Tier %d)
+TERRAIN_GRASS,Grass
+TERRAIN_FERTILE_PLAIN,Fertile Plain
+TERRAIN_RIVER,River
+TERRAIN_SEA,Sea
+TERRAIN_SHORE,Shore
+TERRAIN_FOREST,Forest
+TERRAIN_MOUNTAIN,Mountain
+TERRAIN_ROCKY_HILL,Rocky Hill
+SEASON_SPRING,Spring
+SEASON_SUMMER,Summer
+SEASON_AUTUMN,Autumn
+SEASON_WINTER,Winter
+UI_DATE_FORMAT,"Day %d of %s, Year %d"
+UI_SPEED_PAUSE,Pause
+UI_SPEED_FORMAT,%d×
+UI_TREASURY_FORMAT,%s Silver
+UI_TIP_DATE,"Calendar: 30 days in a season, four seasons in a year."
+UI_TIP_PAUSE,Pause or resume the game (Space)
+UI_TIP_SPEED_FORMAT,Game speed %d× (key %d)
+UI_TIP_TREASURY,City treasury. Buildings are paid in Silver.
+UI_GALLERY_TITLE,Placeholder model gallery
+UI_GALLERY_HINT,"Q / E rotate, mouse wheel zoom, WASD or middle mouse to move."
