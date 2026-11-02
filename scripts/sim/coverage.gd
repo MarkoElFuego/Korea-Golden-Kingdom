@@ -29,6 +29,20 @@ static func adjacent_roads(grid: Grid, origin: Vector2i, size: Vector2i) -> Arra
 	return result
 
 
+## The road tile walkers use to enter and leave: the touching road closest to the door.
+## Returns Vector2i(-1, -1) when no road touches the building.
+static func access_road(grid: Grid, instance: Dictionary) -> Vector2i:
+	var door := Grid.door_world(instance["origin"], instance["size"], instance["rotation"])
+	var best := Vector2i(-1, -1)
+	var best_d := INF
+	for t in adjacent_roads(grid, instance["origin"], instance["size"]):
+		var d := Grid.tile_to_world(t).distance_squared_to(door)
+		if d < best_d - 0.001:
+			best_d = d
+			best = t
+	return best
+
+
 static func has_road_access(grid: Grid, origin: Vector2i, size: Vector2i) -> bool:
 	return not adjacent_roads(grid, origin, size).is_empty()
 

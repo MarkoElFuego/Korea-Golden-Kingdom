@@ -39,10 +39,8 @@ func count() -> int:
 
 
 ## All instances in the order they were built.
+## (Ids only grow and a Dictionary keeps insertion order, so no sorting is needed.)
 func all() -> Array[Dictionary]:
-	var ids := _items.keys()
-	ids.sort()
 	var result: Array[Dictionary] = []
-	for id in ids:
-		result.append(_items[id])
+	result.assign(_items.values())
 	return result

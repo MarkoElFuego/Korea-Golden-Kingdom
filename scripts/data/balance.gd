@@ -21,7 +21,12 @@ const MAX_TICKS_PER_FRAME := 30 # safety cap after a long frame (window drag, lo
 const START_TREASURY := 1500 # Silver
 const DEMOLISH_REFUND := 0.0 # share of the cost returned on demolish (none, as in Zeus)
 
+# --- Goods ---
+const PRODUCER_STORE := 2 # loads a producing building keeps before production stops
+
 # --- Walkers (docs/koncept.md, "Šetači") ---
+const CARRIER_SPEED := 1.5 # tiles per second at 1x (one load on the jige)
+const CARRIER_RETRY_TICKS := 10 # a building with no storage in reach asks again after this long
 const WALKER_MAX_ROAD_TILES := 30 # a roaming walker turns back after this many road tiles
 const WALKER_SERVICE_RANGE := 2 # tiles from the road a walker serves
 

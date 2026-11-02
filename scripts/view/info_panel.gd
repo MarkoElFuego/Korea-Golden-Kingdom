@@ -1,0 +1,130 @@
+extends PanelContainer
+## Building window: click a building (with no build tool active) to see what it holds
+## and, in one sentence, what it is doing or what it is missing. Only reads the city.
+
+const Buildings = preload("res://scripts/data/buildings.gd")
+const Goods = preload("res://scripts/data/goods.gd")
+
+const PAPER := Color("#ece6d8")
+const WOOD := Color("#8a5c35")
+const INK := Color("#3a2e22")
+const ACCENT := Color("#b8473a")
+
+var city # scripts/sim/city.gd
+var building_id := 0
+
+var _title: Label
+var _subtitle: Label
+var _stock: Label
+var _status: Label
+
+
+func _ready() -> void:
+	visible = false
+	custom_minimum_size = Vector2(380, 0)
+	# Top right corner, under the top bar.
+	set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	offset_left = -400
+	offset_right = -20
+	offset_top = 72
+	grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	var style := StyleBoxFlat.new()
+	style.bg_color = PAPER
+	style.border_color = WOOD
+	style.set_border_width_all(2)
+	style.border_width_top = 6 # wooden lintel
+	style.set_content_margin_all(16)
+	add_theme_stylebox_override("panel", style)
+
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 8)
+	add_child(box)
+	var header := HBoxContainer.new()
+	box.add_child(header)
+	_title = _label(24)
+	_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header.add_child(_title)
+	var close := Button.new()
+	close.text = "×"
+	close.flat = true
+	close.focus_mode = Control.FOCUS_NONE
+	close.tooltip_text = tr("UI_PANEL_CLOSE_TIP")
+	close.add_theme_font_size_override("font_size", 24)
+	close.add_theme_color_override("font_color", INK)
+	close.pressed.connect(close_panel)
+	header.add_child(close)
+	_subtitle = _label(16)
+	_subtitle.modulate = Color(1, 1, 1, 0.75)
+	box.add_child(_subtitle)
+	box.add_child(HSeparator.new())
+	_stock = _label(18)
+	box.add_child(_stock)
+	_status = _label(18)
+	_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_status.custom_minimum_size.x = 348
+	box.add_child(_status)
+
+
+func show_building(id: int) -> void:
+	building_id = id
+	visible = id != 0
+	_refresh()
+
+
+func close_panel() -> void:
+	show_building(0)
+
+
+func _process(_delta: float) -> void:
+	if visible:
+		_refresh()
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if visible and event.is_action_pressed("tool_cancel", false, true):
+		close_panel()
+		get_viewport().set_input_as_handled()
+
+
+func _refresh() -> void:
+	if building_id == 0:
+		return
+	var instance: Dictionary = city.buildings.get_instance(building_id)
+	if instance.is_empty():
+		close_panel() # demolished
+		return
+	var data := Buildings.get_building(instance["type"])
+	var title := tr(data["name_key"])
+	if data.has("tiers"):
+		title = tr("HOUSE_VACANT_LOT") if instance["tier"] == 0 else tr(data["tiers"][instance["tier"] - 1]["name_key"])
+	_title.text = title
+	_subtitle.text = tr("CATEGORY_" + String(data["category"]).to_upper()) + ("" if data["korean"] == "" else "  ·  " + data["korean"])
+
+	var lines: Array[String] = []
+	var state: Dictionary = city.economy.state.get(building_id, {})
+	var stock: Dictionary = state.get("stock", {})
+	var goods: Array = stock.keys()
+	goods.sort()
+	for good: String in goods:
+		lines.append(tr("UI_STOCK_LINE") % [tr(Goods.GOODS[good]["name_key"]), stock[good]])
+	var keeps_goods: bool = data.has("storage") or data.has("produces")
+	_stock.visible = keeps_goods
+	_stock.text = "\n".join(lines) if not lines.is_empty() else tr("UI_STOCK_EMPTY")
+
+	var status: Dictionary = city.status(instance)
+	_status.visible = status["key"] != ""
+	if _status.visible:
+		var text := tr(status["key"])
+		if not status["args"].is_empty():
+			text = text % status["args"]
+		_status.text = text
+		var trouble: bool = status["key"].begins_with("STATUS_NO_") or status["key"] == "WARN_NO_ROAD_ACCESS" \
+			or status["key"] == "STATUS_STORAGE_FULL"
+		_status.add_theme_color_override("font_color", ACCENT if trouble else INK)
+
+
+func _label(font_size: int) -> Label:
+	var l := Label.new()
+	l.add_theme_font_size_override("font_size", font_size)
+	l.add_theme_color_override("font_color", INK)
+	return l

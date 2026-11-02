@@ -1,5 +1,6 @@
 extends RefCounted
-## The whole simulated city, without graphics: map, clock, treasury, buildings and roads.
+## The whole simulated city, without graphics: map, clock, treasury, buildings, roads,
+## goods and carriers.
 ## The view only reads this state and sends the player's commands here.
 ## Every command checks its rules first; when a rule fails nothing changes.
 
@@ -10,6 +11,10 @@ const MapGenerator = preload("res://scripts/sim/map_generator.gd")
 const SimClock = preload("res://scripts/sim/sim_clock.gd")
 const BuildingRegistry = preload("res://scripts/sim/building_registry.gd")
 const Coverage = preload("res://scripts/sim/coverage.gd")
+const RoadNetwork = preload("res://scripts/sim/road_network.gd")
+const Economy = preload("res://scripts/sim/economy.gd")
+const Carriers = preload("res://scripts/sim/carriers.gd")
+const Goods = preload("res://scripts/data/goods.gd")
 
 signal treasury_changed(value: int)
 signal building_added(instance: Dictionary)
@@ -21,7 +26,10 @@ var grid: Grid
 var clock: SimClock
 var treasury: int
 var buildings: BuildingRegistry
-## Player commands in order, for replays and determinism tests.
+var network: RoadNetwork
+var economy: Economy
+var carriers: Carriers
+## Player commands in order, each [tick, name, args...], for replays and determinism tests.
 var command_log: Array = []
 
 
@@ -32,11 +40,22 @@ func _init(seed_value: int = Balance.DEFAULT_MAP_SEED) -> void:
 	clock = SimClock.new()
 	treasury = Balance.START_TREASURY
 	buildings = BuildingRegistry.new()
+	network = RoadNetwork.new()
+	network.rebuild(grid)
+	economy = Economy.new(clock)
+	carriers = Carriers.new(self)
+	clock.ticked.connect(_on_tick)
 
 
 ## Advances the simulation by `delta` real seconds. Returns ticks run.
 func advance(delta: float) -> int:
 	return clock.advance(delta)
+
+
+## One simulation tick: production, then carriers.
+func _on_tick(_tick: int) -> void:
+	economy.produce_tick()
+	carriers.tick()
 
 
 # --- Buildings ---
@@ -95,8 +114,10 @@ func place_building(type: String, origin: Vector2i, rotation := 0) -> String:
 				grid.blockers[origin + Vector2i(dx, dy)] = instance["id"] # the tile stays a road
 	else:
 		grid.occupy(origin, size, instance["id"], Buildings.allowed_terrain(type))
+	economy.add_building(instance)
+	carriers.on_building_added(instance)
 	_change_treasury(-data["cost"])
-	command_log.append(["place", type, origin, rotation])
+	command_log.append([clock.tick, "place", type, origin, rotation])
 	building_added.emit(instance)
 	return ""
 
@@ -155,9 +176,9 @@ func build_road(a: Vector2i, b: Vector2i) -> int:
 		treasury -= price
 		built += 1
 	if built > 0:
-		command_log.append(["road", a, b])
+		command_log.append([clock.tick, "road", a, b])
 		treasury_changed.emit(treasury)
-		roads_changed.emit()
+		_on_roads_changed()
 	return built
 
 
@@ -192,6 +213,8 @@ func demolish(a: Vector2i, b: Vector2i) -> int:
 	var refund := 0
 	for t: Vector2i in plan["roads"]:
 		grid.clear_tile(t)
+	if not plan["roads"].is_empty():
+		network.rebuild(grid) # carriers re-plan on the new streets
 	for id: int in plan["buildings"]:
 		var instance := buildings.remove(id)
 		if Buildings.get_building(instance["type"]).get("on_road", false):
@@ -201,27 +224,79 @@ func demolish(a: Vector2i, b: Vector2i) -> int:
 		else:
 			grid.vacate(instance["origin"], instance["size"])
 		refund += floori(Buildings.get_building(instance["type"])["cost"] * Balance.DEMOLISH_REFUND)
+		carriers.on_building_removed(instance)
 		building_removed.emit(instance)
 	var removed: int = plan["roads"].size() + plan["buildings"].size()
 	if removed == 0:
 		return 0
-	command_log.append(["demolish", a, b])
+	command_log.append([clock.tick, "demolish", a, b])
 	if refund > 0:
 		_change_treasury(refund)
 	if not plan["roads"].is_empty():
+		carriers.on_roads_changed()
 		roads_changed.emit()
 	return removed
 
 
-## Runs one entry from a command log (replays, tests).
+func _on_roads_changed() -> void:
+	network.rebuild(grid)
+	carriers.on_roads_changed()
+	roads_changed.emit()
+
+
+## Runs one entry from a command log (without its tick).
 func apply_command(command: Array) -> void:
-	match command[0]:
+	match command[1]:
 		"place":
-			place_building(command[1], command[2], command[3])
+			place_building(command[2], command[3], command[4])
 		"road":
-			build_road(command[1], command[2])
+			build_road(command[2], command[3])
 		"demolish":
-			demolish(command[1], command[2])
+			demolish(command[2], command[3])
+
+
+## Replays a command log from the start: runs ticks up to each command's tick, then the
+## command, then ticks up to `until_tick`. Same seed + same log = same city.
+func replay(commands: Array, until_tick: int) -> void:
+	for command in commands:
+		while clock.tick < command[0]:
+			clock.step()
+		apply_command(command)
+	while clock.tick < until_tick:
+		clock.step()
+
+
+# --- Building window ---
+
+## What a building is doing, for the building window: {"key": text key, "args": [...]}.
+## Empty key when there is nothing to say.
+func status(instance: Dictionary) -> Dictionary:
+	var data := Buildings.get_building(instance["type"])
+	if data.has("tiers") and instance["tier"] == 0:
+		return {"key": "STATUS_WAITING_SETTLERS", "args": []}
+	if data.get("produces_later", false):
+		return {"key": "STATUS_WAITS_FERMENTATION", "args": []}
+	var p := Economy.production(instance["type"])
+	if not p.is_empty():
+		var start := Coverage.access_road(grid, instance)
+		if start == Carriers.NO_TILE:
+			return {"key": "STATUS_NO_ROAD_CARRIERS", "args": []}
+		var full := economy.stock(instance["id"], p["good"]) >= Balance.PRODUCER_STORE
+		if economy.state[instance["id"]]["carrier"] != 0 and not full:
+			return {"key": "STATUS_CARRIER_OUT", "args": [roundi(economy.progress(instance) * 100)]}
+		if carriers.find_storage(start, p["good"]).is_empty() and economy.stock(instance["id"], p["good"]) > 0:
+			var key := "STATUS_NO_GRANARY" if Goods.kind(p["good"]) == "food" else "STATUS_NO_STOREHOUSE"
+			return {"key": key, "args": []}
+		return {"key": "STATUS_PRODUCING", "args": [roundi(economy.progress(instance) * 100)]}
+	if not Economy.storage(instance["type"]).is_empty():
+		var used := economy.total_stock(instance["id"])
+		var cap := Economy.capacity(instance["type"])
+		if not has_road_access(instance):
+			return {"key": "STATUS_NO_ROAD_CARRIERS", "args": []}
+		return {"key": "STATUS_STORAGE_FULL" if used >= cap else "STATUS_STORAGE", "args": [used, cap]}
+	if not has_road_access(instance):
+		return {"key": "WARN_NO_ROAD_ACCESS", "args": []}
+	return {"key": "", "args": []}
 
 
 func _change_treasury(amount: int) -> void:

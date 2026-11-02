@@ -39,6 +39,11 @@ func advance(delta: float) -> int:
 	return count
 
 
+## How far the game is into the next tick (0..1), so the view can move walkers smoothly.
+func tick_fraction() -> float:
+	return 0.0 if paused else clampf(_accumulator, 0.0, 1.0)
+
+
 ## Runs exactly one tick.
 func step() -> void:
 	tick += 1

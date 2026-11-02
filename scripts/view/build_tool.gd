@@ -10,6 +10,7 @@ const Grid = preload("res://scripts/sim/grid.gd")
 const Factory = preload("res://scripts/view/placeholder_factory.gd")
 
 signal mode_changed(mode: int, building_type: String)
+signal building_selected(id: int)
 
 enum Mode { NONE, BUILD, ROAD, DEMOLISH }
 
@@ -168,6 +169,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event.is_action_pressed("tool_demolish", false, true):
 		start_demolish()
 	elif mode == Mode.NONE:
+		_select(event)
 		return
 	elif event.is_action_pressed("tool_cancel", false, true):
 		cancel()
@@ -207,6 +209,18 @@ func _on_mouse_button(mb: InputEventMouseButton) -> void:
 					city.demolish(_drag_start, tile)
 
 
+## With no tool active, a left click picks the building under the mouse (0 = none).
+func _select(event: InputEvent) -> void:
+	var mb := event as InputEventMouseButton
+	if mb == null or mb.button_index != MOUSE_BUTTON_LEFT or not mb.pressed:
+		return
+	var tile: Variant = _mouse_tile()
+	var instance: Dictionary = {} if tile == null else city.building_at(tile)
+	building_selected.emit(instance.get("id", 0))
+	if not instance.is_empty():
+		get_viewport().set_input_as_handled()
+
+
 # --- Helpers ---
 
 ## North-west tile for a building whose footprint is centered under the cursor.
@@ -228,7 +242,9 @@ func _mouse_tile() -> Variant:
 		return null
 	var hit := from + dir * (-from.y / dir.y)
 	var tile := Grid.world_to_tile(hit)
-	return tile if city.grid.in_bounds(tile) else null
+	if not city.grid.in_bounds(tile):
+		return null
+	return tile
 
 
 func _mouse_over_ui() -> bool:

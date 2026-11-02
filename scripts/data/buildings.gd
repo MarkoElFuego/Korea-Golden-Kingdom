@@ -13,6 +13,11 @@ extends RefCounted
 ## on_road (optional): stands on an existing road tile, which stays a road
 ##   (Jangseung: turns back roaming walkers, lets destination walkers pass).
 ## hint_key (optional): one line for the build menu tooltip.
+## produces (optional): {"good": id, "days": n} one load every n days into its small store.
+##   Phase 3: fixed rate, no workers yet (proposal; phase 6 adds workers and chains).
+## produces_later (optional): produces only once fermentation exists (phase 7).
+## storage (optional): {"accepts": goods kind, "capacity": loads} or, Storehouse-style,
+##   {"accepts": kind, "slots": n, "slot_size": loads}, one good per slot (as in Zeus).
 
 const Terrain = preload("res://scripts/data/terrain.gd")
 
@@ -44,11 +49,14 @@ const MVP_BUILDINGS: Array[Dictionary] = [
 		"coverage": {"type": "radius", "tiles": 3}},
 	{"id": "rice_paddy", "name_key": "BUILDING_RICE_PADDY", "korean": "non", "category": "food",
 		"footprint": Vector2i(3, 3), "height_class": "flat", "cost": 40, "workers": 6, "roof": "none",
-		"terrain": [Terrain.FERTILE_PLAIN]},
+		"terrain": [Terrain.FERTILE_PLAIN],
+		"produces": {"good": "rice", "days": 8}},
 	{"id": "granary", "name_key": "BUILDING_GRANARY", "korean": "gogan", "category": "storage",
-		"footprint": Vector2i(3, 3), "height_class": "medium", "cost": 60, "workers": 8, "roof": "giwa", "terrain": []},
+		"footprint": Vector2i(3, 3), "height_class": "medium", "cost": 60, "workers": 8, "roof": "giwa", "terrain": [],
+		"storage": {"accepts": "food", "capacity": 32}},
 	{"id": "storehouse", "name_key": "BUILDING_STOREHOUSE", "korean": "changgo", "category": "storage",
-		"footprint": Vector2i(3, 3), "height_class": "medium", "cost": 50, "workers": 6, "roof": "giwa", "terrain": []},
+		"footprint": Vector2i(3, 3), "height_class": "medium", "cost": 50, "workers": 6, "roof": "giwa", "terrain": [],
+		"storage": {"accepts": "material", "slots": 8, "slot_size": 4}},
 	{"id": "market", "name_key": "BUILDING_MARKET", "korean": "sijang", "category": "distribution",
 		"footprint": Vector2i(3, 3), "height_class": "low", "cost": 40, "workers": 6, "roof": "thatch", "terrain": [],
 		"coverage": {"type": "walker"}},
@@ -60,18 +68,22 @@ const MVP_BUILDINGS: Array[Dictionary] = [
 		"on_road": true, "hint_key": "HINT_JANGSEUNG"},
 	{"id": "woodcutter", "name_key": "BUILDING_WOODCUTTER", "korean": "", "category": "materials",
 		"footprint": Vector2i(2, 2), "height_class": "low", "cost": 30, "workers": 4, "roof": "thatch", "terrain": [],
-		"near_terrain": {"terrain": Terrain.FOREST, "tiles": 2, "reason_key": "REASON_NEEDS_FOREST_NEARBY"}},
+		"near_terrain": {"terrain": Terrain.FOREST, "tiles": 2, "reason_key": "REASON_NEEDS_FOREST_NEARBY"},
+		"produces": {"good": "wood", "days": 5}},
 	{"id": "clay_pit", "name_key": "BUILDING_CLAY_PIT", "korean": "", "category": "materials",
 		"footprint": Vector2i(2, 2), "height_class": "flat", "cost": 30, "workers": 4, "roof": "none",
-		"terrain": [Terrain.ROCKY_HILL]},
+		"terrain": [Terrain.ROCKY_HILL],
+		"produces": {"good": "clay", "days": 5}},
 	{"id": "onggi_kiln", "name_key": "BUILDING_ONGGI_KILN", "korean": "onggi-gama", "category": "crafts",
 		"footprint": Vector2i(3, 2), "height_class": "medium", "cost": 50, "workers": 6, "roof": "giwa", "terrain": []},
 	{"id": "soybean_field", "name_key": "BUILDING_SOYBEAN_FIELD", "korean": "", "category": "food",
 		"footprint": Vector2i(3, 3), "height_class": "flat", "cost": 40, "workers": 6, "roof": "none",
-		"terrain": [Terrain.GRASS, Terrain.FERTILE_PLAIN]},
+		"terrain": [Terrain.GRASS, Terrain.FERTILE_PLAIN],
+		"produces_later": true},
 	{"id": "salt_pans", "name_key": "BUILDING_SALT_PANS", "korean": "yeomjeon", "category": "food",
 		"footprint": Vector2i(3, 3), "height_class": "flat", "cost": 40, "workers": 6, "roof": "none",
-		"terrain": [Terrain.SHORE]},
+		"terrain": [Terrain.SHORE],
+		"produces_later": true},
 	{"id": "jangdokdae", "name_key": "BUILDING_JANGDOKDAE", "korean": "jangdokdae", "category": "fermentation",
 		"footprint": Vector2i(2, 2), "height_class": "low", "cost": 50, "workers": 4, "roof": "none", "terrain": []},
 ]
@@ -84,11 +96,14 @@ static func ids() -> Array[String]:
 	return result
 
 
+static var _by_id := {}
+
+
 static func get_building(id: String) -> Dictionary:
-	for b in MVP_BUILDINGS:
-		if b["id"] == id:
-			return b
-	return {}
+	if _by_id.is_empty():
+		for b in MVP_BUILDINGS:
+			_by_id[b["id"]] = b
+	return _by_id.get(id, {})
 
 
 ## Terrains allowed under this building.

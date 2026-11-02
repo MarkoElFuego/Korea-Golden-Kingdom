@@ -1,10 +1,13 @@
 extends Node3D
-## Draws what stands in the city: building models, roads (one MultiMesh) and a warning
-## sign over buildings without road access. Only reads the city and follows its signals.
+## Draws what stands in the city: building models, goods in their yards, roads (one
+## MultiMesh) and a warning sign over buildings without road access.
+## Only reads the city and follows its signals.
 
 const Balance = preload("res://scripts/data/balance.gd")
 const Grid = preload("res://scripts/sim/grid.gd")
 const Factory = preload("res://scripts/view/placeholder_factory.gd")
+const Buildings = preload("res://scripts/data/buildings.gd")
+const Goods = preload("res://scripts/data/goods.gd")
 
 const ROAD_COLOR := "#cbb994"
 const ROAD_HEIGHT := 0.12
@@ -14,6 +17,7 @@ var city # scripts/sim/city.gd
 var _models := {} # instance id -> Node3D
 var _warnings := {} # instance id -> Label3D
 var _roads: MultiMeshInstance3D
+var _goods_materials := {} # good -> material
 
 
 func setup(city_ref) -> void:
@@ -29,6 +33,7 @@ func setup(city_ref) -> void:
 	city.building_added.connect(_on_building_added)
 	city.building_removed.connect(_on_building_removed)
 	city.roads_changed.connect(_rebuild_roads)
+	city.economy.stock_changed.connect(_update_goods)
 	for instance in city.buildings.all():
 		_on_building_added(instance)
 	_rebuild_roads()
@@ -41,6 +46,78 @@ func _on_building_added(instance: Dictionary) -> void:
 	add_child(model)
 	_models[instance["id"]] = model
 	_update_warning(instance)
+	_update_goods(instance["id"])
+
+
+## Goods shown in the yard: sacks of rice by the Granary, piles in the Storehouse slots,
+## and the small store of a producing building next to its door. Rebuilt when stock changes.
+func _update_goods(id: int) -> void:
+	if not _models.has(id) or not city.economy.state.has(id):
+		return
+	var model: Node3D = _models[id]
+	var old := model.get_node_or_null("Goods")
+	if old:
+		model.remove_child(old)
+		old.queue_free()
+	var instance: Dictionary = city.buildings.get_instance(id)
+	var stock: Dictionary = city.economy.state[id]["stock"]
+	if stock.is_empty():
+		return
+	var pile := Node3D.new()
+	pile.name = "Goods"
+	model.add_child(pile)
+	var half := Vector2(Buildings.get_building(instance["type"])["footprint"]) * Balance.TILE_SIZE * 0.5
+	match instance["type"]:
+		"granary":
+			_granary_sacks(pile, stock.get("rice", 0))
+		"storehouse":
+			_storehouse_slots(pile, stock)
+		_:
+			var n := 0
+			for good: String in stock:
+				for k in stock[good]:
+					_goods_box(pile, Vector3(0.8, 0.6, 0.8), Vector3(half.x - 1.0 - n * 1.0, 0.3, half.y - 0.8), good)
+					n += 1
+
+
+func _granary_sacks(pile: Node3D, loads: int) -> void:
+	# Two rows of eight on each side of the steps, then a second layer.
+	var columns: Array[float] = [-5.4, -4.5, -3.6, -2.7, 2.7, 3.6, 4.5, 5.4]
+	for n in loads:
+		var layer := floori(n / 16.0)
+		var row := floori((n % 16) / 8.0)
+		var col := n % 8
+		_goods_box(pile, Vector3(0.8, 0.55, 0.65), Vector3(columns[col], 0.28 + layer * 0.55, 4.6 + row * 0.8), "rice")
+
+
+func _storehouse_slots(pile: Node3D, stock: Dictionary) -> void:
+	# Eight slots along the front, one good per slot, up to four loads high.
+	var slot_size: int = Buildings.get_building("storehouse")["storage"]["slot_size"]
+	var goods: Array = stock.keys()
+	goods.sort()
+	var slot := 0
+	for good: String in goods:
+		var left: int = stock[good]
+		while left > 0 and slot < 8:
+			var loads := mini(left, slot_size)
+			_goods_box(pile, Vector3(1.1, 0.35 * loads, 1.6), Vector3(-5.25 + slot * 1.5, 0.175 * loads, 4.6), good)
+			left -= loads
+			slot += 1
+
+
+func _goods_box(parent: Node3D, size: Vector3, center: Vector3, good: String) -> void:
+	var mesh := BoxMesh.new()
+	mesh.size = size
+	var mi := MeshInstance3D.new()
+	mi.mesh = mesh
+	mi.position = center
+	if not _goods_materials.has(good):
+		var m := StandardMaterial3D.new()
+		m.albedo_color = Color(Goods.GOODS[good]["color"])
+		m.roughness = 1.0
+		_goods_materials[good] = m
+	mi.material_override = _goods_materials[good]
+	parent.add_child(mi)
 
 
 func _on_building_removed(instance: Dictionary) -> void:

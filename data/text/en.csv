@@ -75,3 +75,18 @@ UI_DEMOLISH_PREVIEW_FORMAT,"Demolish: %d"
 UI_TOOL_HINT,"R rotate · Esc or right click cancel"
 REASON_NEEDS_ROAD,Must stand on a road
 HINT_JANGSEUNG,"Stands on a road. Turns back roaming walkers (vendors, shrine keepers). Carriers, buyers and settlers pass."
+GOOD_RICE,Rice
+GOOD_WOOD,Wood
+GOOD_CLAY,Clay
+STATUS_WAITING_SETTLERS,Waiting for settlers.
+STATUS_WAITS_FERMENTATION,Production starts with fermentation (Jangdokdae).
+STATUS_NO_ROAD_CARRIERS,No road access: carriers cannot come or go.
+STATUS_CARRIER_OUT,"A carrier is on the way to storage. Next load: %d%%"
+STATUS_NO_GRANARY,"No Granary with free space can be reached by road. Production stops when the store is full."
+STATUS_NO_STOREHOUSE,"No Storehouse with free space can be reached by road. Production stops when the store is full."
+STATUS_PRODUCING,"Working. Next load: %d%%"
+STATUS_STORAGE,"Holds %d of %d loads."
+STATUS_STORAGE_FULL,"Full: %d of %d loads. Build another storage."
+UI_STOCK_LINE,%s: %d
+UI_STOCK_EMPTY,Nothing stored.
+UI_PANEL_CLOSE_TIP,Close (Esc)

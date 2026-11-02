@@ -1,6 +1,6 @@
 extends Node3D
-## Main game scene: generates the city, draws terrain, buildings and roads, camera,
-## top bar and build menu, and runs the simulation clock.
+## Main game scene: generates the city, draws terrain, buildings, roads and walkers, camera,
+## top bar, build menu and building window, and runs the simulation clock.
 
 const Balance = preload("res://scripts/data/balance.gd")
 const City = preload("res://scripts/sim/city.gd")
@@ -14,6 +14,8 @@ const InputSetup = preload("res://scripts/view/input_setup.gd")
 const TextLoader = preload("res://scripts/view/text_loader.gd")
 const SceneSetup = preload("res://scripts/view/scene_setup.gd")
 const UiTheme = preload("res://scripts/view/ui_theme.gd")
+const WalkerView = preload("res://scripts/view/walker_view.gd")
+const InfoPanel = preload("res://scripts/view/info_panel.gd")
 
 var city: City
 var camera_rig: CameraRig
@@ -36,6 +38,11 @@ func _ready() -> void:
 	city_view.name = "CityView"
 	add_child(city_view)
 	city_view.setup(city)
+
+	var walker_view := WalkerView.new()
+	walker_view.name = "Walkers"
+	add_child(walker_view)
+	walker_view.setup(city)
 
 	camera_rig = CameraRig.new()
 	camera_rig.name = "CameraRig"
@@ -70,6 +77,13 @@ func _ready() -> void:
 	menu.name = "BuildMenu"
 	ui_root.add_child(menu)
 	menu.setup(build_tool)
+
+	var info := InfoPanel.new()
+	info.name = "InfoPanel"
+	info.city = city
+	ui_root.add_child(info)
+	build_tool.building_selected.connect(info.show_building)
+	build_tool.mode_changed.connect(func(_m: int, _t: String) -> void: info.close_panel())
 
 
 ## Small paper note that follows the cursor while a build tool is active.

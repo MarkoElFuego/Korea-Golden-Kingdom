@@ -145,8 +145,7 @@ func test_same_commands_same_city() -> void:
 				a.place_building(ids[rng.randi_range(0, ids.size() - 1)], t, rng.randi_range(0, 3))
 	check(a.buildings.count() > 10, "the random city has buildings (%d)" % a.buildings.count())
 	var b := City.new(Balance.DEFAULT_MAP_SEED)
-	for command in a.command_log:
-		b.apply_command(command)
+	b.replay(a.command_log, a.clock.tick)
 	check(a.grid.occupant == b.grid.occupant, "same tiles")
 	check_eq(b.treasury, a.treasury, "same treasury")
 	check_eq(b.buildings.count(), a.buildings.count(), "same buildings")

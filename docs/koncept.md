@@ -224,6 +224,20 @@ Najbolje mesto je **Myeongdang**.
   Prikaz dometa pri gradnji već staje kod Jangseung-a. Rušenje prvo skida Jangseung, a put
   ostaje; drugo rušenje skida i put.
 
+## Roba i nosači (odluke iz Faze 3)
+
+- Privremena proizvodnja do Faze 6: Rice Paddy (Rice, 1 tovar / 8 dana), Woodcutter i Clay Pit
+  (Wood, Clay, 1 tovar / 5 dana), stalnim tempom, bez radnika. *predlog*
+- Proizvodna zgrada čuva najviše 2 tovara; kad je puna, proizvodnja staje dok nosač ne uzme tovar.
+- Granary prima samo hranu, 32 tovara. Storehouse ima 8 mesta po 4 tovara, jedna vrsta robe po
+  mestu (kao u Zeusu). *predlog*
+- Svaka proizvodna zgrada ima jednog nosača; on nosi jedan tovar do najbližeg skladišta (po putu)
+  koje prima tu robu i ima mesta, pa se vraća. Ide 1,5 polja u sekundi pri 1×. *predlog*
+- Roba se ne gubi: ako nestane skladište ili put, nosač traži drugo skladište ili vraća tovar
+  kući. Gubi se samo roba koja je bila u srušenoj zgradi.
+- Soybean Field i Salt Pans ne proizvode do Faze 7 (Jangdokdae); prozor zgrade to kaže.
+- Prozor zgrade (klik na zgradu) pokazuje zalihu i jednu rečenicu o stanju ili o tome šta fali.
+
 ## Zgrade
 
 Footprint je u poljima (4 m). Cena u Silver i radnici su *predlog* za MVP zgrade; ostalo se
