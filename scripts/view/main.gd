@@ -217,7 +217,9 @@ func _process(delta: float) -> void:
 		if _fps_wait <= 0.0:
 			_fps_wait = 0.5
 			var walkers: int = city.carriers.count() + city.settlers.count() + city.services.count()
-			_fps_label.text = tr("UI_FPS_FORMAT") % [Engine.get_frames_per_second(), city.population(), walkers]
+			var calls := int(Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME))
+			_fps_label.text = tr("UI_FPS_FORMAT") % [Engine.get_frames_per_second(), calls, city.population(), walkers]
+			print(_fps_label.text) # readable in the console when measuring
 
 
 func _unhandled_input(event: InputEvent) -> void:

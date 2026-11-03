@@ -67,6 +67,10 @@ peče kao neproziran deo teksture. Drugi materijal je opravdan samo kad stvarno 
 (npr. providan deo koji se ne može ispeći). Jedan grad može imati hiljade objekata, pa su
 budžeti strogi.
 
+Igra pri učitavanju „peče“ model: sve delove spaja u jedan, po jedan deo za svaki
+materijal. Zato se animacija i hijerarhija u `.glb` ne vide u gradu. Animirani delovi
+(dim, zastavice, točak) kasnije idu kao poseban mali dodatak uz zgradu, ne u glavni model.
+
 ## Paleta
 
 | Uloga | Boja |

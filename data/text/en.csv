@@ -135,4 +135,4 @@ LOAD_NO_SAVE,There is no saved game yet. Press Ctrl+S to save.
 LOAD_DAMAGED,The save file is damaged and cannot be loaded.
 LOAD_NEWER_VERSION,This save comes from a newer version of the game.
 LOAD_OLDER_VERSION,This save comes from an older version of the game and cannot be loaded.
-UI_FPS_FORMAT,"%d FPS   ·   %d people   ·   %d walkers"
+UI_FPS_FORMAT,"%d FPS   ·   %d draw calls   ·   %d people   ·   %d walkers"

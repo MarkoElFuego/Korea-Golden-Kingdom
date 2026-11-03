@@ -1,10 +1,10 @@
 # Stanje projekta
 
-Poslednje ažuriranje: 2. novembar 2026.
+Poslednje ažuriranje: 3. novembar 2026.
 
 ## Gde smo stali
 
-Gotove faze 1–4 (commit `fbd0553`, poslato na GitHub). Testova: 111, svi prolaze.
+Gotove faze 1–5 i brže crtanje zgrada. Testova: 127, svi prolaze.
 
 | Faza | Šta je urađeno | Commit |
 | --- | --- | --- |
@@ -13,12 +13,12 @@ Gotove faze 1–4 (commit `fbd0553`, poslato na GitHub). Testova: 111, svi prola
 | 3 | Putna mreža, Granary, Storehouse, nosači sa jigeom | 12eecac |
 | 4a | Ulaz u dolinu, doseljenici, kuće koje rastu, radna snaga, porez, prozor kuće | 2fd5107 |
 | 4b | Pijaca (Buyer, Vendor), šetač Seonangdang-a, ishrana iz ostave, overlay F1–F3 | fbd0553 |
+| 5 | Sejv sa verzijom i kontrolnim zbirom, Ctrl+S / Ctrl+L, autosave sa 3 kopije, scena „veliki grad" | 2eef9a8 |
+| 5+ | Iste zgrade se crtaju zajedno (MultiMesh): veliki grad 60 FPS, oko 220 poziva umesto 16.500 | (sledeći) |
 
-## Sledeće: Faza 5, snimanje i stabilnost
+## Sledeće: Faza 6, proizvodnja
 
-- Sejv sa brojem verzije.
-- Automatski sejv sa 3 kopije; snimanje nikad ne prepisuje jedini postojeći fajl.
-- Test scena „veliki grad" (cilj: 60 FPS sa 3.000 stanovnika i 400 šetača).
+- Pirinač, soja, so, glina, onggi; igra pokazuje gde roba fali.
 
 Prvo plan, pa kod posle vlasnikovog „ok".
 

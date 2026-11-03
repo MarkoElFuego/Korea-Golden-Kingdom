@@ -1,6 +1,7 @@
 extends Node3D
-## Draws what stands in the city: building models, goods in their yards, roads (one
-## MultiMesh) and a warning sign over buildings without road access.
+## Draws what stands in the city: buildings (one MultiMesh per kind, building_batch.gd),
+## goods in their yards (one MultiMesh per good), roads (one MultiMesh) and a warning
+## sign over buildings without road access.
 ## Only reads the city and follows its signals.
 
 const Balance = preload("res://scripts/data/balance.gd")
@@ -8,6 +9,7 @@ const Grid = preload("res://scripts/sim/grid.gd")
 const Factory = preload("res://scripts/view/placeholder_factory.gd")
 const Buildings = preload("res://scripts/data/buildings.gd")
 const Goods = preload("res://scripts/data/goods.gd")
+const BuildingBatch = preload("res://scripts/view/building_batch.gd")
 
 const ROAD_COLOR := "#cbb994"
 const ROAD_HEIGHT := 0.12
@@ -15,15 +17,20 @@ const WARNING_COLOR := "#b8473a"
 const FADED := 0.75 # building transparency while a service overlay is shown
 
 var city # scripts/sim/city.gd
-var _models := {} # instance id -> Node3D
+var batch: BuildingBatch
 var _warnings := {} # instance id -> Label3D
 var _roads: MultiMeshInstance3D
-var _goods_materials := {} # good -> material
+var _goods := {} # good -> {building id: Array[Transform3D]}, boxes in yards
+var _goods_layers := {} # good -> MultiMeshInstance3D
+var _goods_dirty := {} # goods whose boxes changed since the last frame
 var _faded := false
 
 
 func setup(city_ref) -> void:
 	city = city_ref
+	batch = BuildingBatch.new()
+	batch.name = "Buildings"
+	add_child(batch)
 	_roads = MultiMeshInstance3D.new()
 	_roads.name = "Roads"
 	var material := StandardMaterial3D.new()
@@ -43,14 +50,10 @@ func setup(city_ref) -> void:
 	_add_entrance_marker()
 
 
-## A house rose or fell a tier (or a lot got its first settlers): swap the model.
+## A house rose or fell a tier (or a lot got its first settlers): it moves to its new kind.
 func _on_house_changed(instance: Dictionary) -> void:
-	var id: int = instance["id"]
-	if not _models.has(id):
-		return
-	_models[id].queue_free()
-	_models.erase(id)
-	_on_building_added(instance)
+	if batch.has(instance["id"]):
+		batch.add(instance["id"], instance["type"], instance["tier"], _xform(instance))
 
 
 ## Granite way-marker with a red cap beside the valley entrance, so the player sees
@@ -82,73 +85,63 @@ func _add_entrance_marker() -> void:
 
 
 func _on_building_added(instance: Dictionary) -> void:
-	var model := Factory.building(instance["type"], instance["tier"])
-	model.position = Grid.footprint_center(instance["origin"], instance["size"])
-	model.rotation.y = instance["rotation"] * PI * 0.5
-	add_child(model)
-	_models[instance["id"]] = model
+	batch.add(instance["id"], instance["type"], instance["tier"], _xform(instance))
 	_update_warning(instance)
 	_update_goods(instance["id"])
-	if _faded:
-		_set_transparency(model, FADED)
+
+
+## Where a building stands: footprint center, turned in 90-degree steps.
+static func _xform(instance: Dictionary) -> Transform3D:
+	var turn := Basis(Vector3.UP, instance["rotation"] * PI * 0.5)
+	return Transform3D(turn,Grid.footprint_center(instance["origin"], instance["size"]))
 
 
 ## Fades every building so overlay columns stand out (and brings them back).
 func set_faded(on: bool) -> void:
 	_faded = on
-	for model: Node3D in _models.values():
-		_set_transparency(model, FADED if on else 0.0)
-
-
-static func _set_transparency(node: Node, value: float) -> void:
-	if node is GeometryInstance3D:
-		(node as GeometryInstance3D).transparency = value
-	for child in node.get_children():
-		_set_transparency(child, value)
+	batch.set_transparency(FADED if on else 0.0)
+	for layer: MultiMeshInstance3D in _goods_layers.values():
+		layer.transparency = FADED if on else 0.0
 
 
 ## Goods shown in the yard: sacks of rice by the Granary, piles in the Storehouse slots,
 ## and the small store of a producing building next to its door. Rebuilt when stock changes.
 func _update_goods(id: int) -> void:
-	if not _models.has(id) or not city.economy.state.has(id):
+	for good: String in _goods:
+		if _goods[good].erase(id):
+			_goods_dirty[good] = true
+	if not batch.has(id) or not city.economy.state.has(id):
 		return
-	var model: Node3D = _models[id]
-	var old := model.get_node_or_null("Goods")
-	if old:
-		model.remove_child(old)
-		old.queue_free()
 	var instance: Dictionary = city.buildings.get_instance(id)
 	var stock: Dictionary = city.economy.state[id]["stock"]
 	if stock.is_empty():
 		return
-	var pile := Node3D.new()
-	pile.name = "Goods"
-	model.add_child(pile)
+	var at := _xform(instance)
 	var half := Vector2(Buildings.get_building(instance["type"])["footprint"]) * Balance.TILE_SIZE * 0.5
 	match instance["type"]:
 		"granary":
-			_granary_sacks(pile, stock.get("rice", 0))
+			_granary_sacks(id, at, stock.get("rice", 0))
 		"storehouse":
-			_storehouse_slots(pile, stock)
+			_storehouse_slots(id, at, stock)
 		_:
 			var n := 0
 			for good: String in stock:
 				for k in stock[good]:
-					_goods_box(pile, Vector3(0.8, 0.6, 0.8), Vector3(half.x - 1.0 - n * 1.0, 0.3, half.y - 0.8), good)
+					_goods_box(id, at, Vector3(0.8, 0.6, 0.8), Vector3(half.x - 1.0 - n * 1.0, 0.3, half.y - 0.8), good)
 					n += 1
 
 
-func _granary_sacks(pile: Node3D, loads: int) -> void:
+func _granary_sacks(id: int, at: Transform3D, loads: int) -> void:
 	# Two rows of eight on each side of the steps, then a second layer.
 	var columns: Array[float] = [-5.4, -4.5, -3.6, -2.7, 2.7, 3.6, 4.5, 5.4]
 	for n in loads:
 		var layer := floori(n / 16.0)
 		var row := floori((n % 16) / 8.0)
 		var col := n % 8
-		_goods_box(pile, Vector3(0.8, 0.55, 0.65), Vector3(columns[col], 0.28 + layer * 0.55, 4.6 + row * 0.8), "rice")
+		_goods_box(id, at, Vector3(0.8, 0.55, 0.65), Vector3(columns[col], 0.28 + layer * 0.55, 4.6 + row * 0.8), "rice")
 
 
-func _storehouse_slots(pile: Node3D, stock: Dictionary) -> void:
+func _storehouse_slots(id: int, at: Transform3D, stock: Dictionary) -> void:
 	# Eight slots along the front, one good per slot, up to four loads high.
 	var slot_size: int = Buildings.get_building("storehouse")["storage"]["slot_size"]
 	var goods: Array = stock.keys()
@@ -158,31 +151,69 @@ func _storehouse_slots(pile: Node3D, stock: Dictionary) -> void:
 		var left: int = stock[good]
 		while left > 0 and slot < 8:
 			var loads := mini(left, slot_size)
-			_goods_box(pile, Vector3(1.1, 0.35 * loads, 1.6), Vector3(-5.25 + slot * 1.5, 0.175 * loads, 4.6), good)
+			_goods_box(id, at, Vector3(1.1, 0.35 * loads, 1.6), Vector3(-5.25 + slot * 1.5, 0.175 * loads, 4.6), good)
 			left -= loads
 			slot += 1
 
 
-func _goods_box(parent: Node3D, size: Vector3, center: Vector3, good: String) -> void:
-	var mesh := BoxMesh.new()
-	mesh.size = size
-	var mi := MeshInstance3D.new()
-	mi.mesh = mesh
-	mi.position = center
-	if not _goods_materials.has(good):
-		var m := StandardMaterial3D.new()
-		m.albedo_color = Color(Goods.GOODS[good]["color"])
-		m.roughness = 1.0
-		_goods_materials[good] = m
-	mi.material_override = _goods_materials[good]
-	parent.add_child(mi)
+## One box of a good in building `id`'s yard; `center` is in the building's own space.
+func _goods_box(id: int, at: Transform3D, size: Vector3, center: Vector3, good: String) -> void:
+	if not _goods.has(good):
+		_goods[good] = {}
+	if not _goods[good].has(id):
+		_goods[good][id] = []
+	_goods[good][id].append(at * Transform3D(Basis.from_scale(size), center))
+	_goods_dirty[good] = true
+
+
+## How many goods boxes stand in yards (for tests).
+func goods_boxes(good: String) -> int:
+	var n := 0
+	for boxes: Array in _goods.get(good, {}).values():
+		n += boxes.size()
+	return n
+
+
+func _process(_delta: float) -> void:
+	flush()
+
+
+## Sends changed goods to the graphics card (once per frame at most).
+func flush() -> void:
+	batch.flush()
+	for good: String in _goods_dirty:
+		if not _goods_layers.has(good):
+			_goods_layers[good] = _goods_layer(good)
+		var mm: MultiMesh = _goods_layers[good].multimesh
+		mm.instance_count = goods_boxes(good)
+		var i := 0
+		for boxes: Array in _goods[good].values():
+			for xform: Transform3D in boxes:
+				mm.set_instance_transform(i, xform)
+				i += 1
+	_goods_dirty.clear()
+
+
+func _goods_layer(good: String) -> MultiMeshInstance3D:
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.mesh = BoxMesh.new() # 1 m cube, scaled per box
+	var m := StandardMaterial3D.new()
+	m.albedo_color = Color(Goods.GOODS[good]["color"])
+	m.roughness = 1.0
+	var node := MultiMeshInstance3D.new()
+	node.name = "Goods_" + good
+	node.multimesh = mm
+	node.material_override = m
+	node.transparency = FADED if _faded else 0.0
+	add_child(node)
+	return node
 
 
 func _on_building_removed(instance: Dictionary) -> void:
 	var id: int = instance["id"]
-	if _models.has(id):
-		_models[id].queue_free()
-		_models.erase(id)
+	batch.remove(id)
+	_update_goods(id)
 	if _warnings.has(id):
 		_warnings[id].queue_free()
 		_warnings.erase(id)
