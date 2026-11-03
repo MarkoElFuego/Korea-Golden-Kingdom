@@ -399,3 +399,16 @@ func _drop(w: Dictionary) -> void:
 		else:
 			h["out"] -= 1
 	walkers.erase(w["id"])
+
+
+# --- Saving (save_game.gd) ---
+
+func to_save() -> Dictionary:
+	return {"walkers": walkers, "next_id": _next_id, "homes": _homes}
+
+
+func load_save(d: Dictionary) -> void:
+	walkers = d["walkers"]
+	_next_id = d["next_id"]
+	_homes = d["homes"]
+	_near.clear()

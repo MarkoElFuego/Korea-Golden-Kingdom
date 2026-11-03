@@ -153,3 +153,17 @@ func _leave(w: Dictionary) -> void:
 		walkers.erase(w["id"])
 		return
 	WalkerMotion.follow(w, path)
+
+
+# --- Saving (save_game.gd) ---
+
+func to_save() -> Dictionary:
+	return {"walkers": walkers, "entrance_connected": entrance_connected, "next_id": _next_id,
+		"next_spawn": _next_spawn}
+
+
+func load_save(d: Dictionary) -> void:
+	walkers = d["walkers"]
+	entrance_connected = d["entrance_connected"]
+	_next_id = d["next_id"]
+	_next_spawn = d["next_spawn"]

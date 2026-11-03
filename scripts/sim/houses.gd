@@ -20,7 +20,8 @@ const HOUSE := "common_house"
 ##        "food": portions in the pantry, "visits": {service: tick of the last walker}}
 var state := {}
 var _city: WeakRef
-var _cache := {} # coverage maps, built at most once per day (cleared in daily())
+static var _needs := {} # tier -> needs_for(tier), built once
+var _cache := {} # derived from the buildings; cleared when buildings change (clear_cache)
 
 
 func _init(city) -> void:
@@ -59,10 +60,13 @@ static func capacity(tier: int) -> int:
 
 ## Every need of `tier`, including the needs of the tiers below.
 static func needs_for(tier: int) -> Array[String]:
+	if _needs.has(tier):
+		return _needs[tier]
 	var result: Array[String] = []
 	for t in range(1, tier + 1):
 		for need: String in tier_data(t)["needs"]:
 			result.append(need)
+	_needs[tier] = result
 	return result
 
 
@@ -73,12 +77,11 @@ func room(instance: Dictionary) -> int:
 
 
 func is_met(instance: Dictionary, need: String) -> bool:
-	var city = _city.get_ref()
 	match need:
 		"road":
-			return city.has_road_access(instance)
+			return _city.get_ref().carriers.access_road(instance) != Vector2i(-1, -1) # cached
 		"water":
-			return _covered(instance, _water_tiles())
+			return _watered().has(instance["id"])
 		"food":
 			return state[instance["id"]]["food"] > 0
 		"seonangdang":
@@ -122,7 +125,6 @@ func days_since(id: int, service: String) -> int:
 ## Once a day: everyone eats from the pantry, then each house rises, falls, or stays.
 func daily() -> Array[Dictionary]:
 	var changed: Array[Dictionary] = []
-	_cache.clear()
 	var city = _city.get_ref()
 	for s: Dictionary in state.values():
 		s["food"] = maxi(0, s["food"] - s["residents"])
@@ -160,24 +162,37 @@ func _all_met(instance: Dictionary, needs: Array[String]) -> bool:
 	return true
 
 
-func _covered(instance: Dictionary, tiles: Dictionary) -> bool:
-	for dy in instance["size"].y:
-		for dx in instance["size"].x:
-			if tiles.has(instance["origin"] + Vector2i(dx, dy)):
-				return true
-	return false
-
-
 func clear_cache() -> void:
 	_cache.clear()
 
 
-func _water_tiles() -> Dictionary:
+## Houses with a Well in reach: {house id: true} (rebuilt after buildings change).
+func _watered() -> Dictionary:
 	if not _cache.has("water"):
 		var city = _city.get_ref()
-		var tiles := {}
+		var ids := {}
 		for instance: Dictionary in city.buildings.all():
-			if instance["type"] == "well":
-				tiles.merge(city.coverage_preview("well", instance["origin"], instance["rotation"]))
-		_cache["water"] = tiles
+			if instance["type"] != "well":
+				continue
+			var r: int = Buildings.get_building("well")["coverage"]["tiles"]
+			var o: Vector2i = instance["origin"]
+			for y in range(o.y - r, o.y + instance["size"].y + r):
+				for x in range(o.x - r, o.x + instance["size"].x + r):
+					var t := Vector2i(x, y)
+					if city.grid.in_bounds(t):
+						var id: int = city.grid.get_occupant(t)
+						if state.has(id):
+							ids[id] = true
+		_cache["water"] = ids
 	return _cache["water"]
+
+
+# --- Saving (save_game.gd) ---
+
+func to_save() -> Dictionary:
+	return {"state": state}
+
+
+func load_save(d: Dictionary) -> void:
+	state = d["state"]
+	_cache.clear()

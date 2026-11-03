@@ -50,14 +50,22 @@ pravim modelima.
 
 | Šta | Trouglova | Materijala |
 | --- | --- | --- |
-| Šetač | do 1.500 | 1–2 |
-| Obična kuća (po nivou) | do 3.000 | do 3 |
-| Velika zgrada (hram, palata) | do 8.000 | do 4 |
-| Čudo (ukupno, sve faze) | do 40.000 | do 6 |
+| Šetač | do 1.500 | 1 |
+| Obična kuća (po nivou) | do 3.000 | 1 (najviše 2 uz razlog) |
+| Velika zgrada (hram, palata) | do 8.000 | 1 (najviše 2 uz razlog) |
+| Čudo (ukupno, sve faze) | do 40.000 | do 4 |
 | Polje terena | do 200 | 1 |
 
-Teksture: atlas 2048 × 2048 po kategoriji ili vertex color. Jedan grad može imati hiljade
-objekata, pa su budžeti strogi.
+Jedna zgrada je **jedan model, jedan materijal**. Igra crta sve iste zgrade odjednom
+(MultiMesh), pa broj poziva grafičkoj karti zavisi od broja vrsta zgrada × broja
+materijala, ne od broja zgrada. Svaki dodatni materijal je dodatni poziv za svaku vrstu.
+
+Teksture: zajednički atlas 2048 × 2048 po kategoriji (npr. sve kuće jedan atlas, svi hramovi
+drugi), ili vertex color. Svaka mapa (Base Color, Normal, ORM, po potrebi Emission za svetla
+noću) ima svoj atlas istog rasporeda. Providnost izbegavati: hanji papir na prozorima se
+peče kao neproziran deo teksture. Drugi materijal je opravdan samo kad stvarno mora
+(npr. providan deo koji se ne može ispeći). Jedan grad može imati hiljade objekata, pa su
+budžeti strogi.
 
 ## Paleta
 

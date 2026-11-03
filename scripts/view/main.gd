@@ -1,6 +1,8 @@
 extends Node3D
 ## Main game scene: generates the city, draws terrain, buildings, roads and walkers, camera,
 ## top bar, build menu and building window, and runs the simulation clock.
+## Ctrl+S saves, Ctrl+L loads the newest save, and the game autosaves at the start of every
+## season. Loading reloads this scene with the loaded city.
 
 const Balance = preload("res://scripts/data/balance.gd")
 const City = preload("res://scripts/sim/city.gd")
@@ -17,20 +19,36 @@ const UiTheme = preload("res://scripts/view/ui_theme.gd")
 const WalkerView = preload("res://scripts/view/walker_view.gd")
 const InfoPanel = preload("res://scripts/view/info_panel.gd")
 const OverlayView = preload("res://scripts/view/overlay_view.gd")
+const SaveGame = preload("res://scripts/sim/save_game.gd")
 
 const OVERLAY_KEYS := {"water": "F1", "food": "F2", "seonangdang": "F3"}
+const NOTICE_SECONDS := 3.0
+
+## Set before (re)loading this scene to play a given city (a loaded save, the big city test).
+static var pending_city: City = null
+static var pending_notice := ""
+## Shows frames per second and walker counts (big city test scene).
+static var show_fps := false
 
 var city: City
 var camera_rig: CameraRig
 var build_tool: BuildTool
 var overlay: OverlayView
 var _overlay_label: Label
+var _notice: Label
+var _notice_time := 0.0
+var _fps_label: Label
+var _fps_wait := 0.0
 
 
 func _ready() -> void:
 	InputSetup.ensure_actions()
 	TextLoader.install()
-	city = City.new(Balance.DEFAULT_MAP_SEED)
+	if pending_city != null:
+		city = pending_city
+		pending_city = null
+	else:
+		city = City.new(Balance.DEFAULT_MAP_SEED)
 
 	SceneSetup.add_environment(self)
 
@@ -95,15 +113,29 @@ func _ready() -> void:
 	build_tool.building_selected.connect(info.show_building)
 	build_tool.mode_changed.connect(func(_m: int, _t: String) -> void: info.close_panel())
 
-	_overlay_label = _make_overlay_label()
+	_overlay_label = _paper_label("OverlayLabel", 72)
 	ui_root.add_child(_overlay_label)
 	overlay.changed.connect(_on_overlay_changed)
+	_notice = _paper_label("Notice", 128)
+	ui_root.add_child(_notice)
+	if show_fps:
+		_fps_label = _paper_label("Fps", 72)
+		_fps_label.set_anchors_preset(Control.PRESET_TOP_LEFT)
+		_fps_label.grow_horizontal = Control.GROW_DIRECTION_END
+		_fps_label.offset_left = 20
+		_fps_label.visible = true
+		ui_root.add_child(_fps_label)
+
+	city.clock.season_changed.connect(func(_s: int) -> void: _autosave())
+	if pending_notice != "":
+		notice(pending_notice)
+		pending_notice = ""
 
 
-## Paper label under the top bar naming the overlay that is shown.
-func _make_overlay_label() -> Label:
+## Paper label under the top bar (overlay name, notices).
+func _paper_label(label_name: String, top: float) -> Label:
 	var label := Label.new()
-	label.name = "OverlayLabel"
+	label.name = label_name
 	label.visible = false
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	label.add_theme_font_size_override("font_size", 20)
@@ -117,8 +149,40 @@ func _make_overlay_label() -> Label:
 	label.add_theme_stylebox_override("normal", style)
 	label.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	label.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	label.offset_top = 72
+	label.offset_top = top
 	return label
+
+
+## A short message under the top bar that goes away by itself.
+func notice(text: String) -> void:
+	_notice.text = text
+	_notice.visible = true
+	_notice_time = NOTICE_SECONDS
+
+
+func _save() -> void:
+	var error := SaveGame.write(city)
+	notice(tr("SAVE_DONE") if error == "" else tr(error))
+
+
+func _autosave() -> void:
+	var error := SaveGame.autosave(city)
+	notice(tr("AUTOSAVE_DONE") if error == "" else tr(error))
+
+
+func _load() -> void:
+	var path := SaveGame.latest()
+	if path == "":
+		notice(tr(SaveGame.ERR_NO_SAVE))
+		return
+	var result := SaveGame.read(path)
+	if result["error"] != "":
+		notice(tr(result["error"]))
+		return
+	var loaded: City = result["city"]
+	pending_city = loaded
+	pending_notice = tr("LOAD_DONE") % [tr(loaded.clock.get_season_key()), loaded.clock.get_year()]
+	get_tree().reload_current_scene()
 
 
 func _on_overlay_changed(mode: String) -> void:
@@ -145,10 +209,23 @@ func _make_cursor_note() -> Label:
 
 func _process(delta: float) -> void:
 	city.advance(delta)
+	if _notice_time > 0.0:
+		_notice_time -= delta
+		_notice.visible = _notice_time > 0.0
+	if _fps_label:
+		_fps_wait -= delta
+		if _fps_wait <= 0.0:
+			_fps_wait = 0.5
+			var walkers: int = city.carriers.count() + city.settlers.count() + city.services.count()
+			_fps_label.text = tr("UI_FPS_FORMAT") % [Engine.get_frames_per_second(), city.population(), walkers]
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("game_pause", false, true):
+	if event.is_action_pressed("game_save", false, true):
+		_save()
+	elif event.is_action_pressed("game_load", false, true):
+		_load()
+	elif event.is_action_pressed("game_pause", false, true):
 		city.clock.toggle_pause()
 	elif event.is_action_pressed("game_speed_1", false, true):
 		city.clock.set_speed(1)

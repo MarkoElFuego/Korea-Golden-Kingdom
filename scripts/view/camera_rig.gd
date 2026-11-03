@@ -71,9 +71,11 @@ func _ground_axes() -> Array[Vector3]:
 
 
 func _process(delta: float) -> void:
-	var input := Vector2(
-		Input.get_axis("camera_left", "camera_right"),
-		Input.get_axis("camera_back", "camera_forward"))
+	var input := Vector2.ZERO
+	if not Input.is_key_pressed(KEY_CTRL): # Ctrl+S saves, it should not also pan
+		input = Vector2(
+			Input.get_axis("camera_left", "camera_right"),
+			Input.get_axis("camera_back", "camera_forward"))
 	input += _edge_input()
 	if input == Vector2.ZERO:
 		return

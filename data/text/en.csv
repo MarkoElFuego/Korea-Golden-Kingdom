@@ -127,3 +127,12 @@ UI_OVERLAY_FORMAT,"Overlay: %s   (press %s again to close)"
 OVERLAY_WATER,Water
 OVERLAY_FOOD,Food
 OVERLAY_SEONANGDANG,Seonangdang
+SAVE_DONE,Game saved.
+AUTOSAVE_DONE,Autosaved.
+SAVE_FAILED,Could not save the game. The previous save is kept.
+LOAD_DONE,"Loaded: %s, Year %d."
+LOAD_NO_SAVE,There is no saved game yet. Press Ctrl+S to save.
+LOAD_DAMAGED,The save file is damaged and cannot be loaded.
+LOAD_NEWER_VERSION,This save comes from a newer version of the game.
+LOAD_OLDER_VERSION,This save comes from an older version of the game and cannot be loaded.
+UI_FPS_FORMAT,"%d FPS   ·   %d people   ·   %d walkers"

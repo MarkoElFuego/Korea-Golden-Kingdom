@@ -7,6 +7,8 @@ const Balance = preload("res://scripts/data/balance.gd")
 const Terrain = preload("res://scripts/data/terrain.gd")
 const Grid = preload("res://scripts/sim/grid.gd")
 const City = preload("res://scripts/sim/city.gd")
+const BigCity = preload("res://scripts/sim/big_city.gd")
+const SaveGame = preload("res://scripts/sim/save_game.gd")
 
 const TICK_BUDGET_MS := 3.0
 
@@ -89,3 +91,30 @@ func test_400_service_walkers_tick_fast() -> void:
 	print("        %d buildings, %d service walkers, %d settlers: %.2f ms per tick" % [
 		c.buildings.count(), c.services.count(), c.settlers.count(), ms])
 	check(ms < TICK_BUDGET_MS, "tick takes %.2f ms (budget %.1f ms)" % [ms, TICK_BUDGET_MS])
+
+
+## The big city scene (scripts/sim/big_city.gd): 3,000+ people, every walker kind, and
+## saving and loading it stays quick.
+func test_big_city_ticks_and_saves_fast() -> void:
+	var c := BigCity.build()
+	check(c.population() >= 3000, "at least 3,000 residents (%d)" % c.population())
+	for i in 30 * Balance.TICKS_PER_DAY:
+		c.clock.step()
+	var walkers := c.carriers.count() + c.settlers.count() + c.services.count()
+	check(walkers >= 400, "at least 400 walkers (%d)" % walkers)
+	var ticks := 300
+	var start := Time.get_ticks_usec()
+	for i in ticks:
+		c.clock.step()
+	var ms := (Time.get_ticks_usec() - start) / 1000.0 / ticks
+	start = Time.get_ticks_usec()
+	var bytes := SaveGame.pack(c)
+	var save_ms := (Time.get_ticks_usec() - start) / 1000.0
+	start = Time.get_ticks_usec()
+	var loaded := SaveGame.city_from_bytes(bytes)
+	var load_ms := (Time.get_ticks_usec() - start) / 1000.0
+	print("        big city: %d people, %d walkers: %.2f ms per tick; save %.0f ms (%d KB), load %.0f ms" % [
+		c.population(), walkers, ms, save_ms, bytes.size() / 1024, load_ms])
+	check(ms < TICK_BUDGET_MS, "tick takes %.2f ms (budget %.1f ms)" % [ms, TICK_BUDGET_MS])
+	check_eq(loaded["error"], "", "the big city loads")
+	check(save_ms + load_ms < 1000.0, "save and load take under a second (%.0f ms)" % (save_ms + load_ms))

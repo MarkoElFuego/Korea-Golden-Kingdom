@@ -21,6 +21,12 @@ const ACTIONS := {
 	"overlay_seonangdang": [KEY_F3],
 }
 
+## Shortcuts pressed together with Ctrl.
+const CTRL_ACTIONS := {
+	"game_save": [KEY_S],
+	"game_load": [KEY_L],
+}
+
 
 static func ensure_actions() -> void:
 	for action: String in ACTIONS:
@@ -30,4 +36,13 @@ static func ensure_actions() -> void:
 		for key: Key in ACTIONS[action]:
 			var event := InputEventKey.new()
 			event.physical_keycode = key
+			InputMap.action_add_event(action, event)
+	for action: String in CTRL_ACTIONS:
+		if InputMap.has_action(action):
+			continue
+		InputMap.add_action(action)
+		for key: Key in CTRL_ACTIONS[action]:
+			var event := InputEventKey.new()
+			event.physical_keycode = key
+			event.ctrl_pressed = true
 			InputMap.action_add_event(action, event)

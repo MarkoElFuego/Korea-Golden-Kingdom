@@ -169,3 +169,15 @@ func count_terrain(value: int) -> int:
 		if v == value:
 			n += 1
 	return n
+
+
+# --- Saving (save_game.gd) ---
+
+func to_save() -> Dictionary:
+	return {"width": width, "height": height, "terrain": terrain, "occupant": occupant, "blockers": blockers}
+
+
+## Puts saved occupancy back (terrain and size are set by `_init`).
+func load_save(d: Dictionary) -> void:
+	occupant = d["occupant"]
+	blockers = d["blockers"]

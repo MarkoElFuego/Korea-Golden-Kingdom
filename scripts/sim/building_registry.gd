@@ -44,3 +44,14 @@ func all() -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	result.assign(_items.values())
 	return result
+
+
+# --- Saving (save_game.gd) ---
+
+func to_save() -> Dictionary:
+	return {"items": _items, "next_id": _next_id}
+
+
+func load_save(d: Dictionary) -> void:
+	_items = d["items"]
+	_next_id = d["next_id"]

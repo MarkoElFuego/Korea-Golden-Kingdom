@@ -266,6 +266,16 @@ Najbolje mesto je **Myeongdang**.
 - Overlay: F1 voda, F2 hrana, F3 Seonangdang; zgrade blede, kuće dobijaju stubiće (zeleno = ima,
   crveno = nema). Prozor kuće kaže koliko dana traje ostava i kad je koji šetač poslednji put prošao.
 
+## Snimanje (odluke iz Faze 5)
+
+- Sejv čuva celo stanje grada u tom trenutku (i šetače na ulici); učitan grad nastavlja potpuno
+  isto kao original. Fajl ima broj verzije i kontrolni zbir: oštećen fajl ili fajl druge verzije
+  daje jasnu poruku i ne učitava se.
+- Snimanje nikad ne piše preko postojećeg fajla: novi se napiše, proveri, pa tek onda zameni stari.
+- Ctrl+S brzi sejv, Ctrl+L učitava najnoviji sejv. Automatski sejv na početku svakog godišnjeg
+  doba, 3 kopije koje se smenjuju. Sejvovi su u `%APPDATA%/Godot/app_userdata/Korea- The Golden
+  Kingdom/saves`. Meni sa listom sejvova dolazi sa menijem igre.
+
 ## Zgrade
 
 Footprint je u poljima (4 m). Cena u Silver i radnici su *predlog* za MVP zgrade; ostalo se

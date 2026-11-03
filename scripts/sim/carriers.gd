@@ -305,3 +305,19 @@ func _give_up(w: Dictionary) -> void:
 	elif w["cargo"] != "":
 		city.economy.lost[w["cargo"]] = city.economy.lost.get(w["cargo"], 0) + 1
 	walkers.erase(w["id"])
+
+
+# --- Saving (save_game.gd) ---
+
+## The remembered storage answers are saved too: a carrier keeps going to the storage it
+## found before, so a loaded game must remember the same answers to play on the same way.
+func to_save() -> Dictionary:
+	return {"walkers": walkers, "next_id": _next_id, "nearest": {} if _dirty else _nearest}
+
+
+func load_save(d: Dictionary) -> void:
+	walkers = d["walkers"]
+	_next_id = d["next_id"]
+	_dirty = true
+	_ensure_index()
+	_nearest = d["nearest"]

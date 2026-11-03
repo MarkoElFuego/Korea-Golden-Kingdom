@@ -226,3 +226,19 @@ static func _goods_in(s: Dictionary) -> Array[String]:
 
 static func _incoming(s: Dictionary, good: String) -> int:
 	return s["stock"].get(good, 0) + s["reserved"].get(good, 0)
+
+
+# --- Saving (save_game.gd) ---
+
+func to_save() -> Dictionary:
+	return {"state": state, "produced": produced, "lost": lost, "sold": sold, "waiting": waiting,
+		"schedule": _schedule}
+
+
+func load_save(d: Dictionary) -> void:
+	state = d["state"]
+	produced = d["produced"]
+	lost = d["lost"]
+	sold = d["sold"]
+	waiting = d["waiting"]
+	_schedule = d["schedule"]

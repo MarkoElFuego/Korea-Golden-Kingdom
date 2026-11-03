@@ -145,6 +145,7 @@ func place_building(type: String, origin: Vector2i, rotation := 0) -> String:
 	economy.add_building(instance)
 	carriers.on_building_added(instance)
 	houses.add_building(instance)
+	houses.clear_cache()
 	services.on_building_added(instance)
 	_change_treasury(-data["cost"])
 	command_log.append([clock.tick, "place", type, origin, rotation])
@@ -260,6 +261,7 @@ func demolish(a: Vector2i, b: Vector2i) -> int:
 		carriers.on_building_removed(instance)
 		settlers.on_building_removed(instance)
 		houses.remove_building(instance)
+		houses.clear_cache()
 		labor.forget(instance["id"])
 		building_removed.emit(instance)
 	var removed: int = plan["roads"].size() + plan["buildings"].size()
@@ -379,7 +381,6 @@ func _on_season(_season: int) -> void:
 func _recompute_labor() -> void:
 	var before := labor.population
 	labor.recompute(buildings.all(), houses, economy)
-	houses.clear_cache()
 	if labor.population != before:
 		population_changed.emit()
 
@@ -387,3 +388,42 @@ func _recompute_labor() -> void:
 func _change_treasury(amount: int) -> void:
 	treasury += amount
 	treasury_changed.emit(treasury)
+
+
+# --- Saving (save_game.gd writes this to a file) ---
+
+## Everything needed to go on playing exactly where the game stopped. Caches that can be
+## rebuilt (road network, coverage) are left out.
+func to_save() -> Dictionary:
+	return {
+		"map_seed": map_seed, "rng_seed": rng.seed, "rng_state": rng.state,
+		"treasury": treasury, "entrance": entrance, "command_log": command_log,
+		"clock": {"tick": clock.tick, "speed": clock.speed, "paused": clock.paused},
+		"grid": grid.to_save(), "buildings": buildings.to_save(), "economy": economy.to_save(),
+		"carriers": carriers.to_save(), "extra_workers": labor.extra_workers,
+		"houses": houses.to_save(), "settlers": settlers.to_save(), "services": services.to_save(),
+	}
+
+
+## Takes over the state from `to_save()` data, on a city made with the same map seed.
+func load_save(d: Dictionary) -> void:
+	var g: Dictionary = d["grid"]
+	grid = Grid.new(g["width"], g["height"], g["terrain"])
+	grid.load_save(g)
+	network.rebuild(grid)
+	rng.seed = d["rng_seed"]
+	rng.state = d["rng_state"]
+	treasury = d["treasury"]
+	entrance = d["entrance"]
+	command_log = d["command_log"]
+	clock.tick = d["clock"]["tick"]
+	clock.speed = d["clock"]["speed"]
+	clock.paused = d["clock"]["paused"]
+	buildings.load_save(d["buildings"])
+	economy.load_save(d["economy"])
+	carriers.load_save(d["carriers"])
+	houses.load_save(d["houses"])
+	settlers.load_save(d["settlers"])
+	services.load_save(d["services"])
+	labor.extra_workers = d["extra_workers"]
+	labor.recompute(buildings.all(), houses, economy)
