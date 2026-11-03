@@ -4,7 +4,7 @@ Poslednje ažuriranje: 3. novembar 2026.
 
 ## Gde smo stali
 
-Gotove faze 1–6, 7a, brže crtanje zgrada i pregledniji prozor zgrade. Testova: 153, svi prolaze.
+Gotove faze 1–6, 7a, brže crtanje zgrada, pregledniji prozor zgrade i demo grad. Testova: 154, svi prolaze.
 
 | Faza | Šta je urađeno | Commit |
 | --- | --- | --- |
@@ -18,7 +18,7 @@ Gotove faze 1–6, 7a, brže crtanje zgrada i pregledniji prozor zgrade. Testova
 | 6 | Soja i so (čekaju Jangdokdae), Onggi Kiln (Clay + Wood → Onggi Jars) sa donosačem, razlozi zastoja, znak „?“, prozor Goods (F4) | c0b40cf |
 | 7a | Jangdokdae: ćupovi kao mesta, Jang Fresh → Ripe, dugme Release, ćupovi na terasi; Clay Pit stoji na brdu | 508fcc1 |
 | 7a+ | Prozor zgrade: Show range sa stubićima kuća, šetači zgrade (linije i oznake), radnici grada, okvir izabrane zgrade | 7d34cfd |
-| demo | Demo grad (`scenes/demo_town.tscn`, F6): mala dolina sa svim lancima koji rade od starta | (sledeći) |
+| demo | Demo grad (`scenes/demo_town.tscn`, F6): mala dolina sa svim lancima koji rade od starta | cc48e53 |
 
 ## Sledeće: Faza 7b, pijaca i nivo 3
 
@@ -28,7 +28,21 @@ Gotove faze 1–6, 7a, brže crtanje zgrada i pregledniji prozor zgrade. Testova
 
 Prvo plan, pa kod posle vlasnikovog „ok".
 
-## Utisci vlasnika posle igranja (Faza 4b)
+## Kako se testira
+
+- `scenes/demo_town.tscn` + F6: gotov mali grad sa svim lancima (najbrže za probu).
+- `scenes/big_city.tscn` + F6: veliki grad za merenje brzine (FPS u uglu).
+- Ctrl+S snima, Ctrl+L učitava najnoviji sejv. Sejvovi iz starijih verzija (pre Faze 7a) se ne
+  učitavaju; igra to kaže porukom.
+- Prečice: F1–F3 overlay-i (voda, hrana, Seonangdang), F4 prozor Goods, klik na zgradu = prozor
+  zgrade (Show range, šetači, radnici).
+
+## Utisci vlasnika posle igranja
+
+Posle Faze 7a: lanci rade; zbunilo ga je što je Faza 6 stala tamo gde Faza 7 počinje (sad je
+jasnije); tražio pregledniji prozor zgrade (urađeno) i demo grad (urađeno).
+
+Posle Faze 4b:
 
 - Tempo je brži od Zeusa i tako odgovara; ne usporavati.
 - Stanovnici mnogo jedu, ali je to u redu: rešenje je više njiva. Grad od oko 130 ljudi tražio je
