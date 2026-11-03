@@ -4,7 +4,7 @@ Poslednje ažuriranje: 3. novembar 2026.
 
 ## Gde smo stali
 
-Gotove faze 1–6 i brže crtanje zgrada. Testova: 136, svi prolaze.
+Gotove faze 1–6, 7a i brže crtanje zgrada. Testova: 147, svi prolaze.
 
 | Faza | Šta je urađeno | Commit |
 | --- | --- | --- |
@@ -15,12 +15,14 @@ Gotove faze 1–6 i brže crtanje zgrada. Testova: 136, svi prolaze.
 | 4b | Pijaca (Buyer, Vendor), šetač Seonangdang-a, ishrana iz ostave, overlay F1–F3 | fbd0553 |
 | 5 | Sejv sa verzijom i kontrolnim zbirom, Ctrl+S / Ctrl+L, autosave sa 3 kopije, scena „veliki grad" | 2eef9a8 |
 | 5+ | Iste zgrade se crtaju zajedno (MultiMesh): veliki grad 60 FPS, oko 220 poziva umesto 16.500 | 49171c2 |
-| 6 | Soja i so (čekaju Jangdokdae), Onggi Kiln (Clay + Wood → Onggi Jars) sa donosačem, razlozi zastoja, znak „?“, prozor Goods (F4) | (sledeći) |
+| 6 | Soja i so (čekaju Jangdokdae), Onggi Kiln (Clay + Wood → Onggi Jars) sa donosačem, razlozi zastoja, znak „?“, prozor Goods (F4) | c0b40cf |
+| 7a | Jangdokdae: ćupovi kao mesta, Jang Fresh → Ripe, dugme Release, ćupovi na terasi | (sledeći) |
 
-## Sledeće: Faza 7, fermentacija
+## Sledeće: Faza 7b, pijaca i nivo 3
 
-- Jangdokdae prima Soybeans i Salt i pravi Jang; nivoi kvaliteta Fresh i Ripe.
-- Pijaca prodaje Jang i Onggi Jars, pa kuće mogu do nivoa 3.
+- Pijaca kupuje i prodaje Rice, Jang i Onggi Jars; prodavac nosi sve tri.
+- Kuća ima ostavu za Jang (Ripe traje duplo duže) i ćupove koji traju godinu dana.
+- Kuće rastu u Giwa House (nivo 3); overlay za Jang i ćupove; prozor kuće kaže šta fali.
 
 Prvo plan, pa kod posle vlasnikovog „ok".
 

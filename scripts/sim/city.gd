@@ -20,6 +20,7 @@ const Houses = preload("res://scripts/sim/houses.gd")
 const Settlers = preload("res://scripts/sim/settlers.gd")
 const Services = preload("res://scripts/sim/services.gd")
 const Supply = preload("res://scripts/sim/supply.gd")
+const Fermentation = preload("res://scripts/sim/fermentation.gd")
 
 signal treasury_changed(value: int)
 signal building_added(instance: Dictionary)
@@ -41,6 +42,7 @@ var houses: Houses
 var settlers: Settlers
 var services: Services
 var supply: Supply # where goods are missing and why
+var fermentation: Fermentation # the Jangdokdae's jars
 ## The one random generator of the simulation (seeded from the map seed), so the same
 ## commands always give the same city.
 var rng := RandomNumberGenerator.new()
@@ -70,6 +72,7 @@ func _init(seed_value: int = Balance.DEFAULT_MAP_SEED) -> void:
 	settlers = Settlers.new(self)
 	services = Services.new(self)
 	supply = Supply.new(self)
+	fermentation = Fermentation.new(self)
 	settlers.arrived.connect(_on_settlers_arrived)
 	clock.day_changed.connect(_on_day)
 	clock.season_changed.connect(_on_season)
@@ -301,6 +304,8 @@ func apply_command(command: Array) -> void:
 			build_road(command[2], command[3])
 		"demolish":
 			demolish(command[2], command[3])
+		"ripe_only":
+			set_ripe_only(command[2], command[3])
 
 
 ## Replays a command log from the start: runs ticks up to each command's tick, then the
@@ -322,7 +327,7 @@ func status(instance: Dictionary) -> Dictionary:
 	var data := Buildings.get_building(instance["type"])
 	if data.has("tiers") and instance["tier"] == 0:
 		return {"key": "STATUS_WAITING_SETTLERS", "args": []}
-	if not Economy.production(instance["type"]).is_empty():
+	if not Economy.production(instance["type"]).is_empty() or not Economy.fermentation(instance["type"]).is_empty():
 		return supply.status(instance)
 	if Services.roamer(instance["type"]) != "" and has_road_access(instance):
 		return services.status(instance)
@@ -353,8 +358,18 @@ func _on_settlers_arrived(house: Dictionary) -> void:
 	house_changed.emit(house)
 
 
-## Once a day houses rise or fall a tier.
+## The player's choice for a Jangdokdae: let Jang go only when it is Ripe (or also Fresh).
+func set_ripe_only(id: int, on: bool) -> void:
+	if not economy.state.has(id) or not economy.state[id].has("ripe_only"):
+		return
+	economy.state[id]["ripe_only"] = on
+	command_log.append([clock.tick, "ripe_only", id, on])
+	economy.stock_changed.emit(id)
+
+
+## Once a day jars ripen and houses rise or fall a tier.
 func _on_day(_day: int) -> void:
+	fermentation.daily()
 	var changed := houses.daily()
 	if changed.is_empty():
 		return

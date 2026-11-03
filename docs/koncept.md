@@ -195,6 +195,19 @@ je i skladište i proizvodnja.
   rizik kvarenja; zimi roba ne propada.
 - **Kimjang Festival:** u kasnu jesen ceo grad pravi kimči; bonus sreće i puni zalihe za zimu.
 
+**Odluke iz Faze 7a:**
+
+- Jangdokdae dobija ćupove od Onggi Jars: svaki tovar postaje jedan ćup na terasi, najviše 8.
+  Nosači iz peći prvo nose ćupove u Jangdokdae koji ima mesta; Jangdokdae bez ćupova šalje
+  donosača u Storehouse. *predlog*
+- Prazan ćup (uz radnike) uzima 1 Soybeans + 1 Salt; Jang je Fresh posle 10 dana, a Ripe još
+  60 dana (dva godišnja doba) kasnije. Zrenje ne zavisi od radnika. *predlog*
+- Dugme u prozoru Jangdokdae-a: „Release: Fresh“ ili „Release: Ripe only“ (komanda igrača,
+  ide u sejv i replay). Ripe vredi duplo (vidi se u Fazi 7b, kad pijaca proda Jang).
+- Na terasi se vidi svaki ćup; poklopac je svetao kad je Jang Fresh, taman kad je Ripe,
+  a prazan ćup nema poklopac.
+- Kvarenje leti (bez senke) ostaje za posle MVP-a.
+
 ## Pungsu i Gi
 
 Svako polje ima Gi (0–100). Gi teče niz glavnu planinu (baesan) i skuplja se u dolini ispred

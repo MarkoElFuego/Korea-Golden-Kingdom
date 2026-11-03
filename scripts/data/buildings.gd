@@ -19,6 +19,9 @@ extends RefCounted
 ##   at full workers (half the workers, half the speed).
 ## workshop (optional): {"inputs": [goods]} one load of each input is used for every load made;
 ##   it keeps up to Balance.WORKSHOP_INPUT_STORE of each input.
+## fermentation (optional, Jangdokdae): every Onggi Jars load brought becomes one jar, up to
+##   "max_jars"; an empty jar takes one load of each of "inputs" and holds "good" that is
+##   Fresh after "fresh_days" and Ripe "ripe_days" later (docs/koncept.md, "Fermentacija").
 ## storage (optional): {"accepts": goods kind, "capacity": loads} or, Storehouse-style,
 ##   {"accepts": kind, "slots": n, "slot_size": loads}, one good per slot (as in Zeus).
 
@@ -93,7 +96,9 @@ const MVP_BUILDINGS: Array[Dictionary] = [
 		"terrain": [Terrain.SHORE],
 		"produces": {"good": "salt", "days": 6}},
 	{"id": "jangdokdae", "name_key": "BUILDING_JANGDOKDAE", "korean": "jangdokdae", "category": "fermentation",
-		"footprint": Vector2i(2, 2), "height_class": "low", "cost": 50, "workers": 4, "roof": "none", "terrain": []},
+		"footprint": Vector2i(2, 2), "height_class": "low", "cost": 50, "workers": 4, "roof": "none", "terrain": [],
+		"fermentation": {"inputs": ["soybeans", "salt"], "good": "jang", "max_jars": 8, "fresh_days": 10,
+			"ripe_days": 60}},
 ]
 
 

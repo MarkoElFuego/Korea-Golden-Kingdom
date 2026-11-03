@@ -21,6 +21,7 @@ var _stock: Label
 var _status: Label
 var _workers: Label
 var _house: RichTextLabel # residents, flavor line and needs with ✓ / ✗
+var _release: Button # Jangdokdae: release Jang when Fresh, or only when Ripe
 
 
 func _ready() -> void:
@@ -78,6 +79,13 @@ func _ready() -> void:
 	_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_status.custom_minimum_size.x = 348
 	box.add_child(_status)
+	_release = Button.new()
+	_release.focus_mode = Control.FOCUS_NONE
+	_release.tooltip_text = tr("UI_JANG_RELEASE_TIP")
+	_release.add_theme_font_size_override("font_size", 18)
+	_release.pressed.connect(func() -> void:
+		city.set_ripe_only(building_id, not city.fermentation.ripe_only(building_id)))
+	box.add_child(_release)
 
 
 func show_building(id: int) -> void:
@@ -130,9 +138,13 @@ func _refresh() -> void:
 	_house.visible = data.has("tiers") and instance["tier"] > 0
 	if _house.visible:
 		_house.text = _house_text(instance)
-	var keeps_goods: bool = data.has("storage") or data.has("produces") or data.has("market")
+	var keeps_goods: bool = data.has("storage") or data.has("produces") or data.has("market") or data.has("fermentation")
 	_stock.visible = keeps_goods
 	_stock.text = "\n".join(lines) if not lines.is_empty() else tr("UI_STOCK_EMPTY")
+
+	_release.visible = data.has("fermentation")
+	if _release.visible:
+		_release.text = tr("UI_JANG_RELEASE_RIPE" if city.fermentation.ripe_only(building_id) else "UI_JANG_RELEASE_FRESH")
 
 	var status: Dictionary = city.status(instance)
 	_status.visible = status["key"] != ""

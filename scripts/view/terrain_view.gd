@@ -70,7 +70,24 @@ func _build_tiles(terrain_type: int, tiles: Array, mountain_depth: PackedInt32Ar
 	return node
 
 
-func _tile_top(terrain_type: int, h: float, depth: int) -> float:
+## Height in meters of the ground surface of a tile buildings may stand on (everything but
+## mountains, which need their depth), so a Clay Pit sits on its rocky hill, not inside it.
+static func ground_top(grid: Grid, tile: Vector2i) -> float:
+	return _tile_top(grid.get_terrain(tile), _hash01(tile.x, tile.y), 0)
+
+
+## The highest ground under a footprint: where a building (or its ghost) stands.
+static func footprint_ground(grid: Grid, origin: Vector2i, size: Vector2i) -> float:
+	var ground := 0.0
+	for dy in size.y:
+		for dx in size.x:
+			var t := origin + Vector2i(dx, dy)
+			if grid.in_bounds(t):
+				ground = maxf(ground, ground_top(grid, t))
+	return ground
+
+
+static func _tile_top(terrain_type: int, h: float, depth: int) -> float:
 	match terrain_type:
 		Terrain.MOUNTAIN:
 			return minf(2.0 + depth * 2.2 + h * 1.5, 18.0)

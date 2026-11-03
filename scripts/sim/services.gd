@@ -3,8 +3,9 @@ extends RefCounted
 ##   vendor - roaming walker from a Market; houses it passes get rice in their pantry;
 ##   keeper - roaming walker from a Seonangdang; houses it passes remember the visit;
 ##   buyer  - destination walker from a Market; fetches rice from the nearest Granary.
-##            A workshop (Onggi Kiln) that has none of an input left sends one too (the
-##            fetcher): it brings that input from the nearest Storehouse that holds it.
+##            A workshop (Onggi Kiln) or Jangdokdae that has none of an input left sends
+##            one too (the fetcher): it brings that input from the nearest Storehouse
+##            that holds it (Onggi Jars for the Jangdokdae).
 ##
 ## A roaming walker plans its whole round when it sets out: along the streets, at each
 ## crossing it takes a street it has not walked yet (a random one among them, from the
@@ -88,7 +89,8 @@ func on_building_added(instance: Dictionary) -> void:
 	if Buildings.get_building(instance["type"]).get("on_road", false):
 		_turn_back_at(instance["origin"])
 	var kind := roamer(instance["type"])
-	if kind == "" and not Buildings.get_building(instance["type"]).has("workshop"):
+	var data := Buildings.get_building(instance["type"])
+	if kind == "" and not data.has("workshop") and not data.has("fermentation"):
 		return
 	var city = _city.get_ref()
 	_homes[instance["id"]] = {"kind": kind if kind != "" else "workshop", "next_at": city.clock.tick,
@@ -197,8 +199,9 @@ func _dispatch_buyer(instance: Dictionary, h: Dictionary) -> void:
 	var wanted: Array = [] # [good, loads] in the order to try
 	if h["kind"] == "workshop":
 		for good: String in city.economy.inputs(instance["type"]):
-			if city.economy.incoming(id, good) == 0:
-				wanted.append([good, Balance.WORKSHOP_INPUT_STORE])
+			var room: int = city.economy.input_space(instance, good)
+			if city.economy.incoming(id, good) == 0 and room > 0:
+				wanted.append([good, mini(room, Balance.WORKSHOP_INPUT_STORE)])
 	else:
 		var m := market_data(instance["type"])
 		if city.economy.stock(id, m["good"]) <= m["capacity"] - m["buyer_loads"]:

@@ -12,6 +12,7 @@ const SaveGame = preload("res://scripts/sim/save_game.gd")
 const CityView = preload("res://scripts/view/city_view.gd")
 const BuildingBatch = preload("res://scripts/view/building_batch.gd")
 const Factory = preload("res://scripts/view/placeholder_factory.gd")
+const TerrainView = preload("res://scripts/view/terrain_view.gd")
 
 
 func _city() -> City:
@@ -147,4 +148,17 @@ func test_stopped_producer_gets_a_sign() -> void:
 	c.economy.add(kiln, "wood", 2)
 	v.update_stuck()
 	check_eq(v.stuck_ids(), [], "working again: the sign goes")
+	v.free()
+
+
+func test_a_clay_pit_stands_on_its_rocky_hill() -> void:
+	var c := _city()
+	for y in range(6, 8):
+		for x in range(2, 4):
+			c.grid.set_terrain(Vector2i(x, y), Terrain.ROCKY_HILL)
+	check_eq(c.place_building("clay_pit", Vector2i(2, 6)), "", "Clay Pit on the hill")
+	var v := _view(c)
+	var y: float = v.batch.transform_of(c.building_at(Vector2i(2, 6))["id"]).origin.y
+	check(y >= 0.6, "raised onto the hill (%.2f m), not buried in it" % y)
+	check_near(y, TerrainView.footprint_ground(c.grid, Vector2i(2, 6), Vector2i(2, 2)), "the top of its highest tile")
 	v.free()

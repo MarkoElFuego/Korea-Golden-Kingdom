@@ -37,6 +37,11 @@ var waiting := {}
 var _clock: SimClock
 var _schedule := {} # tick -> [building ids whose load is ready then]
 var _consumers := {} # good -> workshops in the city that use it
+## Change counters for carriers.gd's "no source" memory: a good's counter grows whenever a
+## load of it comes into a storage, the staffing counter whenever a storage gets its first
+## workers (only staffed storages are sources).
+var _added := {} # good -> count
+var _staffing := 0
 
 
 func _init(clock: SimClock) -> void:
@@ -52,7 +57,10 @@ func add_building(instance: Dictionary) -> void:
 		_consumers[good] = _consumers.get(good, 0) + 1
 	if Buildings.get_building(instance["type"])["workers"] == 0:
 		s["eff"] = 1.0 # needs nobody (Well, Jangseung, houses)
-	if not inputs(instance["type"]).is_empty():
+	if not fermentation(instance["type"]).is_empty():
+		s["jars"] = [] # fermentation.gd: one entry per jar
+		s["ripe_only"] = false # the player's choice: release Jang only when Ripe
+	elif not inputs(instance["type"]).is_empty():
 		s["ready_at"] = WAITING_INPUT # starts when workers and inputs arrive
 	elif not p.is_empty():
 		s["remaining"] = float(_period(instance["type"])) # starts when workers arrive
@@ -64,6 +72,10 @@ func remove_building(instance: Dictionary) -> void:
 		_consumers[good] -= 1
 	for good: String in s.get("stock", {}):
 		lost[good] = lost.get(good, 0) + s["stock"][good]
+	for jar: Dictionary in s.get("jars", []):
+		if jar["state"] == "fresh" or jar["state"] == "ripe":
+			var made: String = fermentation(instance["type"])["good"]
+			lost[made] = lost.get(made, 0) + 1
 	state.erase(instance["id"])
 	waiting.erase(instance["id"])
 
@@ -77,9 +89,17 @@ func consumers(good: String) -> int:
 	return _consumers.get(good, 0)
 
 
-## Goods a workshop uses for every load it makes ([] for other buildings).
+## Goods a workshop uses for every load it makes, or a Jangdokdae takes in (its inputs and
+## Onggi Jars, which become its jars). [] for other buildings.
 static func inputs(type: String) -> Array:
+	var f := fermentation(type)
+	if not f.is_empty():
+		return f["inputs"] + ["onggi_jars"]
 	return Buildings.get_building(type).get("workshop", {}).get("inputs", [])
+
+
+static func fermentation(type: String) -> Dictionary:
+	return Buildings.get_building(type).get("fermentation", {})
 
 
 static func storage(type: String) -> Dictionary:
@@ -103,6 +123,8 @@ func add(id: int, good: String, loads: int) -> void:
 	st[good] = st.get(good, 0) + loads
 	if st[good] == 0:
 		st.erase(good)
+	if loads > 0 and not storage(s["type"]).is_empty():
+		_added[good] = _added.get(good, 0) + 1
 	if s["good"] != "":
 		_update_producer(id)
 	stock_changed.emit(id)
@@ -152,7 +174,26 @@ func free_space(instance: Dictionary, good: String) -> int:
 func input_space(instance: Dictionary, good: String) -> int:
 	if not inputs(instance["type"]).has(good) or state[instance["id"]]["eff"] <= 0.0:
 		return 0
-	return maxi(0, Balance.WORKSHOP_INPUT_STORE - _incoming(state[instance["id"]], good))
+	var s: Dictionary = state[instance["id"]]
+	var room := Balance.WORKSHOP_INPUT_STORE
+	if s.has("jars") and good == "onggi_jars":
+		room = fermentation(instance["type"])["max_jars"] - s["jars"].size() # one jar per load
+	return maxi(0, room - _incoming(s, good))
+
+
+## Changes since which a storage could newly hold `good` for a fetcher: [loads added, staffing].
+func source_version(good: String) -> Array:
+	return [_added.get(good, 0), _staffing]
+
+
+## One load of an input is used up (a workshop starts a load, a jar is filled or set out).
+## The caller emits stock_changed once it is done.
+func use(id: int, good: String) -> void:
+	var st: Dictionary = state[id]["stock"]
+	st[good] -= 1
+	if st[good] == 0:
+		st.erase(good)
+	used[good] = used.get(good, 0) + 1
 
 
 ## Loads of `good` in the building plus loads on the way to it.
@@ -214,6 +255,8 @@ func set_efficiency(id: int, eff: float) -> void:
 	if is_equal_approx(old, eff):
 		return
 	s["eff"] = eff
+	if old <= 0.0 and not storage(s["type"]).is_empty():
+		_staffing += 1
 	if s["ready_at"] == WAITING_INPUT:
 		if eff > 0.0:
 			_update_producer(id) # workers came: start if the inputs are here
@@ -254,10 +297,7 @@ func _schedule_next(id: int) -> void:
 				s["ready_at"] = WAITING_INPUT
 				return
 		for good: String in needed:
-			s["stock"][good] -= 1
-			if s["stock"][good] == 0:
-				s["stock"].erase(good)
-			used[good] = used.get(good, 0) + 1
+			use(id, good)
 		stock_changed.emit(id)
 	_continue(id, float(_period(s["type"])))
 

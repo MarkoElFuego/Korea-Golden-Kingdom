@@ -8,6 +8,7 @@ const Balance = preload("res://scripts/data/balance.gd")
 const Buildings = preload("res://scripts/data/buildings.gd")
 const Grid = preload("res://scripts/sim/grid.gd")
 const Factory = preload("res://scripts/view/placeholder_factory.gd")
+const TerrainView = preload("res://scripts/view/terrain_view.gd")
 
 signal mode_changed(mode: int, building_type: String)
 signal building_selected(id: int)
@@ -108,7 +109,7 @@ func _preview_building(tile: Vector2i) -> void:
 		add_child(_ghost)
 		_ghost_key = key
 	_ghost.visible = true
-	_ghost.position = Grid.footprint_center(origin, size)
+	_ghost.position = Grid.footprint_center(origin, size) + Vector3(0, TerrainView.footprint_ground(city.grid, origin, size), 0)
 	_ghost.rotation.y = rotation_step * PI * 0.5
 
 	var cells: Array = []

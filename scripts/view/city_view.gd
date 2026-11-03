@@ -11,6 +11,7 @@ const Factory = preload("res://scripts/view/placeholder_factory.gd")
 const Buildings = preload("res://scripts/data/buildings.gd")
 const Goods = preload("res://scripts/data/goods.gd")
 const BuildingBatch = preload("res://scripts/view/building_batch.gd")
+const TerrainView = preload("res://scripts/view/terrain_view.gd")
 
 const ROAD_COLOR := "#cbb994"
 const ROAD_HEIGHT := 0.12
@@ -18,6 +19,10 @@ const WARNING_COLOR := "#b8473a"
 const FADED := 0.75 # building transparency while a service overlay is shown
 const STUCK_COLOR := "#c98a2b" # amber, quieter than the red "!"
 const STUCK_REFRESH := 0.5 # seconds between checks for stopped producers
+## Jangdokdae jars: the body, and a lid that tells how far the Jang is (no lid: empty jar).
+const JAR_COLORS := {
+	"jar": "#7a5236", "lid_brewing": "#a07a55", "lid_fresh": "#e2d2a8", "lid_ripe": "#2e2018",
+}
 
 var city # scripts/sim/city.gd
 var batch: BuildingBatch
@@ -95,10 +100,12 @@ func _on_building_added(instance: Dictionary) -> void:
 	_update_goods(instance["id"])
 
 
-## Where a building stands: footprint center, turned in 90-degree steps.
-static func _xform(instance: Dictionary) -> Transform3D:
+## Where a building stands: footprint center on top of the highest ground under it (a
+## rocky hill is raised), turned in 90-degree steps.
+func _xform(instance: Dictionary) -> Transform3D:
 	var turn := Basis(Vector3.UP, instance["rotation"] * PI * 0.5)
-	return Transform3D(turn,Grid.footprint_center(instance["origin"], instance["size"]))
+	var ground := TerrainView.footprint_ground(city.grid, instance["origin"], instance["size"])
+	return Transform3D(turn, Grid.footprint_center(instance["origin"], instance["size"]) + Vector3(0, ground, 0))
 
 
 ## Fades every building so overlay columns stand out (and brings them back).
@@ -119,10 +126,12 @@ func _update_goods(id: int) -> void:
 		return
 	var instance: Dictionary = city.buildings.get_instance(id)
 	var stock: Dictionary = city.economy.state[id]["stock"]
-	if stock.is_empty():
-		return
 	var at := _xform(instance)
+	if stock.is_empty() and not city.economy.state[id].has("jars"):
+		return
 	var half := Vector2(Buildings.get_building(instance["type"])["footprint"]) * Balance.TILE_SIZE * 0.5
+	if instance["type"] == "jangdokdae":
+		_jar_yard(id, at)
 	match instance["type"]:
 		"granary":
 			_granary_sacks(id, at, stock.get("rice", 0))
@@ -134,6 +143,18 @@ func _update_goods(id: int) -> void:
 				for k in stock[good]:
 					_goods_box(id, at, Vector3(0.8, 0.6, 0.8), Vector3(half.x - 1.0 - n * 1.0, 0.3, half.y - 0.8), good)
 					n += 1
+
+
+## Jars on the Jangdokdae terrace, four to a row; the lid shows Fresh (light) or Ripe (dark).
+func _jar_yard(id: int, at: Transform3D) -> void:
+	var jars: Array = city.economy.state[id].get("jars", [])
+	for k in jars.size():
+		@warning_ignore("integer_division")
+		var spot := Vector3(-2.4 + (k % 4) * 1.6, 0.45, -1.6 + (k / 4) * 1.5)
+		_goods_box(id, at, Vector3(0.8, 0.9, 0.8), spot + Vector3(0, 0.45, 0), "jar")
+		var state: String = jars[k]["state"]
+		if state != "empty":
+			_goods_box(id, at, Vector3(0.6, 0.12, 0.6), spot + Vector3(0, 0.96, 0), "lid_" + state)
 
 
 func _granary_sacks(id: int, at: Transform3D, loads: int) -> void:
@@ -259,7 +280,7 @@ func _goods_layer(good: String) -> MultiMeshInstance3D:
 	mm.transform_format = MultiMesh.TRANSFORM_3D
 	mm.mesh = BoxMesh.new() # 1 m cube, scaled per box
 	var m := StandardMaterial3D.new()
-	m.albedo_color = Color(Goods.GOODS[good]["color"])
+	m.albedo_color = Color(JAR_COLORS[good] if JAR_COLORS.has(good) else Goods.GOODS[good]["color"])
 	m.roughness = 1.0
 	var node := MultiMeshInstance3D.new()
 	node.name = "Goods_" + good

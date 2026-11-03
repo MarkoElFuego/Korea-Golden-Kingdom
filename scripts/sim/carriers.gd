@@ -29,6 +29,12 @@ var _dirty := true
 var _access := {} # building id -> entrance road tile
 var _storage_at := {} # road tile -> storage and workshop ids entered from it, oldest first
 var _takers := {} # good -> number of buildings that could ever take it (storages, workshops)
+var _stores := {} # good -> number of storages that could hold it (sources for fetchers)
+## Searches for a source that found nothing: good -> {start tile -> economy.source_version}.
+## Nothing can be found from there until a load of that good is added somewhere, workers
+## move, or roads or buildings change, so the search is skipped until then. (It only skips
+## searches that would fail, so the city plays exactly the same.)
+var _no_source := {}
 var _nearest := {} # good -> {start tile -> last storage found: {"id", "path"}}
 var _seen := PackedInt32Array() # search marks, per tile (compared with _stamp)
 var _parent := PackedInt32Array() # search back links, per tile
@@ -49,6 +55,12 @@ func all() -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	result.assign(walkers.values())
 	return result
+
+
+## Buildings in the city that could ever take `good` (storages and workshops).
+func takers(good: String) -> int:
+	_ensure_index()
+	return _takers.get(good, 0)
 
 
 ## Loads currently on someone's back.
@@ -112,9 +124,19 @@ func find_source(start: Vector2i, good: String) -> Dictionary:
 	if not city.grid.is_road(start):
 		return {}
 	_ensure_index()
+	if _stores.get(good, 0) == 0:
+		return {} # no storage could hold it (Soybeans, Salt): no need to walk the streets
 	var economy = city.economy
-	return _search(start, func(instance: Dictionary) -> bool:
+	var version: Array = economy.source_version(good)
+	if _no_source.get(good, {}).get(start, []) == version:
+		return {}
+	var found := _search(start, func(instance: Dictionary) -> bool:
 		return economy.accepts(instance["type"], good) and economy.state[instance["id"]]["eff"] > 0.0 			and economy.stock(instance["id"], good) > 0)
+	if found.is_empty():
+		if not _no_source.has(good):
+			_no_source[good] = {}
+		_no_source[good][start] = version
+	return found
 
 
 ## Breadth-first walk along the streets from `start` to the first storage `wanted` accepts.
@@ -173,6 +195,8 @@ func _ensure_index() -> void:
 	_storage_at.clear()
 	_nearest.clear()
 	_takers.clear()
+	_stores.clear()
+	_no_source.clear()
 	var economy = city.economy
 	for instance: Dictionary in city.buildings.all():
 		var tile := Coverage.access_road(grid, instance)
@@ -181,6 +205,7 @@ func _ensure_index() -> void:
 		for good: String in Goods.ids():
 			if economy.accepts(instance["type"], good):
 				takes.append(good)
+				_stores[good] = _stores.get(good, 0) + 1
 		for good: String in takes:
 			_takers[good] = _takers.get(good, 0) + 1
 		if tile != NO_TILE and not takes.is_empty():

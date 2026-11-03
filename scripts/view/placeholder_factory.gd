@@ -310,12 +310,9 @@ static func _onggi_kiln(root: Node3D) -> void:
 
 
 static func _jangdokdae(root: Node3D) -> void:
-	# A raised stone terrace of jars, with a persimmon tree for summer shade.
+	# A raised stone terrace for jars, with a persimmon tree for summer shade. The jars
+	# themselves are drawn by city_view.gd as they arrive (one per load of Onggi Jars).
 	_box(root, Vector3(7.0, 0.45, 6.0), Vector3(0, 0.225, 0.2), "granite")
-	for ix in 4:
-		for iz in 3:
-			var size := 0.48 if iz == 0 else (0.42 if iz == 1 else 0.34)
-			_jar(root, Vector3(-2.4 + ix * 1.6, 0.45, -1.6 + iz * 1.5), size)
 	_cylinder(root, 0.2, 0.25, 1.8, Vector3(-3.0, 0, -3.2), "wood_dark", 6)
 	_dome(root, Vector3(1.0, 1.6, 1.0), Vector3(-3.0, 1.9, -3.2), "leaf_dark")
 

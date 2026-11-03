@@ -157,3 +157,12 @@ UI_GOODS_COL_STORED,Stored
 UI_GOODS_COL_CARRIED,Carried
 UI_GOODS_COL_YEAR,This year
 UI_GOODS_COL_MAKERS,Makers
+GOOD_JANG,Jang
+STATUS_JANGDOKDAE_NO_ROOM,"The Jangdokdae has no room for more %s. Production stops when the store is full."
+STATUS_NO_JARS,"No jars yet: Onggi Jars from an Onggi Kiln (or a Storehouse) become the jars of this yard."
+STATUS_JARS_WAIT_FOR,"%d empty jars wait for %s."
+STATUS_JARS_ALL_FULL,"Every jar holds Jang (Fresh %d, Ripe %d). A jar is filled again once its Jang goes to the Market."
+STATUS_JANGDOKDAE,"Jars: %d of %d. Brewing %d, Fresh %d, Ripe %d."
+UI_JANG_RELEASE_FRESH,"Release: Fresh"
+UI_JANG_RELEASE_RIPE,"Release: Ripe only"
+UI_JANG_RELEASE_TIP,"Ripe Jang is worth twice as much, but takes two more seasons in the jar. Click to switch."
