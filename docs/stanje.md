@@ -4,7 +4,7 @@ Poslednje ažuriranje: 3. novembar 2026.
 
 ## Gde smo stali
 
-Gotove faze 1–6, 7a i brže crtanje zgrada. Testova: 147, svi prolaze.
+Gotove faze 1–6, 7a, brže crtanje zgrada i pregledniji prozor zgrade. Testova: 153, svi prolaze.
 
 | Faza | Šta je urađeno | Commit |
 | --- | --- | --- |
@@ -16,7 +16,8 @@ Gotove faze 1–6, 7a i brže crtanje zgrada. Testova: 147, svi prolaze.
 | 5 | Sejv sa verzijom i kontrolnim zbirom, Ctrl+S / Ctrl+L, autosave sa 3 kopije, scena „veliki grad" | 2eef9a8 |
 | 5+ | Iste zgrade se crtaju zajedno (MultiMesh): veliki grad 60 FPS, oko 220 poziva umesto 16.500 | 49171c2 |
 | 6 | Soja i so (čekaju Jangdokdae), Onggi Kiln (Clay + Wood → Onggi Jars) sa donosačem, razlozi zastoja, znak „?“, prozor Goods (F4) | c0b40cf |
-| 7a | Jangdokdae: ćupovi kao mesta, Jang Fresh → Ripe, dugme Release, ćupovi na terasi | (sledeći) |
+| 7a | Jangdokdae: ćupovi kao mesta, Jang Fresh → Ripe, dugme Release, ćupovi na terasi; Clay Pit stoji na brdu | 508fcc1 |
+| 7a+ | Prozor zgrade: Show range sa stubićima kuća, šetači zgrade (linije i oznake), radnici grada, okvir izabrane zgrade | (sledeći) |
 
 ## Sledeće: Faza 7b, pijaca i nivo 3
 

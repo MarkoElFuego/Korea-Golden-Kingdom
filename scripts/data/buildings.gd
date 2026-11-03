@@ -9,6 +9,8 @@ extends RefCounted
 ## korean: Revised Romanization, "" when the concept has no term.
 ## coverage (optional): {"type": "radius", "tiles": n} serves every tile within n tiles;
 ##   {"type": "walker"} serves along the roads its roaming walker can reach.
+## serves (optional): the house need it covers ("water", "market", "seonangdang"), for the
+##   building window's "Show range" (which houses in range are served).
 ## near_terrain (optional): this terrain must lie within "tiles" of the footprint.
 ## on_road (optional): stands on an existing road tile, which stays a road
 ##   (Jangseung: turns back roaming walkers, lets destination walkers pass).
@@ -55,7 +57,7 @@ const MVP_BUILDINGS: Array[Dictionary] = [
 		]},
 	{"id": "well", "name_key": "BUILDING_WELL", "korean": "umul", "category": "infrastructure",
 		"footprint": Vector2i(1, 1), "height_class": "low", "cost": 15, "workers": 0, "roof": "giwa", "terrain": [],
-		"coverage": {"type": "radius", "tiles": 3}},
+		"coverage": {"type": "radius", "tiles": 3}, "serves": "water"},
 	{"id": "rice_paddy", "name_key": "BUILDING_RICE_PADDY", "korean": "non", "category": "food",
 		"footprint": Vector2i(3, 3), "height_class": "flat", "cost": 40, "workers": 6, "roof": "none",
 		"terrain": [Terrain.FERTILE_PLAIN],
@@ -68,11 +70,11 @@ const MVP_BUILDINGS: Array[Dictionary] = [
 		"storage": {"accepts": "material", "slots": 8, "slot_size": 4}},
 	{"id": "market", "name_key": "BUILDING_MARKET", "korean": "sijang", "category": "distribution",
 		"footprint": Vector2i(3, 3), "height_class": "low", "cost": 40, "workers": 6, "roof": "thatch", "terrain": [],
-		"coverage": {"type": "walker"}, "roamer": "vendor",
+		"coverage": {"type": "walker"}, "roamer": "vendor", "serves": "market",
 		"market": {"good": "rice", "capacity": 16, "buyer_loads": 8, "vendor_loads": 4}},
 	{"id": "seonangdang", "name_key": "BUILDING_SEONANGDANG", "korean": "seonangdang", "category": "religion",
 		"footprint": Vector2i(1, 1), "height_class": "low", "cost": 25, "workers": 2, "roof": "none", "terrain": [],
-		"coverage": {"type": "walker"}, "roamer": "keeper", "service": "seonangdang"},
+		"coverage": {"type": "walker"}, "roamer": "keeper", "service": "seonangdang", "serves": "seonangdang"},
 	{"id": "jangseung", "name_key": "BUILDING_JANGSEUNG", "korean": "jangseung", "category": "infrastructure",
 		"footprint": Vector2i(1, 1), "height_class": "low", "cost": 10, "workers": 0, "roof": "none", "terrain": [],
 		"on_road": true, "hint_key": "HINT_JANGSEUNG"},

@@ -20,6 +20,7 @@ const WalkerView = preload("res://scripts/view/walker_view.gd")
 const InfoPanel = preload("res://scripts/view/info_panel.gd")
 const OverlayView = preload("res://scripts/view/overlay_view.gd")
 const GoodsPanel = preload("res://scripts/view/goods_panel.gd")
+const SelectionView = preload("res://scripts/view/selection_view.gd")
 const SaveGame = preload("res://scripts/sim/save_game.gd")
 
 const OVERLAY_KEYS := {"water": "F1", "food": "F2", "seonangdang": "F3"}
@@ -69,6 +70,11 @@ func _ready() -> void:
 	add_child(walker_view)
 	walker_view.setup(city)
 
+	var selection := SelectionView.new()
+	selection.name = "Selection"
+	add_child(selection)
+	selection.setup(city)
+
 	overlay = OverlayView.new()
 	overlay.name = "Overlay"
 	add_child(overlay)
@@ -111,6 +117,8 @@ func _ready() -> void:
 	var info := InfoPanel.new()
 	info.name = "InfoPanel"
 	info.city = city
+	info.selection = selection
+	info.walker_view = walker_view
 	ui_root.add_child(info)
 	build_tool.building_selected.connect(info.show_building)
 	build_tool.mode_changed.connect(func(_m: int, _t: String) -> void: info.close_panel())

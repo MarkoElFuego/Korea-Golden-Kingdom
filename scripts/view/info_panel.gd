@@ -1,6 +1,8 @@
 extends PanelContainer
 ## Building window: click a building (with no build tool active) to see what it holds
-## and, in one sentence, what it is doing or what it is missing. Only reads the city.
+## and, in one sentence, what it is doing or what it is missing; its workers, what each
+## of its walkers is doing, and (for Well, Market, Seonangdang) a "Show range" button.
+## The chosen building is framed on the map and its walkers marked. Only reads the city.
 
 const Buildings = preload("res://scripts/data/buildings.gd")
 const Goods = preload("res://scripts/data/goods.gd")
@@ -13,6 +15,8 @@ const INK := Color("#3a2e22")
 const ACCENT := Color("#b8473a")
 
 var city # scripts/sim/city.gd
+var selection # scripts/view/selection_view.gd: the frame and range on the map
+var walker_view # scripts/view/walker_view.gd: marks this building's walkers
 var building_id := 0
 
 var _title: Label
@@ -22,6 +26,9 @@ var _status: Label
 var _workers: Label
 var _house: RichTextLabel # residents, flavor line and needs with ✓ / ✗
 var _release: Button # Jangdokdae: release Jang when Fresh, or only when Ripe
+var _city_workers: Label # the labour pool of the whole city
+var _walkers: Label # one line per walker of this building
+var _range: Button # Show range / Hide range
 
 
 func _ready() -> void:
@@ -64,6 +71,11 @@ func _ready() -> void:
 	box.add_child(HSeparator.new())
 	_workers = _label(18)
 	box.add_child(_workers)
+	_city_workers = _label(15)
+	_city_workers.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_city_workers.custom_minimum_size.x = 348
+	_city_workers.modulate = Color(1, 1, 1, 0.8)
+	box.add_child(_city_workers)
 	_house = RichTextLabel.new()
 	_house.bbcode_enabled = true
 	_house.fit_content = true
@@ -86,11 +98,27 @@ func _ready() -> void:
 	_release.pressed.connect(func() -> void:
 		city.set_ripe_only(building_id, not city.fermentation.ripe_only(building_id)))
 	box.add_child(_release)
+	_walkers = _label(16)
+	_walkers.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_walkers.custom_minimum_size.x = 348
+	box.add_child(_walkers)
+	_range = Button.new()
+	_range.focus_mode = Control.FOCUS_NONE
+	_range.tooltip_text = tr("UI_SHOW_RANGE_TIP")
+	_range.add_theme_font_size_override("font_size", 18)
+	_range.pressed.connect(func() -> void:
+		if selection:
+			selection.set_show_range(not selection.show_range))
+	box.add_child(_range)
 
 
 func show_building(id: int) -> void:
 	building_id = id
 	visible = id != 0
+	if selection:
+		selection.select(id)
+	if walker_view:
+		walker_view.highlight_home = id
 	_refresh()
 
 
@@ -131,10 +159,16 @@ func _refresh() -> void:
 	for good: String in goods:
 		lines.append(tr("UI_STOCK_LINE") % [tr(Goods.GOODS[good]["name_key"]), stock[good]])
 	var want: int = data["workers"]
+	var has: int = city.labor.assigned.get(building_id, 0)
 	_workers.visible = want > 0
+	_city_workers.visible = want > 0
 	if want > 0:
-		_workers.text = tr("UI_WORKERS_LINE") % [city.labor.assigned.get(building_id, 0), want]
-		_workers.add_theme_color_override("font_color", ACCENT if city.labor.assigned.get(building_id, 0) < want else INK)
+		var speed := roundi(state.get("eff", 0.0) * 100)
+		_workers.text = tr("UI_WORKERS_SPEED") % [has, want, speed]
+		_workers.add_theme_color_override("font_color", ACCENT if has < want else INK)
+		_city_workers.text = tr("UI_WORKERS_CITY") % [city.labor.workforce, city.labor.needed]
+		if has < want:
+			_city_workers.text += " " + tr("UI_WORKERS_MORE")
 	_house.visible = data.has("tiers") and instance["tier"] > 0
 	if _house.visible:
 		_house.text = _house_text(instance)
@@ -145,6 +179,18 @@ func _refresh() -> void:
 	_release.visible = data.has("fermentation")
 	if _release.visible:
 		_release.text = tr("UI_JANG_RELEASE_RIPE" if city.fermentation.ripe_only(building_id) else "UI_JANG_RELEASE_FRESH")
+
+	var sends_walkers: bool = data.has("produces") or data.has("roamer") or data.has("workshop") \
+		or data.has("fermentation")
+	_walkers.visible = sends_walkers
+	if sends_walkers:
+		var walker_lines: Array[String] = []
+		for w: Dictionary in city.walkers_of(building_id):
+			walker_lines.append("• " + status_text(self, w))
+		_walkers.text = "\n".join(walker_lines) if not walker_lines.is_empty() else tr("UI_WALKERS_NONE")
+	_range.visible = selection != null and selection.has_range()
+	if _range.visible:
+		_range.text = tr("UI_HIDE_RANGE" if selection.show_range else "UI_SHOW_RANGE")
 
 	var status: Dictionary = city.status(instance)
 	_status.visible = status["key"] != ""

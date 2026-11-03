@@ -131,7 +131,8 @@ func find_source(start: Vector2i, good: String) -> Dictionary:
 	if _no_source.get(good, {}).get(start, []) == version:
 		return {}
 	var found := _search(start, func(instance: Dictionary) -> bool:
-		return economy.accepts(instance["type"], good) and economy.state[instance["id"]]["eff"] > 0.0 			and economy.stock(instance["id"], good) > 0)
+		return economy.accepts(instance["type"], good) and economy.state[instance["id"]]["eff"] > 0.0 \
+			and economy.stock(instance["id"], good) > 0)
 	if found.is_empty():
 		if not _no_source.has(good):
 			_no_source[good] = {}

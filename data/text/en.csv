@@ -166,3 +166,20 @@ STATUS_JANGDOKDAE,"Jars: %d of %d. Brewing %d, Fresh %d, Ripe %d."
 UI_JANG_RELEASE_FRESH,"Release: Fresh"
 UI_JANG_RELEASE_RIPE,"Release: Ripe only"
 UI_JANG_RELEASE_TIP,"Ripe Jang is worth twice as much, but takes two more seasons in the jar. Click to switch."
+WALKER_CARRIER_DELIVER,"Carrier: taking %s to where it is needed."
+WALKER_CARRIER_RETURN,Carrier: walking home.
+WALKER_VENDOR_OUT,"Vendor: on the streets, tile %d of %d."
+WALKER_VENDOR_HOME,Vendor: walking home.
+WALKER_KEEPER_OUT,"Shrine keeper: on the streets, tile %d of %d."
+WALKER_KEEPER_HOME,Shrine keeper: walking home.
+WALKER_BUYER_FETCH,"Buyer: going for %s."
+WALKER_BUYER_RETURN,"Buyer: bringing %d loads of %s home."
+WALKER_FETCHER_FETCH,"Fetcher: going for %s."
+WALKER_FETCHER_RETURN,"Fetcher: bringing %d loads of %s home."
+UI_WALKERS_NONE,Nobody from here is out right now.
+UI_WORKERS_SPEED,"Workers: %d of %d, working at %d%% speed."
+UI_WORKERS_CITY,"The city has %d workers for %d jobs. Newer buildings get workers last."
+UI_WORKERS_MORE,More houses bring more workers.
+UI_SHOW_RANGE,Show range
+UI_HIDE_RANGE,Hide range
+UI_SHOW_RANGE_TIP,"Shows on the map what this building reaches. Houses in range: green when they have its service, red when not."

@@ -342,6 +342,55 @@ func status(instance: Dictionary) -> Dictionary:
 	return {"key": "", "args": []}
 
 
+## What a building reaches, for the window's "Show range": {"tiles": {tile: true} it covers,
+## "houses": {house id: true when the house has that service now}}.
+func range_of(instance: Dictionary) -> Dictionary:
+	var tiles := coverage_preview(instance["type"], instance["origin"], instance["rotation"])
+	var need: String = Buildings.get_building(instance["type"]).get("serves", "")
+	var reached := {}
+	for t: Vector2i in tiles:
+		var id := grid.get_occupant(t)
+		if reached.has(id) or not houses.state.has(id) or buildings.get_instance(id)["tier"] == 0:
+			continue
+		var house := buildings.get_instance(id)
+		if need == "water":
+			reached[id] = houses.is_met(house, "water")
+		else:
+			var since := houses.days_since(id, need)
+			reached[id] = since >= 0 and since < Balance.SERVICE_DAYS
+	return {"tiles": tiles, "houses": reached}
+
+
+## What every walker of a building is doing, for the building window:
+## [{"id", "key", "args"}] (String args are text keys).
+func walkers_of(id: int) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for w: Dictionary in carriers.walkers.values():
+		if w["home"] != id:
+			continue
+		if w["state"] == "deliver":
+			result.append({"id": w["id"], "key": "WALKER_CARRIER_DELIVER", "args": [Goods.GOODS[w["cargo"]]["name_key"]]})
+		else:
+			result.append({"id": w["id"], "key": "WALKER_CARRIER_RETURN", "args": []})
+	var fetcher := not Buildings.get_building(buildings.get_instance(id).get("type", "")).has("market")
+	for w: Dictionary in services.walkers.values():
+		if w["home"] != id:
+			continue
+		match w["kind"]:
+			"vendor", "keeper":
+				var out: bool = w["index"] <= w["serve_end"]
+				var key := ("WALKER_VENDOR_" if w["kind"] == "vendor" else "WALKER_KEEPER_") + ("OUT" if out else "HOME")
+				result.append({"id": w["id"], "key": key, "args": [w["index"] + 1, w["serve_end"] + 1] if out else []})
+			"buyer":
+				var who := "WALKER_FETCHER_" if fetcher else "WALKER_BUYER_"
+				var good: String = Goods.GOODS[w["good"]]["name_key"]
+				if w["state"] == "fetch":
+					result.append({"id": w["id"], "key": who + "FETCH", "args": [good]})
+				else:
+					result.append({"id": w["id"], "key": who + "RETURN", "args": [w["cargo"], good]})
+	return result
+
+
 ## Moves the valley entrance (tests and custom maps): the new tile becomes a road.
 func set_entrance(tile: Vector2i) -> void:
 	entrance = tile

@@ -5,7 +5,8 @@ extends Node3D
 ##   Market vendor - persimmon-dyed clothes (galot), a basket on the head, rice in it while it lasts;
 ##   Shrine keeper - white robe with red and blue ribbons;
 ##   Settler       - dusty travel clothes and a big cloth bundle (bojagi).
-## One MultiMesh per part, so hundreds of walkers stay cheap.
+## One MultiMesh per part, so hundreds of walkers stay cheap. Walkers of the building shown
+## in the building window carry a small teal marker over their heads.
 ## Positions are smoothed between simulation ticks; only reads the city.
 
 const Balance = preload("res://scripts/data/balance.gd")
@@ -23,10 +24,12 @@ const KEEPER_COLOR := "#f6f3ec" # white robe
 const RIBBON_RED := "#b8473a"
 const RIBBON_BLUE := "#3d5a99"
 const SIDE_OFFSET := 0.6 # meters to the right of the road center, so two-way traffic passes
+const MARK_COLOR := "#3d8f84" # dancheong teal, as the frame of the chosen building
 
 var city # scripts/sim/city.gd
 var _layers := {} # part name -> MultiMeshInstance3D
 var _items := {} # part name -> [transforms, colors], filled every frame
+var highlight_home := 0 # building id whose walkers are marked (0: none)
 
 
 func setup(city_ref) -> void:
@@ -41,6 +44,8 @@ func setup(city_ref) -> void:
 	_layer("load", _box(Vector3(0.55, 0.55, 0.45)))
 	_layer("basket", _box(Vector3(0.6, 0.22, 0.6)))
 	_layer("ribbon", _box(Vector3(0.07, 0.8, 0.05)))
+	_layer("mark", _box(Vector3(0.45, 0.45, 0.45)))
+	_layers["mark"].cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 
 
 func _box(size: Vector3) -> BoxMesh:
@@ -79,11 +84,13 @@ func _process(_delta: float) -> void:
 	for w in city.carriers.all():
 		var frame := _walker_frame(w, carrier_ahead)
 		_porter(frame, BODY_COLOR, w["cargo"])
+		_mark(w, frame)
 	for w in city.settlers.all():
 		var frame := _walker_frame(w, settler_ahead)
 		_add("body", _body(frame), SETTLER_COLOR)
 		_add("load", frame.translated_local(Vector3(0, 1.2, 0.35)).scaled_local(Vector3.ONE * 1.3), BUNDLE_COLOR)
 	for w in city.services.all():
+		_mark(w, _walker_frame(w, buyer_ahead if w["kind"] == "buyer" else roamer_ahead))
 		match w["kind"]:
 			"buyer":
 				_porter(_walker_frame(w, buyer_ahead), BUYER_COLOR, w["good"] if w["cargo"] > 0 else "")
@@ -105,6 +112,13 @@ func _process(_delta: float) -> void:
 		for i in transforms.size():
 			mm.set_instance_transform(i, transforms[i])
 			mm.set_instance_color(i, colors[i])
+
+
+## A marker over the walker when its building is the one in the building window.
+func _mark(w: Dictionary, frame: Transform3D) -> void:
+	if highlight_home != 0 and w["home"] == highlight_home:
+		var spin := Basis(Vector3.UP, PI * 0.25) * Basis(Vector3.RIGHT, PI * 0.25)
+		_add("mark", Transform3D(spin, frame.origin + Vector3(0, Balance.HUMAN_HEIGHT + 0.9, 0)), MARK_COLOR)
 
 
 ## Someone with a jige on the back and maybe a load on it (carrier, buyer).
