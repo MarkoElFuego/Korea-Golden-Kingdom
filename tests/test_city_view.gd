@@ -133,3 +133,18 @@ func test_big_city_needs_few_draw_calls() -> void:
 	check(v.batch.draw_calls() < 200, "%d draw calls for buildings (was one per part)" % v.batch.draw_calls())
 	check(ms < 3000, "view ready in %d ms" % ms)
 	v.free()
+
+
+func test_stopped_producer_gets_a_sign() -> void:
+	var c := _city()
+	c.labor.extra_workers = 100
+	c.place_building("onggi_kiln", Vector2i(2, 6))
+	var kiln: int = c.building_at(Vector2i(2, 6))["id"]
+	var v := _view(c)
+	v.update_stuck()
+	check_eq(v.stuck_ids(), [kiln], "a kiln without Clay or Wood gets a sign")
+	c.economy.add(kiln, "clay", 2)
+	c.economy.add(kiln, "wood", 2)
+	v.update_stuck()
+	check_eq(v.stuck_ids(), [], "working again: the sign goes")
+	v.free()

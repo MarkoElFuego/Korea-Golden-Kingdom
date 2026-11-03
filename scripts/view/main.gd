@@ -19,6 +19,7 @@ const UiTheme = preload("res://scripts/view/ui_theme.gd")
 const WalkerView = preload("res://scripts/view/walker_view.gd")
 const InfoPanel = preload("res://scripts/view/info_panel.gd")
 const OverlayView = preload("res://scripts/view/overlay_view.gd")
+const GoodsPanel = preload("res://scripts/view/goods_panel.gd")
 const SaveGame = preload("res://scripts/sim/save_game.gd")
 
 const OVERLAY_KEYS := {"water": "F1", "food": "F2", "seonangdang": "F3"}
@@ -34,6 +35,7 @@ var city: City
 var camera_rig: CameraRig
 var build_tool: BuildTool
 var overlay: OverlayView
+var goods_panel: GoodsPanel
 var _overlay_label: Label
 var _notice: Label
 var _notice_time := 0.0
@@ -112,6 +114,12 @@ func _ready() -> void:
 	ui_root.add_child(info)
 	build_tool.building_selected.connect(info.show_building)
 	build_tool.mode_changed.connect(func(_m: int, _t: String) -> void: info.close_panel())
+
+	goods_panel = GoodsPanel.new()
+	goods_panel.name = "GoodsPanel"
+	goods_panel.city = city
+	ui_root.add_child(goods_panel)
+	bar.goods_requested.connect(goods_panel.toggle)
 
 	_overlay_label = _paper_label("OverlayLabel", 72)
 	ui_root.add_child(_overlay_label)
@@ -235,6 +243,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		city.clock.set_speed(2)
 	elif event.is_action_pressed("game_speed_3", false, true):
 		city.clock.set_speed(3)
+	elif event.is_action_pressed("goods_window", false, true):
+		goods_panel.toggle()
 	else:
 		for mode: String in OVERLAY_KEYS:
 			if event.is_action_pressed("overlay_" + mode, false, true):

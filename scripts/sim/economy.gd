@@ -1,14 +1,15 @@
 extends RefCounted
-## Goods held by buildings: the small store of a producing building, the Granary and
-## the Storehouse. Also runs production (phase 3: fixed rate, no workers).
+## Goods held by buildings: the small store of a producing building, the inputs of a
+## workshop, the Granary and the Storehouse. Also runs production.
 ## Counts every load produced and every load destroyed with a demolished building,
 ## so tests can check that no goods appear or vanish.
 ##
 ## Production is scheduled: a building is looked at only on the tick its next load is
 ## ready, so a big city costs nothing while its fields grow. A full store pauses
-## production; it starts again (a full period) when a carrier takes a load.
 ## production; it starts again (a full period) when a carrier takes a load. Workers set the
 ## speed: half the workers, half the speed; none, no production (and a storage takes nothing).
+## A workshop (Onggi Kiln) starts a load only with one load of each input, and uses them
+## up at the start; without them it waits (WAITING_INPUT).
 const Balance = preload("res://scripts/data/balance.gd")
 const Buildings = preload("res://scripts/data/buildings.gd")
 const Goods = preload("res://scripts/data/goods.gd")
@@ -16,6 +17,7 @@ const SimClock = preload("res://scripts/sim/sim_clock.gd")
 
 const PAUSED := -1 # store full
 const NO_WORKERS := -2 # nobody works here
+const WAITING_INPUT := -3 # a workshop without its inputs (or its workers) between loads
 
 signal stock_changed(id: int)
 
@@ -27,11 +29,14 @@ var state := {}
 var produced := {} # good -> loads produced since the start
 var lost := {} # good -> loads destroyed with demolished buildings
 var sold := {} # good -> loads Market vendors took out to the houses
+var used := {} # good -> loads workshops used up as inputs
+var produced_year := {} # good -> loads produced since the year began (Goods window)
 ## Producers with a load waiting and no carrier out: id -> true.
 var waiting := {}
 
 var _clock: SimClock
 var _schedule := {} # tick -> [building ids whose load is ready then]
+var _consumers := {} # good -> workshops in the city that use it
 
 
 func _init(clock: SimClock) -> void:
@@ -43,14 +48,20 @@ func add_building(instance: Dictionary) -> void:
 	var s := {"type": instance["type"], "good": p.get("good", ""), "stock": {}, "reserved": {},
 		"ready_at": NO_WORKERS, "remaining": 0.0, "eff": 0.0, "carrier": 0}
 	state[instance["id"]] = s
+	for good: String in inputs(instance["type"]):
+		_consumers[good] = _consumers.get(good, 0) + 1
 	if Buildings.get_building(instance["type"])["workers"] == 0:
 		s["eff"] = 1.0 # needs nobody (Well, Jangseung, houses)
-	if not p.is_empty():
+	if not inputs(instance["type"]).is_empty():
+		s["ready_at"] = WAITING_INPUT # starts when workers and inputs arrive
+	elif not p.is_empty():
 		s["remaining"] = float(_period(instance["type"])) # starts when workers arrive
 
 
 func remove_building(instance: Dictionary) -> void:
 	var s: Dictionary = state.get(instance["id"], {})
+	for good: String in inputs(instance["type"]) if not s.is_empty() else []:
+		_consumers[good] -= 1
 	for good: String in s.get("stock", {}):
 		lost[good] = lost.get(good, 0) + s["stock"][good]
 	state.erase(instance["id"])
@@ -59,6 +70,16 @@ func remove_building(instance: Dictionary) -> void:
 
 static func production(type: String) -> Dictionary:
 	return Buildings.get_building(type).get("produces", {})
+
+
+## Workshops in the city that use `good` as an input.
+func consumers(good: String) -> int:
+	return _consumers.get(good, 0)
+
+
+## Goods a workshop uses for every load it makes ([] for other buildings).
+static func inputs(type: String) -> Array:
+	return Buildings.get_building(type).get("workshop", {}).get("inputs", [])
 
 
 static func storage(type: String) -> Dictionary:
@@ -127,6 +148,23 @@ func free_space(instance: Dictionary, good: String) -> int:
 	return st["capacity"] - total
 
 
+## Loads of input `good` a staffed workshop can still take, counting loads on the way.
+func input_space(instance: Dictionary, good: String) -> int:
+	if not inputs(instance["type"]).has(good) or state[instance["id"]]["eff"] <= 0.0:
+		return 0
+	return maxi(0, Balance.WORKSHOP_INPUT_STORE - _incoming(state[instance["id"]], good))
+
+
+## Loads of `good` in the building plus loads on the way to it.
+func incoming(id: int, good: String) -> int:
+	return _incoming(state[id], good)
+
+
+## A new year: the yearly production count starts again.
+func new_year() -> void:
+	produced_year.clear()
+
+
 ## Capacity of a storage in loads (all slots together).
 static func capacity(type: String) -> int:
 	var st := storage(type)
@@ -149,6 +187,7 @@ func produce_tick() -> void:
 			continue # demolished or rescheduled
 		s["ready_at"] = PAUSED
 		produced[s["good"]] = produced.get(s["good"], 0) + 1
+		produced_year[s["good"]] = produced_year.get(s["good"], 0) + 1
 		add(id, s["good"], 1) # schedules the next load if there is room
 
 
@@ -159,6 +198,8 @@ func progress(instance: Dictionary) -> float:
 		return 0.0
 	if s["ready_at"] == PAUSED:
 		return 1.0
+	if s["ready_at"] == WAITING_INPUT:
+		return 0.0
 	var period := _period(s["type"])
 	if s["ready_at"] == NO_WORKERS:
 		return 1.0 - s["remaining"] / period
@@ -173,6 +214,10 @@ func set_efficiency(id: int, eff: float) -> void:
 	if is_equal_approx(old, eff):
 		return
 	s["eff"] = eff
+	if s["ready_at"] == WAITING_INPUT:
+		if eff > 0.0:
+			_update_producer(id) # workers came: start if the inputs are here
+		return
 	if s["good"] == "" or s["ready_at"] == PAUSED:
 		return # storage, or a full store that resumes later at the new speed
 	var remaining: float = s["remaining"] if s["ready_at"] == NO_WORKERS else (s["ready_at"] - _clock.tick) * old
@@ -191,12 +236,30 @@ func _update_producer(id: int) -> void:
 		waiting[id] = true
 	else:
 		waiting.erase(id)
-	if s["ready_at"] == PAUSED and loads < Balance.PRODUCER_STORE:
+	if (s["ready_at"] == PAUSED or s["ready_at"] == WAITING_INPUT) and loads < Balance.PRODUCER_STORE:
 		_schedule_next(id)
 
 
+## Starts the next load. A workshop first takes one load of each input; without them
+## (or without workers) it waits.
 func _schedule_next(id: int) -> void:
-	_continue(id, float(_period(state[id]["type"])))
+	var s: Dictionary = state[id]
+	var needed := inputs(s["type"])
+	if not needed.is_empty():
+		if s["eff"] <= 0.0:
+			s["ready_at"] = WAITING_INPUT
+			return
+		for good: String in needed:
+			if s["stock"].get(good, 0) <= 0:
+				s["ready_at"] = WAITING_INPUT
+				return
+		for good: String in needed:
+			s["stock"][good] -= 1
+			if s["stock"][good] == 0:
+				s["stock"].erase(good)
+			used[good] = used.get(good, 0) + 1
+		stock_changed.emit(id)
+	_continue(id, float(_period(s["type"])))
 
 
 ## Schedules the next load after `remaining` ticks of full-speed work, at the current speed.
@@ -232,7 +295,7 @@ static func _incoming(s: Dictionary, good: String) -> int:
 
 func to_save() -> Dictionary:
 	return {"state": state, "produced": produced, "lost": lost, "sold": sold, "waiting": waiting,
-		"schedule": _schedule}
+		"schedule": _schedule, "used": used, "produced_year": produced_year}
 
 
 func load_save(d: Dictionary) -> void:
@@ -242,3 +305,9 @@ func load_save(d: Dictionary) -> void:
 	sold = d["sold"]
 	waiting = d["waiting"]
 	_schedule = d["schedule"]
+	used = d["used"]
+	produced_year = d["produced_year"]
+	_consumers.clear()
+	for s: Dictionary in state.values():
+		for good: String in inputs(s["type"]):
+			_consumers[good] = _consumers.get(good, 0) + 1

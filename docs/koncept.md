@@ -235,7 +235,7 @@ Najbolje mesto je **Myeongdang**.
   koje prima tu robu i ima mesta, pa se vraća. Ide 1,5 polja u sekundi pri 1×. *predlog*
 - Roba se ne gubi: ako nestane skladište ili put, nosač traži drugo skladište ili vraća tovar
   kući. Gubi se samo roba koja je bila u srušenoj zgradi.
-- Soybean Field i Salt Pans ne proizvode do Faze 7 (Jangdokdae); prozor zgrade to kaže.
+- (Zamenjeno u Fazi 6, vidi „Proizvodnja“.)
 - Prozor zgrade (klik na zgradu) pokazuje zalihu i jednu rečenicu o stanju ili o tome šta fali.
 
 ## Kuće, doseljenici i radnici (odluke iz Faze 4a)
@@ -275,6 +275,23 @@ Najbolje mesto je **Myeongdang**.
 - Ctrl+S brzi sejv, Ctrl+L učitava najnoviji sejv. Automatski sejv na početku svakog godišnjeg
   doba, 3 kopije koje se smenjuju. Sejvovi su u `%APPDATA%/Godot/app_userdata/Korea- The Golden
   Kingdom/saves`. Meni sa listom sejvova dolazi sa menijem igre.
+
+## Proizvodnja (odluke iz Faze 6)
+
+- Soybean Field (1 tovar / 8 dana) i Salt Pans (1 tovar / 6 dana) rade od Faze 6, po 6 radnika.
+  Soybeans i Salt idu samo u Jangdokdae: dok ga nema, čekaju na polju (najviše 2 tovara) i
+  proizvodnja stane, a prozor zgrade to kaže. *predlog*
+- Onggi Kiln: 1 Clay + 1 Wood (gorivo) daje 1 tovar Onggi Jars na 6 dana, 6 radnika. Peć čuva
+  najviše 2 tovara svake sirovine; sirovine troši na početku posla. Ćupovi idu u Storehouse. *predlog*
+- Kao u Zeusu: nosač sa sirovinom prvo ide u radionicu kojoj ta roba treba, a tek ako nijednoj ne
+  treba, u skladište. Radionica koja ostane bez neke sirovine šalje svog donosača (fetcher) u
+  najbliži Storehouse koji je ima; donosi do 2 tovara.
+- Ćupove u Fazi 6 još niko ne troši; pijaca ih prodaje od Faze 7, zajedno sa Jang-om (kuće nivoa 3).
+- Igra kaže gde roba fali: prozor zgrade daje tačan razlog (nema radnika, nema sirovine, nema
+  skladišta, čeka Jangdokdae); iznad zgrade koja stoji je miran žuti znak „?“ sa kockicom u boji
+  robe koja fali; prozor **Goods** (F4 ili dugme u gornjoj traci) za svaku robu kaže koliko je u
+  skladištima, na putu, napravljeno ove godine, koliko zgrada je pravi i zašto neke stoje.
+- Opis zgrade u meniju za gradnju kaže šta zgrada pravi (npr. „Clay + Wood → Onggi Jars“).
 
 ## Zgrade
 

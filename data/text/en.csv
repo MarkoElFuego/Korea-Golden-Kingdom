@@ -79,7 +79,6 @@ GOOD_RICE,Rice
 GOOD_WOOD,Wood
 GOOD_CLAY,Clay
 STATUS_WAITING_SETTLERS,Waiting for settlers.
-STATUS_WAITS_FERMENTATION,Production starts with fermentation (Jangdokdae).
 STATUS_NO_ROAD_CARRIERS,No road access: carriers cannot come or go.
 STATUS_CARRIER_OUT,"A carrier is on the way to storage. Next load: %d%%"
 STATUS_NO_GRANARY,"No Granary with free space can be reached by road. Production stops when the store is full."
@@ -136,3 +135,25 @@ LOAD_DAMAGED,The save file is damaged and cannot be loaded.
 LOAD_NEWER_VERSION,This save comes from a newer version of the game.
 LOAD_OLDER_VERSION,This save comes from an older version of the game and cannot be loaded.
 UI_FPS_FORMAT,"%d FPS   ·   %d draw calls   ·   %d people   ·   %d walkers"
+GOOD_SOYBEANS,Soybeans
+GOOD_SALT,Salt
+GOOD_ONGGI_JARS,Onggi Jars
+STATUS_NO_WORKERS,"No workers: every pair of hands in the city already has a job. More houses, more workers."
+STATUS_PRODUCING_SLOW,"Working at %d%% speed: not enough workers. Next load: %d%%"
+STATUS_FETCHER_OUT,"The fetcher is bringing %s from a Storehouse."
+STATUS_INPUT_ON_WAY,"%s is on the way."
+STATUS_FETCHER_SOON,"Out of %s. The fetcher sets out for a Storehouse soon."
+STATUS_NO_INPUT,"No %s: none is on the way, and no Storehouse in reach by road holds any."
+STATUS_NO_JANGDOKDAE,"%s goes only to a Jangdokdae (fermentation), and there is none yet. Production stops when the store is full."
+NOTE_NO_MAKER,"Nothing makes it. Build a %s."
+UI_GOODS_TITLE,Goods
+UI_GOODS_TIP,"Goods (F4): what the city has, what it makes, and where it is short."
+UI_GOODS_MAKERS,"%d working"
+UI_GOODS_MAKERS_IDLE,"%d of %d stopped"
+UI_BUILD_TOOLTIP_MAKES,"Makes: %s"
+UI_BUILD_TOOLTIP_WORKSHOP,"%s → %s"
+UI_GOODS_COL_GOOD,Good
+UI_GOODS_COL_STORED,Stored
+UI_GOODS_COL_CARRIED,Carried
+UI_GOODS_COL_YEAR,This year
+UI_GOODS_COL_MAKERS,Makers

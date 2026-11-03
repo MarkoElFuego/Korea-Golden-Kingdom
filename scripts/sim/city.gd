@@ -19,6 +19,7 @@ const Labor = preload("res://scripts/sim/labor.gd")
 const Houses = preload("res://scripts/sim/houses.gd")
 const Settlers = preload("res://scripts/sim/settlers.gd")
 const Services = preload("res://scripts/sim/services.gd")
+const Supply = preload("res://scripts/sim/supply.gd")
 
 signal treasury_changed(value: int)
 signal building_added(instance: Dictionary)
@@ -39,6 +40,7 @@ var labor: Labor
 var houses: Houses
 var settlers: Settlers
 var services: Services
+var supply: Supply # where goods are missing and why
 ## The one random generator of the simulation (seeded from the map seed), so the same
 ## commands always give the same city.
 var rng := RandomNumberGenerator.new()
@@ -67,9 +69,11 @@ func _init(seed_value: int = Balance.DEFAULT_MAP_SEED) -> void:
 	houses = Houses.new(self)
 	settlers = Settlers.new(self)
 	services = Services.new(self)
+	supply = Supply.new(self)
 	settlers.arrived.connect(_on_settlers_arrived)
 	clock.day_changed.connect(_on_day)
 	clock.season_changed.connect(_on_season)
+	clock.year_changed.connect(_on_year) # a method, not a lambda: a lambda would keep the city alive
 	clock.ticked.connect(_on_tick)
 
 
@@ -318,20 +322,8 @@ func status(instance: Dictionary) -> Dictionary:
 	var data := Buildings.get_building(instance["type"])
 	if data.has("tiers") and instance["tier"] == 0:
 		return {"key": "STATUS_WAITING_SETTLERS", "args": []}
-	if data.get("produces_later", false):
-		return {"key": "STATUS_WAITS_FERMENTATION", "args": []}
-	var p := Economy.production(instance["type"])
-	if not p.is_empty():
-		var start := Coverage.access_road(grid, instance)
-		if start == Carriers.NO_TILE:
-			return {"key": "STATUS_NO_ROAD_CARRIERS", "args": []}
-		var full := economy.stock(instance["id"], p["good"]) >= Balance.PRODUCER_STORE
-		if economy.state[instance["id"]]["carrier"] != 0 and not full:
-			return {"key": "STATUS_CARRIER_OUT", "args": [roundi(economy.progress(instance) * 100)]}
-		if carriers.find_storage(start, p["good"]).is_empty() and economy.stock(instance["id"], p["good"]) > 0:
-			var key := "STATUS_NO_GRANARY" if Goods.kind(p["good"]) == "food" else "STATUS_NO_STOREHOUSE"
-			return {"key": key, "args": []}
-		return {"key": "STATUS_PRODUCING", "args": [roundi(economy.progress(instance) * 100)]}
+	if not Economy.production(instance["type"]).is_empty():
+		return supply.status(instance)
 	if Services.roamer(instance["type"]) != "" and has_road_access(instance):
 		return services.status(instance)
 	if not Economy.storage(instance["type"]).is_empty():
@@ -369,6 +361,10 @@ func _on_day(_day: int) -> void:
 	_recompute_labor()
 	for house in changed:
 		house_changed.emit(house)
+
+
+func _on_year(_year: int) -> void:
+	economy.new_year()
 
 
 ## At the end of every season the houses pay a small tax (MVP, no Tax Office yet).

@@ -23,6 +23,7 @@ const DEMOLISH_REFUND := 0.0 # share of the cost returned on demolish (none, as 
 
 # --- Goods ---
 const PRODUCER_STORE := 2 # loads a producing building keeps before production stops
+const WORKSHOP_INPUT_STORE := 2 # loads of each input a workshop (Onggi Kiln) keeps
 
 # --- Walkers (docs/koncept.md, "Šetači") ---
 const CARRIER_SPEED := 1.5 # tiles per second at 1x (one load on the jige)

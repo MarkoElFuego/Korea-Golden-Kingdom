@@ -1,10 +1,12 @@
 extends RefCounted
 ## Carriers with a jige: destination walkers that take one load from a producing building
-## to the nearest storage (by road) that accepts it and has room, then walk home.
+## to a workshop that needs it (Onggi Kiln: Clay, Wood) or, when none does, to the nearest
+## storage (by road) that accepts it and has room, then walk home.
 ## A producing building sends one carrier at a time.
 ##
 ## A carrier is a Dictionary:
-##   id, home (building id, 0 when demolished), cargo (good or ""), target (storage id or 0),
+##   id, home (building id, 0 when demolished), cargo (good or ""), target (workshop or
+##   storage id, or 0),
 ##   state ("deliver" or "return"), path (road tiles), index (tile it is on), progress (0..1
 ##   toward path[index + 1]).
 ## Goods are never lost on the way: if the target disappears the carrier finds another
@@ -12,6 +14,7 @@ extends RefCounted
 
 const Balance = preload("res://scripts/data/balance.gd")
 const Coverage = preload("res://scripts/sim/coverage.gd")
+const Goods = preload("res://scripts/data/goods.gd")
 const WalkerMotion = preload("res://scripts/sim/walker_motion.gd")
 
 const NO_TILE := Vector2i(-1, -1)
@@ -24,7 +27,8 @@ var _city: WeakRef # scripts/sim/city.gd (weak: the city owns this object)
 # Caches, rebuilt when roads or buildings change.
 var _dirty := true
 var _access := {} # building id -> entrance road tile
-var _storage_at := {} # road tile -> storage ids entered from it, oldest first
+var _storage_at := {} # road tile -> storage and workshop ids entered from it, oldest first
+var _takers := {} # good -> number of buildings that could ever take it (storages, workshops)
 var _nearest := {} # good -> {start tile -> last storage found: {"id", "path"}}
 var _seen := PackedInt32Array() # search marks, per tile (compared with _stamp)
 var _parent := PackedInt32Array() # search back links, per tile
@@ -66,24 +70,32 @@ func tick() -> void:
 			_arrive(w)
 
 
-## Storage that would take `good` from `start`: {"id", "path"}, or {} when none is reachable.
-## Nearest by road: one breadth-first walk along the streets that stops at the first
-## storage with room (several storages on one entrance tile: the older one first).
-## The answer is remembered until roads or buildings change; if that storage fills up,
-## the search runs again.
+## Where a load of `good` from `start` goes: {"id", "path"}, or {} when nothing takes it.
+## First the nearest workshop (by road) that needs it as an input, as in Zeus; otherwise
+## the nearest storage with room: one breadth-first walk along the streets that stops at
+## the first one (several on one entrance tile: the older one first).
+## The storage answer is remembered until roads or buildings change; if that storage
+## fills up, the search runs again.
 func find_storage(start: Vector2i, good: String) -> Dictionary:
 	var city = _city.get_ref()
 	var grid = city.grid
 	if not grid.is_road(start):
 		return {}
 	_ensure_index()
+	if _takers.get(good, 0) == 0:
+		return {} # nothing in the city takes it (Soybeans and Salt before the Jangdokdae)
+	var economy = city.economy
+	if economy.consumers(good) > 0:
+		var workshop := _search(start, func(instance: Dictionary) -> bool:
+			return economy.input_space(instance, good) > 0)
+		if not workshop.is_empty():
+			return workshop
 	# Same start and good as last time, and that storage still has room: reuse the answer.
 	var cached: Dictionary = _nearest.get(good, {}).get(start, {})
 	if not cached.is_empty():
 		var known: Dictionary = city.buildings.get_instance(cached["id"])
 		if not known.is_empty() and city.economy.free_space(known, good) > 0:
 			return {"id": cached["id"], "path": cached["path"].duplicate()}
-	var economy = city.economy
 	var found := _search(start, func(instance: Dictionary) -> bool:
 		return economy.accepts(instance["type"], good) and economy.free_space(instance, good) > 0)
 	if not found.is_empty():
@@ -93,7 +105,8 @@ func find_storage(start: Vector2i, good: String) -> Dictionary:
 	return found
 
 
-## Nearest staffed storage (by road) that holds `good`: {"id", "path"}, or {} (Market buyers).
+## Nearest staffed storage (by road) that holds `good`: {"id", "path"}, or {}
+## (Market buyers, workshop fetchers). Workshops are never a source.
 func find_source(start: Vector2i, good: String) -> Dictionary:
 	var city = _city.get_ref()
 	if not city.grid.is_road(start):
@@ -159,10 +172,18 @@ func _ensure_index() -> void:
 	_access.clear()
 	_storage_at.clear()
 	_nearest.clear()
+	_takers.clear()
+	var economy = city.economy
 	for instance: Dictionary in city.buildings.all():
 		var tile := Coverage.access_road(grid, instance)
 		_access[instance["id"]] = tile
-		if tile != NO_TILE and not city.economy.storage(instance["type"]).is_empty():
+		var takes: Array = economy.inputs(instance["type"]).duplicate()
+		for good: String in Goods.ids():
+			if economy.accepts(instance["type"], good):
+				takes.append(good)
+		for good: String in takes:
+			_takers[good] = _takers.get(good, 0) + 1
+		if tile != NO_TILE and not takes.is_empty():
 			if not _storage_at.has(tile):
 				_storage_at[tile] = []
 			_storage_at[tile].append(instance["id"])

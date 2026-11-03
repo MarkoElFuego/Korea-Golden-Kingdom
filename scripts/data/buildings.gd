@@ -15,9 +15,10 @@ extends RefCounted
 ## hint_key (optional): one line for the build menu tooltip.
 ## tiers (houses): residents = people at that tier; needs = what that tier adds (each tier
 ##   keeps the needs below it, docs/koncept.md "Stanovanje", MVP simplification).
-## produces (optional): {"good": id, "days": n} one load every n days into its small store.
-##   Phase 3: fixed rate, no workers yet (proposal; phase 6 adds workers and chains).
-## produces_later (optional): produces only once fermentation exists (phase 7).
+## produces (optional): {"good": id, "days": n} one load every n days into its small store,
+##   at full workers (half the workers, half the speed).
+## workshop (optional): {"inputs": [goods]} one load of each input is used for every load made;
+##   it keeps up to Balance.WORKSHOP_INPUT_STORE of each input.
 ## storage (optional): {"accepts": goods kind, "capacity": loads} or, Storehouse-style,
 ##   {"accepts": kind, "slots": n, "slot_size": loads}, one good per slot (as in Zeus).
 
@@ -81,15 +82,16 @@ const MVP_BUILDINGS: Array[Dictionary] = [
 		"terrain": [Terrain.ROCKY_HILL],
 		"produces": {"good": "clay", "days": 5}},
 	{"id": "onggi_kiln", "name_key": "BUILDING_ONGGI_KILN", "korean": "onggi-gama", "category": "crafts",
-		"footprint": Vector2i(3, 2), "height_class": "medium", "cost": 50, "workers": 6, "roof": "giwa", "terrain": []},
+		"footprint": Vector2i(3, 2), "height_class": "medium", "cost": 50, "workers": 6, "roof": "giwa", "terrain": [],
+		"workshop": {"inputs": ["clay", "wood"]}, "produces": {"good": "onggi_jars", "days": 6}},
 	{"id": "soybean_field", "name_key": "BUILDING_SOYBEAN_FIELD", "korean": "", "category": "food",
 		"footprint": Vector2i(3, 3), "height_class": "flat", "cost": 40, "workers": 6, "roof": "none",
 		"terrain": [Terrain.GRASS, Terrain.FERTILE_PLAIN],
-		"produces_later": true},
+		"produces": {"good": "soybeans", "days": 8}},
 	{"id": "salt_pans", "name_key": "BUILDING_SALT_PANS", "korean": "yeomjeon", "category": "food",
 		"footprint": Vector2i(3, 3), "height_class": "flat", "cost": 40, "workers": 6, "roof": "none",
 		"terrain": [Terrain.SHORE],
-		"produces_later": true},
+		"produces": {"good": "salt", "days": 6}},
 	{"id": "jangdokdae", "name_key": "BUILDING_JANGDOKDAE", "korean": "jangdokdae", "category": "fermentation",
 		"footprint": Vector2i(2, 2), "height_class": "low", "cost": 50, "workers": 4, "roof": "none", "terrain": []},
 ]

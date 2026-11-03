@@ -3,6 +3,8 @@ extends RefCounted
 ##   vendor - roaming walker from a Market; houses it passes get rice in their pantry;
 ##   keeper - roaming walker from a Seonangdang; houses it passes remember the visit;
 ##   buyer  - destination walker from a Market; fetches rice from the nearest Granary.
+##            A workshop (Onggi Kiln) that has none of an input left sends one too (the
+##            fetcher): it brings that input from the nearest Storehouse that holds it.
 ##
 ## A roaming walker plans its whole round when it sets out: along the streets, at each
 ## crossing it takes a street it has not walked yet (a random one among them, from the
@@ -11,7 +13,8 @@ extends RefCounted
 ##
 ## A walker is a Dictionary: id, kind, home (building id), path, index, progress
 ## (see walker_motion.gd), serve_end (last path index it serves), served (last index served),
-## food (vendor: portions of rice), cargo (buyer: loads of `good`), target (buyer: Granary
+## food (vendor: portions of rice), cargo (buyer: loads of `good`), want (buyer: loads it
+## goes for), reserved (fetcher: loads announced at its workshop), target (buyer: storage
 ## id), state (buyer: "fetch" or "return").
 
 const Balance = preload("res://scripts/data/balance.gd")
@@ -24,8 +27,9 @@ const DIRS: Array[Vector2i] = [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vecto
 
 var walkers := {} # id -> walker
 var _next_id := 1
-## Service building id -> {"kind": roaming walker it sends, "next_at": tick of the next one,
-## "out": roaming walkers out, "buyer": buyer walker id or 0, "buyer_retry": tick to look again}
+## Service building or workshop id -> {"kind": roaming walker it sends ("workshop": none),
+## "next_at": tick of the next one, "out": roaming walkers out, "buyer": buyer walker id or 0,
+## "buyer_retry": tick to look again}
 var _homes := {}
 var _city: WeakRef
 var _near := {} # road tile -> ids of houses within WALKER_SERVICE_RANGE (cleared when a house comes or goes)
@@ -83,11 +87,12 @@ func on_building_added(instance: Dictionary) -> void:
 		_near.clear()
 	if Buildings.get_building(instance["type"]).get("on_road", false):
 		_turn_back_at(instance["origin"])
-	if roamer(instance["type"]) == "":
+	var kind := roamer(instance["type"])
+	if kind == "" and not Buildings.get_building(instance["type"]).has("workshop"):
 		return
 	var city = _city.get_ref()
-	_homes[instance["id"]] = {"kind": roamer(instance["type"]), "next_at": city.clock.tick, "out": 0,
-		"buyer": 0, "buyer_retry": 0}
+	_homes[instance["id"]] = {"kind": kind if kind != "" else "workshop", "next_at": city.clock.tick,
+		"out": 0, "buyer": 0, "buyer_retry": 0}
 
 
 func on_building_removed(instance: Dictionary) -> void:
@@ -142,8 +147,8 @@ func _dispatch() -> void:
 	for id: int in _homes:
 		var h: Dictionary = _homes[id]
 		var kind: String = h["kind"]
-		var roam: bool = now >= h["next_at"] and h["out"] < Balance.ROAMER_MAX_OUT
-		var buy: bool = kind == "vendor" and h["buyer"] == 0 and now >= h["buyer_retry"]
+		var roam: bool = kind != "workshop" and now >= h["next_at"] and h["out"] < Balance.ROAMER_MAX_OUT
+		var buy: bool = (kind == "vendor" or kind == "workshop") and h["buyer"] == 0 and now >= h["buyer_retry"]
 		if not roam and not buy:
 			continue # most buildings on most ticks
 		var eff: float = city.economy.state[id]["eff"]
@@ -181,27 +186,39 @@ func _dispatch() -> void:
 		_next_id += 1
 
 
-## A Market low on goods sends its Buyer to the nearest Granary that has them.
+## A Market low on goods sends its Buyer to the nearest Granary that has them; a workshop
+## out of an input sends its fetcher to the nearest Storehouse that has it.
 func _dispatch_buyer(instance: Dictionary, h: Dictionary) -> void:
 	var city = _city.get_ref()
 	var id: int = instance["id"]
 	if h["buyer"] != 0 or city.clock.tick < h["buyer_retry"]:
 		return
-	var m := market_data(instance["type"])
-	if city.economy.stock(id, m["good"]) > m["capacity"] - m["buyer_loads"]:
-		h["buyer_retry"] = city.clock.tick + Balance.BUYER_RETRY_TICKS # enough to sell for now
-		return
 	var start: Vector2i = city.carriers.access_road(instance)
-	var source: Dictionary = {} if start == NO_TILE else city.carriers.find_source(start, m["good"])
-	if source.is_empty():
-		h["buyer_retry"] = city.clock.tick + Balance.BUYER_RETRY_TICKS
+	var wanted: Array = [] # [good, loads] in the order to try
+	if h["kind"] == "workshop":
+		for good: String in city.economy.inputs(instance["type"]):
+			if city.economy.incoming(id, good) == 0:
+				wanted.append([good, Balance.WORKSHOP_INPUT_STORE])
+	else:
+		var m := market_data(instance["type"])
+		if city.economy.stock(id, m["good"]) <= m["capacity"] - m["buyer_loads"]:
+			wanted.append([m["good"], m["buyer_loads"]])
+	for order: Array in wanted:
+		var source: Dictionary = {} if start == NO_TILE else city.carriers.find_source(start, order[0])
+		if source.is_empty():
+			continue
+		var reserved: int = order[1] if h["kind"] == "workshop" else 0
+		if reserved > 0:
+			city.economy.reserve(id, order[0], reserved) # carriers do not bring it too
+		var w := {"id": _next_id, "kind": "buyer", "home": id, "path": source["path"], "index": 0,
+			"progress": 0.0, "serve_end": -1, "served": -1, "food": 0, "cargo": 0,
+			"target": source["id"], "state": "fetch", "good": order[0], "want": order[1],
+			"reserved": reserved}
+		walkers[_next_id] = w
+		h["buyer"] = _next_id
+		_next_id += 1
 		return
-	var w := {"id": _next_id, "kind": "buyer", "home": id, "path": source["path"], "index": 0,
-		"progress": 0.0, "serve_end": -1, "served": -1, "food": 0, "cargo": 0,
-		"target": source["id"], "state": "fetch", "good": m["good"]}
-	walkers[_next_id] = w
-	h["buyer"] = _next_id
-	_next_id += 1
+	h["buyer_retry"] = city.clock.tick + Balance.BUYER_RETRY_TICKS # enough for now, or nothing to fetch
 
 
 ## The round of a roaming walker: {"path", "serve_end"}, or {} when no street leads out.
@@ -295,9 +312,8 @@ func _houses_near(tile: Vector2i) -> Array[int]:
 func _arrive(w: Dictionary) -> void:
 	var city = _city.get_ref()
 	if w["kind"] == "buyer" and w["state"] == "fetch":
-		var m := market_data(city.buildings.get_instance(w["home"])["type"])
-		var good: String = m["good"]
-		var take := mini(m["buyer_loads"], city.economy.stock(w["target"], good))
+		var good: String = w["good"]
+		var take := mini(w["want"], city.economy.stock(w["target"], good))
 		if take > 0:
 			city.economy.add(w["target"], good, -take)
 		w["cargo"] = take
@@ -307,9 +323,11 @@ func _arrive(w: Dictionary) -> void:
 	var home: Dictionary = city.buildings.get_instance(w["home"])
 	if not home.is_empty():
 		var m := market_data(home["type"])
-		if w["kind"] == "buyer" and w["cargo"] > 0:
-			city.economy.add(w["home"], m["good"], w["cargo"])
-			w["cargo"] = 0
+		if w["kind"] == "buyer":
+			_unreserve(w)
+			if w["cargo"] > 0:
+				city.economy.add(w["home"], w["good"], w["cargo"])
+				w["cargo"] = 0
 		elif w["kind"] == "vendor":
 			@warning_ignore("integer_division")
 			var loads: int = w["food"] / Balance.FOOD_PORTIONS_PER_LOAD # unsold whole loads go back
@@ -375,7 +393,7 @@ func _fetch(w: Dictionary) -> void:
 	var home: Dictionary = city.buildings.get_instance(w["home"])
 	var source := {}
 	if not home.is_empty():
-		source = city.carriers.find_source(WalkerMotion.here(w), market_data(home["type"])["good"])
+		source = city.carriers.find_source(WalkerMotion.here(w), w["good"])
 	if source.is_empty():
 		w["target"] = 0
 		_go_home(w)
@@ -390,6 +408,7 @@ func _drop(w: Dictionary) -> void:
 	var city = _city.get_ref()
 	if not walkers.has(w["id"]):
 		return
+	_unreserve(w)
 	if w["kind"] == "buyer" and w["cargo"] > 0:
 		city.economy.lost[w["good"]] = city.economy.lost.get(w["good"], 0) + w["cargo"]
 	if _homes.has(w["home"]):
@@ -399,6 +418,14 @@ func _drop(w: Dictionary) -> void:
 		else:
 			h["out"] -= 1
 	walkers.erase(w["id"])
+
+
+## A fetcher's loads are no longer announced at its workshop (it is back, or gone).
+func _unreserve(w: Dictionary) -> void:
+	var city = _city.get_ref()
+	if w.get("reserved", 0) > 0 and city.economy.state.has(w["home"]):
+		city.economy.reserve(w["home"], w["good"], -w["reserved"])
+	w["reserved"] = 0
 
 
 # --- Saving (save_game.gd) ---

@@ -19,6 +19,7 @@ const ACTIONS := {
 	"overlay_water": [KEY_F1],
 	"overlay_food": [KEY_F2],
 	"overlay_seonangdang": [KEY_F3],
+	"goods_window": [KEY_F4],
 }
 
 ## Shortcuts pressed together with Ctrl.

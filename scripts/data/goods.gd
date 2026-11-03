@@ -1,14 +1,17 @@
 extends RefCounted
-## Goods (docs/koncept.md, "Roba i proizvodni lanci"). Phase 3 has the three raw goods;
-## the rest arrive with production (phase 6) and fermentation (phase 7).
+## Goods (docs/koncept.md, "Roba i proizvodni lanci"). Fermented goods arrive in phase 7.
 ##
-## kind: which storage takes it: "food" -> Granary, "material" -> Storehouse.
+## kind: which storage takes it: "food" -> Granary, "material" -> Storehouse,
+##   "ingredient" -> only the Jangdokdae (phase 7; until then it waits where it was made).
 ## color: cargo and pile color for placeholder models (Art Bible palette).
 
 const GOODS := {
 	"rice": {"name_key": "GOOD_RICE", "kind": "food", "color": "#d8c9a0"}, # hemp sack
 	"wood": {"name_key": "GOOD_WOOD", "kind": "material", "color": "#b07a4a"},
 	"clay": {"name_key": "GOOD_CLAY", "kind": "material", "color": "#a8643f"},
+	"soybeans": {"name_key": "GOOD_SOYBEANS", "kind": "ingredient", "color": "#c9a94a"},
+	"salt": {"name_key": "GOOD_SALT", "kind": "ingredient", "color": "#f2efe6"},
+	"onggi_jars": {"name_key": "GOOD_ONGGI_JARS", "kind": "material", "color": "#6b4a32"}, # dark glazed clay
 }
 
 

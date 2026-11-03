@@ -4,6 +4,7 @@ extends PanelContainer
 
 const Buildings = preload("res://scripts/data/buildings.gd")
 const BuildTool = preload("res://scripts/view/build_tool.gd")
+const Goods = preload("res://scripts/data/goods.gd")
 
 const PAPER := Color("#ece6d8")
 const PAPER_DARK := Color("#d3cbb8")
@@ -69,9 +70,23 @@ func _tooltip(b: Dictionary) -> String:
 		text = tr(b["name_key"]) + "\n" + tr("UI_BUILD_TOOLTIP_KOREAN_FORMAT") % b["korean"] + "\n" + text
 	else:
 		text = tr(b["name_key"]) + "\n" + text
+	var makes: String = b.get("produces", {}).get("good", "")
+	if makes != "":
+		var inputs: Array = b.get("workshop", {}).get("inputs", [])
+		if inputs.is_empty():
+			text += "\n" + tr("UI_BUILD_TOOLTIP_MAKES") % _good(makes)
+		else:
+			var names: Array[String] = []
+			for good: String in inputs:
+				names.append(_good(good))
+			text += "\n" + tr("UI_BUILD_TOOLTIP_WORKSHOP") % [" + ".join(names), _good(makes)]
 	if b.has("hint_key"):
 		text += "\n\n" + tr(b["hint_key"])
 	return text
+
+
+func _good(good: String) -> String:
+	return tr(Goods.GOODS[good]["name_key"])
 
 
 func _add_button(row: HBoxContainer, key: String, text: String, tooltip: String, action: Callable) -> void:

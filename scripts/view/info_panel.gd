@@ -137,13 +137,21 @@ func _refresh() -> void:
 	var status: Dictionary = city.status(instance)
 	_status.visible = status["key"] != ""
 	if _status.visible:
-		var text := tr(status["key"])
-		if not status["args"].is_empty():
-			text = text % status["args"]
-		_status.text = text
-		var trouble: bool = status["key"].begins_with("STATUS_NO_") or status["key"] == "WARN_NO_ROAD_ACCESS" \
-			or status["key"] == "STATUS_STORAGE_FULL"
+		_status.text = status_text(self, status)
+		var trouble: bool = status.get("stopped", false) or status["key"].begins_with("STATUS_NO_") \
+			or status["key"] == "WARN_NO_ROAD_ACCESS" or status["key"] == "STATUS_STORAGE_FULL"
 		_status.add_theme_color_override("font_color", ACCENT if trouble else INK)
+
+
+## A status sentence from {"key", "args"}; text arguments (good names) are text keys too.
+static func status_text(node: Node, status: Dictionary) -> String:
+	var text := node.tr(status["key"])
+	if status["args"].is_empty():
+		return text
+	var args := []
+	for a in status["args"]:
+		args.append(node.tr(a) if a is String else a)
+	return text % args
 
 
 func _label(font_size: int) -> Label:

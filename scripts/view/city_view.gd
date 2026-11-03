@@ -1,7 +1,8 @@
 extends Node3D
 ## Draws what stands in the city: buildings (one MultiMesh per kind, building_batch.gd),
-## goods in their yards (one MultiMesh per good), roads (one MultiMesh) and a warning
-## sign over buildings without road access.
+## goods in their yards (one MultiMesh per good), roads (one MultiMesh), a red "!" over
+## buildings without road access and a calm amber sign over producers that stand still,
+## with a small box in the color of the good they lack.
 ## Only reads the city and follows its signals.
 
 const Balance = preload("res://scripts/data/balance.gd")
@@ -15,6 +16,8 @@ const ROAD_COLOR := "#cbb994"
 const ROAD_HEIGHT := 0.12
 const WARNING_COLOR := "#b8473a"
 const FADED := 0.75 # building transparency while a service overlay is shown
+const STUCK_COLOR := "#c98a2b" # amber, quieter than the red "!"
+const STUCK_REFRESH := 0.5 # seconds between checks for stopped producers
 
 var city # scripts/sim/city.gd
 var batch: BuildingBatch
@@ -24,6 +27,8 @@ var _goods := {} # good -> {building id: Array[Transform3D]}, boxes in yards
 var _goods_layers := {} # good -> MultiMeshInstance3D
 var _goods_dirty := {} # goods whose boxes changed since the last frame
 var _faded := false
+var _stuck := {} # instance id -> [sign Node3D, good it is about]
+var _stuck_wait := 0.0
 
 
 func setup(city_ref) -> void:
@@ -174,8 +179,63 @@ func goods_boxes(good: String) -> int:
 	return n
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	flush()
+	_stuck_wait -= delta
+	if _stuck_wait <= 0.0:
+		_stuck_wait = STUCK_REFRESH
+		update_stuck()
+
+
+## Puts a sign over every producer that stands still and takes it off the others.
+func update_stuck() -> void:
+	var now := {}
+	for item: Dictionary in city.supply.stopped():
+		now[item["id"]] = item["status"]["good"]
+	for id: int in _stuck.keys():
+		if not now.has(id) or now[id] != _stuck[id][1]:
+			_stuck[id][0].queue_free()
+			_stuck.erase(id)
+	for id: int in now:
+		if not _stuck.has(id):
+			_stuck[id] = [_stuck_sign(city.buildings.get_instance(id), now[id]), now[id]]
+
+
+## Producers with a sign over them (for tests).
+func stuck_ids() -> Array:
+	return _stuck.keys()
+
+
+func _stuck_sign(instance: Dictionary, good: String) -> Node3D:
+	var root := Node3D.new()
+	root.name = "Stuck"
+	var top: float = Factory.height_range(instance["type"], instance["tier"])["max"]
+	root.position = Grid.footprint_center(instance["origin"], instance["size"]) + Vector3(0, top + 2.5, 0)
+	var mark := Label3D.new()
+	mark.text = "?"
+	mark.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	mark.no_depth_test = true
+	mark.font_size = 200
+	mark.pixel_size = 0.03
+	mark.outline_size = 40
+	mark.modulate = Color(STUCK_COLOR)
+	mark.outline_modulate = Color("#fdf8ec")
+	root.add_child(mark)
+	if good != "":
+		var box := MeshInstance3D.new()
+		var mesh := BoxMesh.new()
+		mesh.size = Vector3.ONE * 1.1
+		box.mesh = mesh
+		box.position = Vector3(0, -2.2, 0)
+		box.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		var m := StandardMaterial3D.new()
+		m.albedo_color = Color(Goods.GOODS[good]["color"])
+		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		m.no_depth_test = true
+		box.material_override = m
+		root.add_child(box)
+	add_child(root)
+	return root
 
 
 ## Sends changed goods to the graphics card (once per frame at most).
@@ -217,6 +277,9 @@ func _on_building_removed(instance: Dictionary) -> void:
 	if _warnings.has(id):
 		_warnings[id].queue_free()
 		_warnings.erase(id)
+	if _stuck.has(id):
+		_stuck[id][0].queue_free()
+		_stuck.erase(id)
 
 
 func _rebuild_roads() -> void:

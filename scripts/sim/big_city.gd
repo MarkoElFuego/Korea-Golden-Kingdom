@@ -1,8 +1,8 @@
 extends RefCounted
 ## The "big city" for performance checks (CLAUDE.md: 60 FPS with 3,000 residents and
 ## 400 walkers). A flat fertile valley with a street grid; every block holds Choga Houses
-## with their Well, Market, Seonangdang, Granary and Rice Paddies, so all walker kinds
-## are on the streets. Houses start settled and fed, so the test runs at full size at once.
+## with their Well, Market, Seonangdang, Granary and Rice Paddies, and a Storehouse with an
+## Onggi Kiln, so all walker kinds (and kiln fetchers) are on the streets. Houses start settled and fed, so the test runs at full size at once.
 ## Used by tests/test_performance.gd and scenes/big_city.tscn.
 
 const Balance = preload("res://scripts/data/balance.gd")
@@ -11,13 +11,13 @@ const Grid = preload("res://scripts/sim/grid.gd")
 const City = preload("res://scripts/sim/city.gd")
 const Houses = preload("res://scripts/sim/houses.gd")
 
-const WIDTH := 112
-const HEIGHT := 96
+const WIDTH := 128
+const HEIGHT := 112
 ## What stands in each 3-tile slot along a block, repeating.
 const PATTERN: Array[String] = [
 	"common_house", "common_house", "well", "common_house", "common_house", "market",
 	"common_house", "common_house", "seonangdang", "common_house", "common_house", "granary",
-	"common_house", "rice_paddy", "common_house", "rice_paddy",
+	"common_house", "rice_paddy", "common_house", "rice_paddy", "storehouse", "onggi_kiln",
 ]
 
 
@@ -47,6 +47,9 @@ static func build() -> City:
 					c.economy.add(id, "rice", 24)
 				"market":
 					c.economy.add(id, "rice", 12)
+				"storehouse":
+					c.economy.add(id, "clay", 16)
+					c.economy.add(id, "wood", 16)
 	c.labor.recompute(c.buildings.all(), c.houses, c.economy)
 	return c
 

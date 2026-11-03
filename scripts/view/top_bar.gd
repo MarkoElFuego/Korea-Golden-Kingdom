@@ -1,5 +1,6 @@
 extends PanelContainer
-## Top bar: date, advisor note, game speed, population, workers and treasury.
+## Top bar: date, advisor note, game speed, the Goods window button, population, workers
+## and treasury.
 ## Reads the city; speed buttons call the clock.
 ## Calm hanji paper and wood look (no glossy buttons).
 
@@ -10,6 +11,8 @@ const PAPER_DARK := Color("#d3cbb8")
 const WOOD := Color("#8a5c35")
 const INK := Color("#3a2e22")
 const ACCENT := Color("#b8473a") # dancheong red, only for the active speed
+
+signal goods_requested()
 
 var city # scripts/sim/city.gd
 var _date_label: Label
@@ -56,6 +59,11 @@ func _ready() -> void:
 	for s in Balance.SPEEDS:
 		_speed_buttons[s] = _speed_button(tr("UI_SPEED_FORMAT") % s, tr("UI_TIP_SPEED_FORMAT") % [s, s], s)
 		speeds.add_child(_speed_buttons[s])
+
+	var goods := _button(tr("UI_GOODS_TITLE"), tr("UI_GOODS_TIP"))
+	goods.custom_minimum_size.x = 96
+	goods.pressed.connect(func() -> void: goods_requested.emit())
+	row.add_child(goods)
 
 	var spacer2 := Control.new()
 	spacer2.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -121,10 +129,16 @@ func _label(tooltip: String) -> Label:
 
 
 func _speed_button(text: String, tooltip: String, value: int) -> Button:
+	var b := _button(text, tooltip)
+	b.toggle_mode = true
+	b.pressed.connect(_on_speed_pressed.bind(value))
+	return b
+
+
+func _button(text: String, tooltip: String) -> Button:
 	var b := Button.new()
 	b.text = text
 	b.tooltip_text = tooltip
-	b.toggle_mode = true
 	b.focus_mode = Control.FOCUS_NONE
 	b.custom_minimum_size = Vector2(72, 36)
 	b.add_theme_font_size_override("font_size", 20)
@@ -136,7 +150,6 @@ func _speed_button(text: String, tooltip: String, value: int) -> Button:
 	b.add_theme_stylebox_override("hover", _button_style(PAPER_DARK, WOOD))
 	b.add_theme_stylebox_override("pressed", _button_style(ACCENT, WOOD))
 	b.add_theme_stylebox_override("hover_pressed", _button_style(ACCENT, WOOD))
-	b.pressed.connect(_on_speed_pressed.bind(value))
 	return b
 
 
