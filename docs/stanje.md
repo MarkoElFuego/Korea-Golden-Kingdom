@@ -25,12 +25,18 @@ Gotove faze 1–8 (fermentacija u tri dela), brže crtanje zgrada, pregledniji p
 | 8 | Gi mapa (pungsu): Gi iz planine, vode i grebena, uticaj zgrada, Myeongdang, overlay F7, Tiled House traži Gi 30+ | 98f9aeb |
 | 9 | Dokkaebi: upozorenje (plavi plamen u brdu), noć, krađa iz skladišta sa niskim Gi, Guardian Posts ih vraćaju, ponuda na Village Shrine, kolona Stolen | b1e8334 |
 | 10 | MVP scenario: mapa 128 × 128, 9 ciljeva sa savetnikom, zgrade se otključavaju, zakazana prva dokkaebi noć, pobeda, početni ekran | 542ea7c |
-| 10b | Savetnik pokazuje: zlatni sjaj dugmadi, strelica i obris na mapi, „Show me“ | (commit) |
+| 10b | Savetnik pokazuje: zlatni sjaj dugmadi, strelica i obris na mapi, „Show me“ | 38f5ae6 |
+| 10c | Tutorijal vodi za ruku: plan prvog grada na mapi (zlatni put, placevi, bunar), put do zgrade odsečene od grada („Needs a road“), traka „Next step“, jači sjaj dugmadi i strelica ▼ | (commit) |
+| 10d | Savetnik gleda grad: radnici, broj kuća za cilj, voda, pijaca, gladne kuće (Granary daleko / premalo polja), roba, Silver; prodavac koji luta → Guardian Post; put 30 polja; hrana traje duže | (commit) |
 
 ## Sledeće: Faza 11, art pipeline
 
 - Vlasnikovi modeli (`art/.../<id>.glb`) umesto privremenih, provera modela (razmera, pivot,
   markeri, budžeti iz `docs/art-bible.md`).
+- Otvoreno (robot koji sluša savetnika, Faza 10d): grad stiže do cilja 6 za ~190 dana, pa staje na
+  Soybean Paste (STATUS_JANGDOKDAE_NO_ROOM, so i soja daleko). Doseljenici dolaze sporo (6 ljudi
+  na 2 dana), pa radnika stalno malo fali. Nosač nosi 1 tovar brzinom 1,5 polja na dan: daleka
+  polja rađaju brže nego što se nose. Vlasnik odlučuje o brojevima.
 - Otvoreno iz Faze 10: u demo gradu je so daleko od Fermentation Yard-a (oko 40 polja), pa je
   pasta spora i kuće nivoa 3 se teško drže. Vlasnik odlučuje: drugačiji raspored ili pravilo.
 

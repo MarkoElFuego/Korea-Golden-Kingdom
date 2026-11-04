@@ -27,6 +27,7 @@ const HouseSigns = preload("res://scripts/view/house_signs.gd")
 const SaveGame = preload("res://scripts/sim/save_game.gd")
 const GoalsPanel = preload("res://scripts/view/goals_panel.gd")
 const GuideView = preload("res://scripts/view/guide_view.gd")
+const StepBar = preload("res://scripts/view/step_bar.gd")
 
 const OVERLAY_KEYS := {"water": "F1", "food": "F2", "seonangdang": "F3", "jang": "F5", "jars": "F6", "gi": "F7"}
 const NOTICE_SECONDS := 3.0
@@ -157,6 +158,10 @@ func _ready() -> void:
 	goals.name = "Goals"
 	ui_root.add_child(goals)
 	goals.setup(city)
+	var step_bar := StepBar.new()
+	step_bar.name = "StepBar"
+	ui_root.add_child(step_bar)
+	step_bar.setup(city, build_tool)
 	goals.show_me.connect(func() -> void:
 		if guide.target() != Vector3.INF:
 			camera_rig.focus_on(guide.target()))

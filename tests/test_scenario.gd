@@ -186,7 +186,7 @@ func test_the_first_goal_points_to_the_entrance() -> void:
 	var g = c.objectives.guide
 	check_eq(g.todo(), ["road"] as Array[String], "the Road button glows")
 	check_eq(g.spot()["origin"], c.entrance, "the arrow points at the valley entrance")
-	c.build_road(Vector2i(2, 10), Vector2i(20, 10))
+	c.build_road(Vector2i(2, 10), Vector2i(35, 10))
 	check(g.todo().is_empty(), "enough road: nothing glows")
 	check(g.spot().is_empty(), "and no arrow")
 
@@ -256,3 +256,318 @@ func test_guardian_post_spot_near_the_storage() -> void:
 func test_free_play_has_no_guide() -> void:
 	var c := City.new()
 	check(c.objectives == null, "no scenario, no glow, no arrow")
+
+
+# --- The advisor's plan of the first town (phase 10c) ---
+
+func _lay(c: City, path: Array[Vector2i]) -> void:
+	for i in path.size() - 1:
+		c.build_road(path[i], path[i + 1])
+
+
+func test_the_first_street_is_planned() -> void:
+	var c := _valley()
+	var g = c.objectives.guide
+	var s: Dictionary = g.step()
+	check_eq(s["kind"], "road", "the first step is the street")
+	var path: Array[Vector2i] = s["path"]
+	check_eq(path[0], c.entrance, "it starts at the valley entrance")
+	check_eq(g.roads().size(), 30, "thirty gold road tiles, deep into the valley")
+	var straight := true
+	for t in path:
+		straight = straight and t.y == c.entrance.y
+	check(straight, "straight into the valley: one drag")
+	c.build_road(path[0], path[path.size() - 1])
+	check(g.roads().is_empty(), "built: the gold path is gone")
+	_days(c, 1)
+	check_eq(c.objectives.index, _goal("homes"), "and the goal is done")
+
+
+func test_the_homes_are_planned_all_at_once() -> void:
+	var c := _valley()
+	c.build_road(c.entrance, c.entrance + Vector2i(30, 0))
+	_days(c, 1)
+	var g = c.objectives.guide
+	var houses := 0
+	var wells := 0
+	var tiles := {}
+	var apart := true
+	for m: Dictionary in g.ghosts():
+		houses += 1 if m["type"] == "common_house" else 0
+		wells += 1 if m["type"] == "well" else 0
+		for dy in m["size"].y:
+			for dx in m["size"].x:
+				var t: Vector2i = m["origin"] + Vector2i(dx, dy)
+				apart = apart and not tiles.has(t)
+				tiles[t] = true
+		if m["type"] == "common_house":
+			check(g.touches_town(m["origin"], m["size"]), "a lot beside the street")
+	check_eq(houses, 6, "six house lots")
+	check_eq(wells, 1, "and a well")
+	check(apart, "the marks do not overlap")
+	check_eq(g.step()["kind"], "build", "next: build on a mark")
+	for m: Dictionary in g.ghosts().duplicate():
+		check_eq(c.place_building(m["type"], m["origin"]), "", "%s fits its mark" % m["type"])
+	check(g.ghosts().is_empty(), "all built: no marks left")
+	check_eq(g.step()["kind"], "wait", "then wait for settlers")
+
+
+func test_a_cut_off_paddy_gets_a_road() -> void:
+	var c := _land()
+	c.build_road(c.entrance, Vector2i(38, 10))
+	c.objectives._begin(_goal("rice"))
+	c.objectives.guide.mark_dirty()
+	var g = c.objectives.guide
+	check_eq(c.place_building("rice_paddy", Vector2i(24, 16)), "", "a paddy far from the road")
+	var s: Dictionary = g.step()
+	check_eq(s["kind"], "connect", "the next step: connect it")
+	check_eq(s["building"], "rice_paddy", "the paddy")
+	check_eq(g.buttons()[0], "road", "the Road button glows first")
+	var path: Array[Vector2i] = s["path"]
+	check(g.town().has(path[0]), "the path starts on a town road")
+	check(Coverage._edge_neighbors(Vector2i(24, 16), Vector2i(3, 3)).has(path[path.size() - 1]), "and ends beside the paddy")
+	check_eq(g.spot()["origin"], path[0], "the arrow shows where to start dragging")
+	_lay(c, path)
+	check(g.touches_town(Vector2i(24, 16), Vector2i(3, 3)), "now the paddy touches the town's roads")
+	check(g.step()["kind"] != "connect", "and the advisor moves on")
+
+
+func test_planned_fields_come_with_their_road() -> void:
+	var c := _land()
+	c.build_road(c.entrance, Vector2i(38, 10))
+	c.objectives._begin(_goal("rice"))
+	c.objectives.guide.mark_dirty()
+	var g = c.objectives.guide
+	var paddies := 0
+	for m: Dictionary in g.ghosts():
+		if m["type"] != "rice_paddy":
+			continue
+		paddies += 1
+		check_eq(c.grid.get_terrain(m["origin"]), Terrain.FERTILE_PLAIN, "on the fertile plain")
+		var reached := g.touches_town(m["origin"], m["size"])
+		for t in Coverage._edge_neighbors(m["origin"], m["size"]):
+			reached = reached or g.roads().has(t)
+		check(reached, "a town road or a planned one reaches it")
+	check_eq(paddies, 2, "two paddies planned")
+
+
+func test_the_next_step_follows_the_player() -> void:
+	load("res://scripts/view/text_loader.gd").install() # the sentences need their %s
+	var StepBar = load("res://scripts/view/step_bar.gd")
+	var BuildTool = load("res://scripts/view/build_tool.gd")
+	var bar = StepBar.new()
+	var c := _valley()
+	var o = c.objectives
+	var keys := []
+	keys.append(bar.text_for(o, BuildTool.Mode.NONE, ""))
+	keys.append(bar.text_for(o, BuildTool.Mode.ROAD, ""))
+	c.build_road(c.entrance, c.entrance + Vector2i(30, 0))
+	_days(c, 1)
+	keys.append(bar.text_for(o, BuildTool.Mode.NONE, ""))
+	keys.append(bar.text_for(o, BuildTool.Mode.BUILD, "common_house"))
+	for i in keys.size():
+		check(keys[i] != "", "step %d has a sentence" % i)
+		for j in i:
+			check(keys[i] != keys[j], "steps %d and %d say different things" % [j, i])
+	bar.free()
+
+
+# --- The advisor looks at the town (phase 10d) ---
+
+func _rice(c: City) -> void:
+	c.build_road(c.entrance, Vector2i(38, 10))
+	c.objectives._begin(_goal("rice"))
+	c.objectives.guide.mark_dirty()
+
+
+func _settle(c: City, origin: Vector2i) -> void:
+	c.place_building("common_house", origin)
+	c.building_at(origin)["tier"] = 1
+	c.houses.clear_cache()
+	c.objectives.guide.mark_dirty()
+
+
+func test_food_lasts_longer() -> void:
+	check_eq(Balance.FOOD_PORTIONS_PER_LOAD, 460, "a load feeds 40 people for 11-12 days (30 % less eating)")
+
+
+func test_a_market_without_workers_asks_for_houses() -> void:
+	var c := _valley()
+	_rice(c)
+	c.labor.extra_workers = 8
+	c.place_building("granary", Vector2i(10, 11))
+	c.place_building("market", Vector2i(14, 11))
+	var g = c.objectives.guide
+	var s: Dictionary = g.step()
+	check_eq(s["kind"], "workers", "the advisor sees the Market idle")
+	check_eq(s["building"], "market", "it names the Market")
+	check_eq(s["have"], 8, "the town has 8 workers")
+	check_eq(s["need"], 14, "the buildings need 14")
+	check_eq(s["houses"], 3, "three more Choga Huts bring them (2.4 workers each)")
+	check_eq(g.buttons()[0], "common_house", "the Common House button glows first")
+	check_eq(g.spot()["type"], "common_house", "the arrow shows a house lot")
+	c.labor.extra_workers = 100
+	c._recompute_labor()
+	g.mark_dirty()
+	check(g.step()["kind"] != "workers", "enough workers: the advisor moves on")
+
+
+func test_settlers_on_the_way_are_counted() -> void:
+	var c := _valley()
+	_rice(c)
+	for x in [6, 9, 12, 15, 18, 21]:
+		c.place_building("common_house", Vector2i(x, 11)) # vacant lots: settlers are coming
+	c.place_building("granary", Vector2i(24, 11))
+	var w: Dictionary = c.objectives.guide.workers_problem()
+	check_eq(w["building"], "granary", "the Granary waits for workers")
+	check_eq(w["houses"], 0, "but six lots bring 14 workers: no more houses needed, just wait")
+	check_eq(c.objectives.guide.step()["kind"], "build", "meanwhile the advisor shows what else to build")
+
+
+func test_the_goal_says_how_many_more_houses() -> void:
+	var c := _land()
+	_rice(c)
+	c.labor.extra_workers = 1000
+	for x in [6, 9, 12, 15, 18, 21]:
+		_settle(c, Vector2i(x, 8))
+	for x in [7, 13, 19]:
+		c.place_building("well", Vector2i(x, 7))
+	c.build_road(Vector2i(20, 10), Vector2i(20, 12))
+	c.build_road(Vector2i(20, 12), Vector2i(26, 12))
+	for spot in [["rice_paddy", Vector2i(20, 13)], ["rice_paddy", Vector2i(24, 13)], ["granary", Vector2i(26, 7)], ["market", Vector2i(14, 11)]]:
+		check_eq(c.place_building(spot[0], spot[1]), "", "%s built" % spot[0])
+	for id: int in c.houses.state:
+		c.houses.state[id]["food"] = 100 # fed: the advisor looks only at the houses
+	var g = c.objectives.guide
+	g.mark_dirty()
+	var s: Dictionary = g.step()
+	check_eq(s["kind"], "build", "next: houses (%s)" % s)
+	check_eq(s.get("type"), "common_house", "a house")
+	check_eq(s.get("goal_houses"), 10, "the goal needs 10 houses")
+	check_eq(s.get("have"), 6, "the town has 6")
+	check_eq(s.get("more"), 4, "build 4 more")
+	var lots := 0
+	for m: Dictionary in g.ghosts():
+		lots += 1 if m["type"] == "common_house" else 0
+	check_eq(lots, 4, "four gold lots")
+
+
+func test_houses_without_water_get_a_well() -> void:
+	var c := _valley()
+	c.build_road(c.entrance, Vector2i(38, 10))
+	_days(c, 1)
+	_settle(c, Vector2i(20, 11))
+	_settle(c, Vector2i(22, 11))
+	var s: Dictionary = c.objectives.guide.step()
+	check_eq(s["kind"], "water", "the advisor sees houses without water")
+	check_eq(s["houses"], 2, "two of them")
+	check_eq(c.place_building("well", s["origin"]), "", "the Well fits its mark")
+	c.houses.clear_cache()
+	c.objectives.guide.mark_dirty()
+	check(c.houses.is_met(c.building_at(Vector2i(20, 11)), "water"), "and it waters them")
+	check(c.objectives.guide.step()["kind"] != "water", "the advisor moves on")
+
+
+func test_houses_far_from_the_market_get_another() -> void:
+	var c := _valley()
+	_rice(c)
+	c.labor.extra_workers = 1000
+	c.place_building("market", Vector2i(4, 11))
+	_settle(c, Vector2i(34, 11))
+	c.place_building("well", Vector2i(34, 9))
+	var s: Dictionary = c.objectives.guide.step()
+	check_eq(s["kind"], "food", "a house no vendor reaches")
+	check_eq(s["houses"], 1, "one house")
+	check(absi(s["origin"].x - 34) <= 10, "another Market near it (%s)" % s["origin"])
+
+
+func test_not_enough_silver_is_said() -> void:
+	var c := _valley()
+	c.build_road(c.entrance, Vector2i(38, 10))
+	_days(c, 1)
+	c.treasury = 0
+	c.objectives.guide.mark_dirty()
+	check(c.objectives.guide.step().get("silver", false), "the next house costs more than the treasury")
+
+
+## Six houses the Market reaches, all hungry, two connected paddies and a Granary up the street.
+func _hungry_town() -> City:
+	var c := _land()
+	_rice(c)
+	c.labor.extra_workers = 1000
+	for x in [6, 9, 12, 15, 18, 21]:
+		_settle(c, Vector2i(x, 8))
+	for x in [7, 13, 19]:
+		c.place_building("well", Vector2i(x, 7))
+	c.build_road(Vector2i(20, 10), Vector2i(20, 12))
+	c.build_road(Vector2i(20, 12), Vector2i(26, 12))
+	c.place_building("rice_paddy", Vector2i(20, 13))
+	c.place_building("rice_paddy", Vector2i(24, 13))
+	c.place_building("granary", Vector2i(34, 7))
+	c.place_building("market", Vector2i(14, 11))
+	c.objectives.guide.mark_dirty()
+	return c
+
+
+func test_hungry_houses_ask_for_more_fields() -> void:
+	var c := _hungry_town()
+	var g = c.objectives.guide
+	check(g.rice_problem().is_empty(), "the fields have not grown anything yet: no word about more fields")
+	c.economy.produced["rice"] = 10 # they have grown, the rice is eaten, houses still hungry
+	g.mark_dirty()
+	var s: Dictionary = c.objectives.guide.step()
+	check_eq(s["kind"], "rice_more", "hungry, nothing waits at the fields: too few fields (%s)" % s)
+	check_eq(s.get("hungry"), 6, "six hungry houses")
+	check_eq(s.get("type"), "rice_paddy", "the Rice Paddy button and a gold mark")
+	check(c.objectives.guide.buttons().has("rice_paddy"), "the Rice Paddy button glows")
+
+
+func test_rice_waiting_far_from_the_granary_asks_for_a_closer_one() -> void:
+	var c := _hungry_town()
+	c.economy.add(c.building_at(Vector2i(20, 13))["id"], "rice", 1)
+	c.objectives.guide.mark_dirty()
+	var s: Dictionary = c.objectives.guide.step()
+	check_eq(s["kind"], "rice_far", "rice waits at the field: the Granary is far (%s)" % s)
+	check(s.get("trip_days", 0) > 12, "the round trip is longer than the rice takes to grow")
+	check_eq(s.get("type"), "granary", "a Granary")
+	check(absi(s["origin"].x - 22) + absi(s["origin"].y - 13) < absi(34 - 22) + absi(7 - 13), "closer to the fields than the old one (%s)" % s["origin"])
+
+
+func test_a_wandering_vendor_gets_a_guardian_post() -> void:
+	var c := _valley()
+	_rice(c)
+	c.labor.extra_workers = 1000
+	c.objectives.unlocked["jangseung"] = true
+	for x in [6, 9]:
+		_settle(c, Vector2i(x, 11))
+		c.houses.state[c.building_at(Vector2i(x, 11))["id"]]["food"] = 100
+	c.place_building("well", Vector2i(8, 13))
+	c.place_building("market", Vector2i(12, 11))
+	var g = c.objectives.guide
+	g.mark_dirty()
+	var s: Dictionary = g.step()
+	check_eq(s["kind"], "stray", "the vendor walks the empty road east (%s)" % s)
+	check(s.get("tiles", 0) >= 6, "many tiles with nobody")
+	check_eq(s.get("type"), "jangseung", "Guardian Posts")
+	var before: Dictionary = Coverage.walker_roads(c.grid, Vector2i(12, 11), Vector2i(3, 3))
+	check_eq(c.place_building("jangseung", s["origin"]), "", "the post fits its mark")
+	var after: Dictionary = Coverage.walker_roads(c.grid, Vector2i(12, 11), Vector2i(3, 3))
+	check(after.size() < before.size(), "the vendor's area is shorter")
+	for t: Vector2i in before:
+		if not c.services._houses_near(t).is_empty():
+			check(after.has(t) or t == s["origin"], "every street with houses is still walked (%s)" % t)
+	g.mark_dirty()
+	check(g.step()["kind"] != "stray", "the advisor moves on")
+
+
+func test_no_new_markets_while_workers_are_short() -> void:
+	var c := _hungry_town()
+	c.economy.produced["rice"] = 10
+	c.labor.extra_workers = 0
+	c._recompute_labor()
+	var g = c.objectives.guide
+	g.mark_dirty()
+	var s: Dictionary = g.step()
+	check(s["kind"] not in ["rice_more", "food"], "no more fields or Markets while workers are short (%s)" % s)
+	for m: Dictionary in g.ghosts():
+		check(m["type"] != "market" and m["type"] != "rice_paddy", "no gold mark for a building nobody could work in")

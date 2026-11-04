@@ -23,8 +23,8 @@ const EVENT_DELAY_DAYS := 5 # then the warning comes, and the night DOKKAEBI_WAR
 const STUCK_DAYS := 20 # the advisor offers help after this many days on one goal
 
 const GOALS: Array[Dictionary] = [
-	{"id": "road", "unlocks": [], "goods": [], "build": [{"id": "road", "count": 10}],
-		"conditions": [{"type": "road_tiles", "count": 10}]},
+	{"id": "road", "unlocks": [], "goods": [], "build": [{"id": "road", "count": 30}], # deep into the valley
+		"conditions": [{"type": "road_tiles", "count": 30}]},
 	{"id": "homes", "unlocks": [], "goods": [], "build": [{"id": "common_house", "count": 6}, {"id": "well", "count": 1}],
 		"conditions": [{"type": "buildings", "building": "common_house", "count": 6},
 			{"type": "buildings", "building": "well", "count": 1},

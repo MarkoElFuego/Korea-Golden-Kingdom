@@ -547,6 +547,33 @@ na mapi 128 × 128. Ciljevi idu jedan po jedan (podaci u `scripts/data/scenario.
   here“. Mesto bira igra po pravilima gradnje (plodno polje, kamenito brdo, obala, ivica šume,
   uz put blizu grada; Fermentation Yard između soje i soli; Guardian Posts kod skladišta).
   Dugme „Show me“ u panelu pomera kameru do strelice. Igrač ne mora da gradi baš tu.
+- Tutorijal vodi za ruku (odluka vlasnika posle Faze 10b: igračima danas treba pokazati, ne
+  pričati). Savetnik na mapi crta plan celog cilja odjednom: zlatni put od ulaza u dolinu
+  (jedno prevlačenje), zlatne placeve za kuće sa obe strane puta, bunar među njima, polja na
+  pravoj zemlji i zlatni put do svakog polja koje ne dodiruje put grada. Ako je neka zgrada
+  odsečena od grada (nema put spojen sa ulazom), iznad nje piše „Needs a road“ i to je prvi
+  korak, za svaki cilj. Iznad menija traka „Next step“ kaže jednu kratku rečenicu: šta sada
+  kliknuti ili gde prevući, i menja se čim igrač to uradi. Nad dugmetom sledećeg koraka
+  poskakuje zlatna strelica ▼, a dugmad cilja jače pulsiraju zlatom.
+- Savetnik gleda grad svakog dana (Faza 10d, pravila, ne jezički model: predvidivo, bez
+  interneta, sa testovima). Najhitniji problem postaje „Next step“, crvenim naslovom „The
+  advisor sees a problem“, sa zlatnim oznakama. Redosled: zgrada bez puta; zgrada bez radnika
+  (koliko radnika ima, koliko treba, koliko kuća još; jedna Choga Hut daje 2,4 radnika); kuće
+  bez vode (Well); kuće van domašaja pijace (još jedna Market); gladne kuće (pirinač čeka kod
+  polja jer je Granary daleko: Granary bliže poljima; ili premalo polja: koliko još); cilj traži
+  više kuća nego što grad ima („This goal needs 10 houses. You have 6: build 4 more“); roba
+  zapela; malo Silvera. „Doseljenici dolaze“ se kaže tek kad nema ničeg drugog da se gradi.
+  Dok fali radnika, savetnik ne predlaže nove zgrade sa radnicima (pijacu, polja), da grad ne
+  uđe u spiralu praznih zgrada. „Premalo polja“ kaže tek kad su polja već rodila, a pirinča
+  nema ni u Granary-ju ni na pijaci.
+- Guardian Posts se objašnjavaju kroz posao (odluka vlasnika): kad prodavac sa pijace ili
+  čuvar svetilišta obilazi 6+ polja puta gde niko ne živi (prema poljima, glini...), savetnik
+  kaže koliko i pokaže zlatno mesto za stub tamo gde kuće prestaju. Nosači i doseljenici
+  prolaze pored stuba. Opis zgrade počinje kratkim lore-om (rezbareni drveni čuvari puta).
+- Prvi put ide 30 polja u dolinu; grad počinje na kraju puta, a kraj ulice ostaje slobodan
+  da put može dalje (do polja). Granary se planira između polja i kuća, Pottery Kiln između
+  gline i šume, Storehouse između peći i kuća: nosači pešače malo.
+- Hrana: jedan tovar pirinča = 460 porcija (bilo 320), ljudi jedu 30% manje (odluka vlasnika).
 - Prve dokkaebije šalje scenario: 5 dana posle početka cilja 8, na skladište sa najnižim Gi.
   Do tada nasumični dokkaebi ne dolaze.
 - Posle cilja 9: prozor pobede sa brojevima grada, pa slobodna igra.

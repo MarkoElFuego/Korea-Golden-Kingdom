@@ -74,7 +74,7 @@ UI_DEMOLISH_TOOLTIP,"Demolish (X). Click or drag over an area. Silver is not ret
 UI_DEMOLISH_PREVIEW_FORMAT,"Demolish: %d"
 UI_TOOL_HINT,"R rotate · Esc or right click cancel"
 REASON_NEEDS_ROAD,Must stand on a road
-HINT_JANGSEUNG,"Stands on a road. Ends the area of Markets and shrines: their vendors and keepers turn back here. Carriers, buyers and settlers pass. Dokkaebi turn back here too, and storages near it draw them less."
+HINT_JANGSEUNG,"Carved wooden guardians that have watched village roads for centuries. Stands on a road. Ends the area of Markets and shrines: their vendors and keepers turn back here. Carriers, buyers and settlers pass. Dokkaebi turn back here too, and storages near it draw them less."
 GOOD_RICE,Rice
 GOOD_WOOD,Wood
 GOOD_CLAY,Clay
@@ -242,7 +242,7 @@ COND_HOUSES_WITH,Houses with %s
 COND_PRODUCED,%s made
 COND_DOKKAEBI_NIGHT,The dokkaebi night has passed
 GOAL_ROAD_TITLE,A road into the valley
-GOAL_ROAD_ADVICE,"Welcome to the valley, governor. Settlers will come from the west, through the pass in the forest, but only along a road. Lay a road from the valley entrance into the open land: click Road, then drag.
+GOAL_ROAD_ADVICE,"Welcome to the valley, governor. Settlers will come from the west, through the pass in the forest, but only along a road. Lay a road from the valley entrance deep into the open land, 30 tiles, and build the town there: click Road, then drag along the gold path.
 
 Q and E turn the view, the mouse wheel zooms, WASD moves."
 GOAL_HOMES_TITLE,First homes
@@ -278,6 +278,38 @@ GOAL_BREATHES_ADVICE,"You know everything Seorabeol needs. Now let it grow: 300 
 
 When something is short, the Goods window and the building windows say where and why."
 UI_GUIDE_HERE,%s here
-UI_GUIDE_ROAD,Start the road here
+UI_GUIDE_ROAD,Drag the road from here
 UI_GOAL_SHOW_ME,Show me
 UI_GOAL_SHOW_ME_TIP,Move the view to the advisor's arrow: a good spot for the next building.
+UI_GUIDE_CONNECT,Road to the %s from here
+UI_GUIDE_NEEDS_ROAD,Needs a road
+UI_STEP_NEXT,Next step
+STEP_ROAD_CLICK,Click Road in the menu below
+STEP_ROAD_DRAG,Drag the road from the arrow to the end of the gold path
+STEP_CONNECT_CLICK,The %s needs a road to the town. Click Road in the menu below
+STEP_CONNECT_DRAG,Drag a road from the arrow along the gold path to the %s
+STEP_BUILD_CLICK,Click %s in the menu below
+STEP_BUILD_PLACE,Place the %s on a gold mark
+STEP_BUILD_PLACE_ANY,Place the %s: the green outline shows where it fits
+GOAL_ROAD_STEP,Lay a road 30 tiles into the valley
+GOAL_HOMES_STEP,Settlers are coming along the road. Wait for 30 residents
+GOAL_RICE_STEP,Carriers bring rice to the Granary and the Market sells it. Wait for 10 fed houses
+GOAL_SHRINE_STEP,The shrine keeper walks the streets. Wait for 10 houses to grow
+GOAL_CLAY_STEP,Wait for the first Clay Jars from the kiln
+GOAL_JANG_STEP,The paste ripens in its jars. Wait for 5 houses with Soybean Paste
+GOAL_GI_STEP,Houses grow best where the Gi is high. Open the Gi map to see it
+GOAL_DOKKAEBI_STEP,Watch for blue fires in the hills at night
+GOAL_BREATHES_STEP,"Let the city grow: 300 people and 10 Tiled Houses"
+STEP_WORKERS_HOUSES,"The %s has too few workers: the town has %d, the buildings need %d. Build %d more houses"
+STEP_WORKERS_WAIT,The %s is waiting for workers. Settlers are on their way to the new houses
+STEP_GOAL_HOUSES,"This goal needs %d houses. You have %d: build %d more"
+STEP_WATER,"%d houses have no water. Build a Well on the gold mark"
+STEP_FOOD,"%d houses are too far from the Market. Build another Market on the gold mark"
+STEP_GOODS,"%s"
+STEP_SILVER,Not enough Silver for the %s. Taxes come at the end of every season
+UI_STEP_PROBLEM,The advisor sees a problem
+STEP_RICE_FAR,"%d houses are hungry: rice waits at the fields, the carrier walks %d days to the Granary and back. Build a Granary near the fields"
+STEP_RICE_MORE,"%d houses are hungry: the fields cannot feed everyone. Build %d more Rice Paddies"
+STEP_STRAY_MARKET,"The Market vendor wanders %d road tiles where nobody lives. Click Guardian Posts: a post on the gold mark turns the vendor back to the houses"
+STEP_STRAY_SHRINE,"The shrine keeper wanders %d road tiles where nobody lives. Click Guardian Posts: a post on the gold mark turns the keeper back to the houses"
+STEP_STRAY_PLACE,"Place the Guardian Posts on the gold mark, where the houses end. Carriers and settlers still pass"
