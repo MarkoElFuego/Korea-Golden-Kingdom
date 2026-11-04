@@ -25,6 +25,7 @@ Gotove faze 1–8 (fermentacija u tri dela), brže crtanje zgrada, pregledniji p
 | 8 | Gi mapa (pungsu): Gi iz planine, vode i grebena, uticaj zgrada, Myeongdang, overlay F7, Tiled House traži Gi 30+ | 98f9aeb |
 | 9 | Dokkaebi: upozorenje (plavi plamen u brdu), noć, krađa iz skladišta sa niskim Gi, Guardian Posts ih vraćaju, ponuda na Village Shrine, kolona Stolen | b1e8334 |
 | 10 | MVP scenario: mapa 128 × 128, 9 ciljeva sa savetnikom, zgrade se otključavaju, zakazana prva dokkaebi noć, pobeda, početni ekran | 542ea7c |
+| 10b | Savetnik pokazuje: zlatni sjaj dugmadi, strelica i obris na mapi, „Show me“ | (commit) |
 
 ## Sledeće: Faza 11, art pipeline
 

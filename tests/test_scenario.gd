@@ -10,6 +10,7 @@ const SaveGame = preload("res://scripts/sim/save_game.gd")
 const Scenario = preload("res://scripts/data/scenario.gd")
 const Objectives = preload("res://scripts/sim/objectives.gd")
 const DemoTown = preload("res://scripts/sim/demo_town.gd")
+const Coverage = preload("res://scripts/sim/coverage.gd")
 
 
 ## Open grass with a forest on the west edge; the valley entrance at (2, 10).
@@ -151,3 +152,107 @@ func test_demo_town_plays_the_first_goals() -> void:
 	_days(c, 100)
 	check(c.objectives.index >= _goal("jang"), "road, homes, rice, shrine and clay done (at goal %d)" % c.objectives.index)
 	check(c.is_unlocked("jangdokdae"), "Fermentation Yard open")
+
+
+# --- The advisor's pointing finger (menu glow, arrow on the map) ---
+
+## A valley with every kind of land: fertile plain, rocky hill, forest and shore.
+func _land() -> City:
+	var c := _valley()
+	for y in range(13, 20):
+		for x in range(20, 30):
+			c.grid.set_terrain(Vector2i(x, y), Terrain.FERTILE_PLAIN)
+	for y in range(3, 6):
+		for x in range(20, 24):
+			c.grid.set_terrain(Vector2i(x, y), Terrain.ROCKY_HILL)
+	for y in range(18, 24):
+		for x in range(34, 40):
+			c.grid.set_terrain(Vector2i(x, y), Terrain.SHORE)
+	c.gi.mark_dirty()
+	return c
+
+
+func _check_spot(c: City, type: String) -> void:
+	var s: Dictionary = c.objectives.guide.find_spot(type)
+	check(not s.is_empty(), "%s: a spot is found" % type)
+	if s.is_empty():
+		return
+	var reason := c.check_building(type, s["origin"])
+	check(reason == "" or reason == "REASON_NOT_ENOUGH_SILVER", "%s: it can stand there (%s)" % [type, reason])
+
+
+func test_the_first_goal_points_to_the_entrance() -> void:
+	var c := _valley()
+	var g = c.objectives.guide
+	check_eq(g.todo(), ["road"] as Array[String], "the Road button glows")
+	check_eq(g.spot()["origin"], c.entrance, "the arrow points at the valley entrance")
+	c.build_road(Vector2i(2, 10), Vector2i(20, 10))
+	check(g.todo().is_empty(), "enough road: nothing glows")
+	check(g.spot().is_empty(), "and no arrow")
+
+
+func test_homes_glow_until_built_and_spots_are_buildable() -> void:
+	var c := _valley()
+	c.build_road(Vector2i(2, 10), Vector2i(38, 10))
+	_days(c, 1)
+	var g = c.objectives.guide
+	check_eq(g.todo(), ["common_house", "well"] as Array[String], "houses and a well glow")
+	for i in 6:
+		var s: Dictionary = g.spot()
+		check_eq(s["type"], "common_house", "the arrow shows a house lot")
+		check(Coverage.has_road_access(c.grid, s["origin"], s["size"]), "beside the road")
+		check_eq(c.place_building("common_house", s["origin"]), "", "and it can be built right there")
+	check_eq(g.todo(), ["well"] as Array[String], "six lots: only the well still glows")
+	check_eq(c.place_building("well", g.spot()["origin"]), "", "the well goes where the arrow says")
+	check(g.todo().is_empty(), "everything for this goal is built")
+
+
+func test_spots_on_the_right_land() -> void:
+	var c := _land()
+	c.build_road(Vector2i(2, 10), Vector2i(38, 10))
+	c.build_road(Vector2i(22, 6), Vector2i(22, 10))
+	for id in ["rice_paddy", "soybean_field", "clay_pit", "woodcutter", "salt_pans", "granary", "market",
+			"seonangdang", "storehouse", "onggi_kiln", "jangdokdae"]:
+		c.objectives.unlocked[id] = true
+		_check_spot(c, id)
+	check_eq(c.grid.get_terrain(c.objectives.guide.find_spot("rice_paddy")["origin"]), Terrain.FERTILE_PLAIN, "rice on the fertile plain")
+	check_eq(c.grid.get_terrain(c.objectives.guide.find_spot("clay_pit")["origin"]), Terrain.ROCKY_HILL, "clay from the rocky hill")
+	check_eq(c.grid.get_terrain(c.objectives.guide.find_spot("salt_pans")["origin"]), Terrain.SHORE, "salt on the shore")
+
+
+func test_fermentation_yard_between_fields_and_salt() -> void:
+	var c := _land()
+	c.build_road(Vector2i(2, 10), Vector2i(38, 10))
+	c.build_road(Vector2i(33, 10), Vector2i(33, 22))
+	for id in ["soybean_field", "salt_pans", "jangdokdae"]:
+		c.objectives.unlocked[id] = true
+	c.place_building("soybean_field", Vector2i(20, 13))
+	c.place_building("salt_pans", Vector2i(34, 19))
+	var s: Dictionary = c.objectives.guide.find_spot("jangdokdae")
+	var fields := Vector2i(20, 13)
+	var salt := Vector2i(34, 19)
+	var halfway := (fields + salt) / 2
+	check(absi(s["origin"].x - halfway.x) + absi(s["origin"].y - halfway.y) <= 10, "near halfway (%s)" % s["origin"])
+
+
+func test_guardian_post_spot_near_the_storage() -> void:
+	var c := _valley()
+	c.build_road(Vector2i(2, 10), Vector2i(38, 10))
+	c.labor.extra_workers = 1000
+	c.objectives.unlocked["granary"] = true
+	c.place_building("granary", Vector2i(20, 11))
+	c.economy.add(c.building_at(Vector2i(20, 11))["id"], "rice", 10)
+	c.objectives.unlocked["jangseung"] = true # opened by the shrine goal, skipped here
+	c.objectives._begin(_goal("dokkaebi"))
+	c.objectives.guide.mark_dirty()
+	var g = c.objectives.guide
+	check_eq(g.todo(), ["jangseung"] as Array[String], "Guardian Posts glow")
+	var s: Dictionary = g.spot()
+	check(c.grid.is_road(s["origin"]), "on the road")
+	check_eq(c.place_building("jangseung", s["origin"]), "", "it can stand there")
+	check(c.dokkaebi.posts_near(c.building_at(Vector2i(20, 11))) >= 1, "close enough to guard the Granary")
+
+
+func test_free_play_has_no_guide() -> void:
+	var c := City.new()
+	check(c.objectives == null, "no scenario, no glow, no arrow")

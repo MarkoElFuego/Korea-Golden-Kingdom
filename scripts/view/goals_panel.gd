@@ -21,7 +21,10 @@ const ACCENT := Color("#b8473a")
 const DONE := Color("#55703a")
 const REFRESH := 0.5 # seconds
 
+signal show_me() # move the camera to the advisor's arrow
+
 var city # scripts/sim/city.gd
+var _show_me: Button
 var _panel: PanelContainer
 var _heading: Label
 var _title: Label
@@ -49,7 +52,7 @@ func _ready() -> void:
 
 	_panel = _paper(6)
 	_panel.position = Vector2(20, 72)
-	_panel.custom_minimum_size.x = 360
+	_panel.custom_minimum_size.x = 420
 	add_child(_panel)
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 4)
@@ -75,11 +78,16 @@ func _ready() -> void:
 	_lines.bbcode_enabled = true
 	_lines.fit_content = true
 	_lines.scroll_active = false
-	_lines.custom_minimum_size.x = 340
+	_lines.custom_minimum_size.x = 400
 	_lines.add_theme_color_override("default_color", INK)
 	_lines.add_theme_font_size_override("normal_font_size", 17)
 	_lines.add_theme_font_size_override("italics_font_size", 16)
 	box.add_child(_lines)
+	_show_me = _button(tr("UI_GOAL_SHOW_ME"))
+	_show_me.tooltip_text = tr("UI_GOAL_SHOW_ME_TIP")
+	_show_me.visible = false
+	_show_me.pressed.connect(func() -> void: show_me.emit())
+	box.add_child(_show_me)
 
 	_advisor = _paper(6)
 	_advisor.visible = false
@@ -163,6 +171,7 @@ func refresh() -> void:
 	if not help.is_empty():
 		lines.append("[color=%s]%s[/color]" % [ACCENT.to_html(false), tr("UI_GOAL_STUCK") % InfoPanel.status_text(self, help)])
 	_lines.text = "\n".join(lines)
+	_show_me.visible = not o.guide.spot().is_empty()
 	_panel.visible = not _advisor.visible
 	if o.advice_seen < o.index and not _advisor.visible:
 		_show_advisor(false)

@@ -277,3 +277,7 @@ GOAL_BREATHES_TITLE,The valley breathes
 GOAL_BREATHES_ADVICE,"You know everything Seorabeol needs. Now let it grow: 300 people and ten Tiled Houses, with rice, paste and jars reaching every street.
 
 When something is short, the Goods window and the building windows say where and why."
+UI_GUIDE_HERE,%s here
+UI_GUIDE_ROAD,Start the road here
+UI_GOAL_SHOW_ME,Show me
+UI_GOAL_SHOW_ME_TIP,Move the view to the advisor's arrow: a good spot for the next building.

@@ -7,6 +7,7 @@ const Balance = preload("res://scripts/data/balance.gd")
 const Buildings = preload("res://scripts/data/buildings.gd")
 const Economy = preload("res://scripts/sim/economy.gd")
 const Scenario = preload("res://scripts/data/scenario.gd")
+const Guide = preload("res://scripts/sim/guide.gd")
 
 const DIRS: Array[Vector2i] = [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]
 
@@ -19,11 +20,13 @@ var event_raid := false # the scheduled night has been planned
 ## The view's memory, saved with the game so a loaded game does not repeat itself:
 var advice_seen := -1 # last goal whose advisor words the player closed
 var victory_seen := false
+var guide: Guide # what to build next and where (menu glow, arrow on the map)
 var _city: WeakRef
 
 
 func _init(city) -> void:
 	_city = weakref(city)
+	guide = Guide.new(city)
 	for id in Scenario.START_UNLOCKED:
 		unlocked[id] = true
 	_begin(0)

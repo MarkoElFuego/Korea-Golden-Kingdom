@@ -541,6 +541,12 @@ na mapi 128 × 128. Ciljevi idu jedan po jedan (podaci u `scripts/data/scenario.
 - Savetnik: na početku svakog cilja papirna poruka (šta da se radi, koji taster pomaže); „?“ je
   ponovo otvara. Posle 20 dana na istom cilju panel kaže šta fali, iz prozora Goods.
 - Zaključane zgrade se vide u meniju, posivljene, sa ciljem koji ih otključava.
+- Savetnik pokazuje šta i gde (odluka vlasnika posle Faze 10): dugmad zgrada koje cilj traži
+  imaju zlatni okvir koji polako „diše“ dok se ne izgrade; nad dobrim mestom za sledeću zgradu
+  lebdi drvena strelica sa crvenim vrhom, obris zgrade je zlatan na tlu, natpis „Rice Paddy
+  here“. Mesto bira igra po pravilima gradnje (plodno polje, kamenito brdo, obala, ivica šume,
+  uz put blizu grada; Fermentation Yard između soje i soli; Guardian Posts kod skladišta).
+  Dugme „Show me“ u panelu pomera kameru do strelice. Igrač ne mora da gradi baš tu.
 - Prve dokkaebije šalje scenario: 5 dana posle početka cilja 8, na skladište sa najnižim Gi.
   Do tada nasumični dokkaebi ne dolaze.
 - Posle cilja 9: prozor pobede sa brojevima grada, pa slobodna igra.

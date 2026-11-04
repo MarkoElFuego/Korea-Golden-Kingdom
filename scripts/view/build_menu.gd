@@ -13,10 +13,15 @@ const PAPER_DARK := Color("#d3cbb8")
 const WOOD := Color("#8a5c35")
 const INK := Color("#3a2e22")
 const ACCENT := Color("#b8473a")
+const GOLD := Color("#d4a23a")
 
 var tool: BuildTool
 var _buttons := {} # "road", "demolish" or building id -> Button
 var _tooltips := {} # building id -> its usual tooltip
+var _glowing: Array[String] = [] # buttons the advisor points at (scripts/sim/guide.gd)
+var _glow := _style(PAPER) # shared, its border breathes between wood and gold
+var _glow_hover := _style(PAPER_DARK)
+var _time := 0.0
 
 
 func setup(build_tool: BuildTool) -> void:
@@ -133,6 +138,31 @@ func _add_button(row: HBoxContainer, key: String, text: String, tooltip: String,
 			tool.cancel())
 	row.add_child(b)
 	_buttons[key] = b
+
+
+## The advisor's buttons glow softly: a gold border that slowly breathes (calm, no flashing).
+func _process(delta: float) -> void:
+	if tool == null or tool.city.objectives == null:
+		return
+	var todo: Array[String] = tool.city.objectives.guide.todo()
+	if todo != _glowing:
+		for key: String in _glowing:
+			if _buttons.has(key):
+				_buttons[key].add_theme_stylebox_override("normal", _style(PAPER))
+				_buttons[key].add_theme_stylebox_override("hover", _style(PAPER_DARK))
+		_glowing = todo.duplicate()
+		for key: String in _glowing:
+			if _buttons.has(key):
+				_buttons[key].add_theme_stylebox_override("normal", _glow)
+				_buttons[key].add_theme_stylebox_override("hover", _glow_hover)
+	if _glowing.is_empty():
+		return
+	_time += delta
+	var t := 0.5 + 0.5 * sin(_time * 2.5)
+	var border := WOOD.lerp(GOLD, t)
+	for s: StyleBoxFlat in [_glow, _glow_hover]:
+		s.border_color = border
+		s.set_border_width_all(3)
 
 
 func _on_mode_changed(mode: int, building_type: String) -> void:
