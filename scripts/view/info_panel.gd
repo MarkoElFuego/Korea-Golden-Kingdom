@@ -260,6 +260,13 @@ func _walker_lines(instance: Dictionary) -> Array[String]:
 		lines.append(tr("UI_HOUSE_PANTRY") % houses.pantry_days(id))
 	else:
 		lines.append(_red(tr("UI_HOUSE_PANTRY_EMPTY")))
+	var gi: int = houses.gi(instance)
+	if gi >= Balance.GI_HIGH:
+		lines.append(tr("UI_HOUSE_GI_HIGH") % gi)
+	elif gi < Balance.GI_LOW:
+		lines.append(_red(tr("UI_HOUSE_GI_LOW") % gi))
+	else:
+		lines.append(tr("UI_HOUSE_GI") % gi)
 	if houses.wants_jang(id):
 		if houses.state[id]["jang"] > 0:
 			lines.append(tr("UI_HOUSE_JANG") % houses.jang_days(id))

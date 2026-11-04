@@ -12,6 +12,7 @@ extends RefCounted
 ##   {"type": "walker"} serves along the roads its roaming walker can reach.
 ## market (optional): "stalls", each with goods (in the order a buyer looks for them),
 ##   capacity, buyer_loads (fetched when the stall has room for them) and vendor_loads.
+## gi (optional): {"change": n, "tiles": r} adds n to the Gi of every tile within r tiles.
 ## needs_road (optional, default true): false for a building that works without a road (Well).
 ## serves (optional): the house need it covers ("water", "market", "seonangdang"), for the
 ##   building window's "Show range" (which houses in range are served).
@@ -58,7 +59,7 @@ const MVP_BUILDINGS: Array[Dictionary] = [
 			{"tier": 2, "name_key": "HOUSE_CHOGA_HOUSE", "korean": "choga", "height_class": "low", "roof": "thatch", "model": "common_tier2",
 				"residents": 12, "needs": ["seonangdang"], "flavor_key": "FLAVOR_CHOGA_HOUSE"},
 			{"tier": 3, "name_key": "HOUSE_GIWA_HOUSE", "korean": "giwa-jip", "height_class": "medium", "roof": "giwa", "model": "common_tier3",
-				"residents": 20, "needs": ["jang", "onggi_jars"], "flavor_key": "FLAVOR_GIWA_HOUSE"},
+				"residents": 20, "needs": ["jang", "onggi_jars", "gi"], "flavor_key": "FLAVOR_GIWA_HOUSE"},
 		]},
 	{"id": "well", "name_key": "BUILDING_WELL", "korean": "umul", "category": "infrastructure",
 		"footprint": Vector2i(1, 1), "height_class": "low", "cost": 15, "workers": 0, "roof": "giwa", "terrain": [],
@@ -83,21 +84,23 @@ const MVP_BUILDINGS: Array[Dictionary] = [
 		]}},
 	{"id": "seonangdang", "name_key": "BUILDING_SEONANGDANG", "korean": "seonangdang", "category": "religion",
 		"footprint": Vector2i(1, 1), "height_class": "low", "cost": 25, "workers": 2, "roof": "none", "terrain": [],
-		"coverage": {"type": "walker"}, "roamer": "keeper", "service": "seonangdang", "serves": "seonangdang"},
+		"coverage": {"type": "walker"}, "roamer": "keeper", "service": "seonangdang", "serves": "seonangdang",
+		"gi": {"change": 10, "tiles": 4}},
 	{"id": "jangseung", "name_key": "BUILDING_JANGSEUNG", "korean": "jangseung", "category": "infrastructure",
 		"footprint": Vector2i(1, 1), "height_class": "low", "cost": 10, "workers": 0, "roof": "none", "terrain": [],
-		"on_road": true, "hint_key": "HINT_JANGSEUNG"},
+		"on_road": true, "hint_key": "HINT_JANGSEUNG", "gi": {"change": 5, "tiles": 3}},
 	{"id": "woodcutter", "name_key": "BUILDING_WOODCUTTER", "korean": "", "category": "materials",
 		"footprint": Vector2i(2, 2), "height_class": "low", "cost": 30, "workers": 4, "roof": "thatch", "terrain": [],
 		"near_terrain": {"terrain": Terrain.FOREST, "tiles": 2, "reason_key": "REASON_NEEDS_FOREST_NEARBY"},
-		"produces": {"good": "wood", "days": 5}},
+		"produces": {"good": "wood", "days": 5}, "gi": {"change": -5, "tiles": 2}},
 	{"id": "clay_pit", "name_key": "BUILDING_CLAY_PIT", "korean": "", "category": "materials",
 		"footprint": Vector2i(2, 2), "height_class": "flat", "cost": 30, "workers": 4, "roof": "none",
 		"terrain": [Terrain.ROCKY_HILL],
-		"produces": {"good": "clay", "days": 5}},
+		"produces": {"good": "clay", "days": 5}, "gi": {"change": -15, "tiles": 4}},
 	{"id": "onggi_kiln", "name_key": "BUILDING_ONGGI_KILN", "korean": "onggi-gama", "category": "crafts",
 		"footprint": Vector2i(3, 2), "height_class": "medium", "cost": 50, "workers": 6, "roof": "giwa", "terrain": [],
-		"workshop": {"inputs": ["clay", "wood"]}, "produces": {"good": "onggi_jars", "days": 6}},
+		"workshop": {"inputs": ["clay", "wood"]}, "produces": {"good": "onggi_jars", "days": 6},
+		"gi": {"change": -10, "tiles": 3}},
 	{"id": "soybean_field", "name_key": "BUILDING_SOYBEAN_FIELD", "korean": "", "category": "food",
 		"footprint": Vector2i(3, 3), "height_class": "flat", "cost": 40, "workers": 6, "roof": "none",
 		"terrain": [Terrain.GRASS, Terrain.FERTILE_PLAIN],

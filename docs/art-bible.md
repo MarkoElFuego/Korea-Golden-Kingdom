@@ -123,7 +123,8 @@ od gornjeg levog ugla:
 | 6 | Village Shrine (kamena gomila sa trakama) |
 | 7 | Soybean Paste (ćup paste) |
 | 8 | Clay Jars (onggi ćup) |
-| 9–15 | slobodno, za buduće potrebe (lekar, hram, muzika...) |
+| 9 | Gi (taegeuk: crveno gore, plavo dole) |
+| 10–15 | slobodno, za buduće potrebe (lekar, hram, muzika...) |
 
 Dok slika ne postoji, igra crta privremene ikonice istog rasporeda (`scripts/view/house_icons.gd`).
 

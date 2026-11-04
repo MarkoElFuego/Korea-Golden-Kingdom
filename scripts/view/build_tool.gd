@@ -9,6 +9,8 @@ const Buildings = preload("res://scripts/data/buildings.gd")
 const Grid = preload("res://scripts/sim/grid.gd")
 const Factory = preload("res://scripts/view/placeholder_factory.gd")
 const TerrainView = preload("res://scripts/view/terrain_view.gd")
+const GiMap = preload("res://scripts/sim/gi_map.gd")
+const Coverage = preload("res://scripts/sim/coverage.gd")
 
 signal mode_changed(mode: int, building_type: String)
 signal building_selected(id: int)
@@ -18,6 +20,8 @@ enum Mode { NONE, BUILD, ROAD, DEMOLISH }
 const COLOR_OK := Color(0.35, 0.75, 0.35, 0.55)
 const COLOR_BAD := Color(0.85, 0.28, 0.22, 0.6)
 const COLOR_COVERAGE := Color(0.25, 0.56, 0.48, 0.3)
+const COLOR_GI_UP := Color(0.85, 0.72, 0.25, 0.3) # tiles whose Gi the building raises
+const COLOR_GI_DOWN := Color(0.55, 0.3, 0.45, 0.3) # ... or lowers
 const OVERLAY_HEIGHT := 0.2 # meters above the ground, over roads
 const GHOST_TRANSPARENCY := 0.35
 
@@ -113,6 +117,11 @@ func _preview_building(tile: Vector2i) -> void:
 	_ghost.rotation.y = rotation_step * PI * 0.5
 
 	var cells: Array = []
+	var gi_effect := GiMap.effect(building_type)
+	if not gi_effect.is_empty():
+		var tint := COLOR_GI_UP if gi_effect["change"] > 0 else COLOR_GI_DOWN
+		for t: Vector2i in Coverage.radius_tiles(city.grid, origin, size, gi_effect["tiles"]):
+			cells.append([t, tint])
 	for t: Vector2i in city.coverage_preview(building_type, origin, rotation_step):
 		cells.append([t, COLOR_COVERAGE])
 	for dy in size.y:
@@ -126,6 +135,11 @@ func _preview_building(tile: Vector2i) -> void:
 		lines.append(tr(reason))
 	elif Buildings.needs_road(building_type) and not _has_road_access(origin, size):
 		lines.append(tr("WARN_NO_ROAD_ACCESS"))
+	if city.grid.in_bounds(origin):
+		var gi: int = city.gi.of_area(origin, size)
+		lines.append(tr("UI_GI_HERE_MYEONGDANG" if gi >= Balance.GI_MYEONGDANG else "UI_GI_HERE") % gi)
+	if not gi_effect.is_empty():
+		lines.append(tr("UI_GI_RAISES" if gi_effect["change"] > 0 else "UI_GI_LOWERS") % gi_effect["change"])
 	lines.append(tr("UI_TOOL_HINT"))
 	_show_note("\n".join(lines), bad)
 

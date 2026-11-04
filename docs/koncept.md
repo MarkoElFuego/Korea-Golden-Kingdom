@@ -240,6 +240,18 @@ Najbolje mesto je **Myeongdang**.
 - Dilema: najbolji granit, gvožđe i zlato su u planinama.
 - Overlay Gi je obavezan; plemići i palata traže visok Gi.
 
+**Odluke iz Faze 8 (MVP Gi):**
+
+- Gi polja = 40, plus do +30 ispod planine (opada na 20 polja), do +15 uz reku ili more (6 polja),
+  i +15 kad šumoviti greben postoji i na zapadu i na istoku (do 30 polja, gledaju se i redovi do
+  8 polja severnije ili južnije). Myeongdang = Gi 80 i više (zlatno na overlay-u). *predlog*
+- Zgrade: Village Shrine +10 (4 polja), Guardian Posts +5 (3), Clay Pit −15 (4), Pottery Kiln
+  −10 (3), Woodcutter −5 (2). *predlog*
+- Kuća sa Gi 70 i više pada nivo tek posle 20 dana nestašice (umesto 10). Tiled House traži Gi
+  bar 30 (nova ikonica Gi iznad kuće i red u prozoru kuće). *predlog*
+- Overlay F7; pri gradnji beleška kaže Gi tog mesta i kako zgrada menja Gi, a polja na koja utiče
+  se oboje (zlatno: diže, ljubičasto: spušta). Gi se ne snima: uvek se izračuna iz terena i zgrada.
+
 ## Gradnja (odluke iz Faze 2)
 
 - Rušenje ne vraća Silver (kao u Zeusu).

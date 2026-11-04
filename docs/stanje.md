@@ -4,7 +4,7 @@ Poslednje ažuriranje: 3. novembar 2026.
 
 ## Gde smo stali
 
-Gotove faze 1–7 (fermentacija u dva dela), brže crtanje zgrada, pregledniji prozor zgrade i demo grad. Testova: 167, svi prolaze.
+Gotove faze 1–8 (fermentacija u tri dela), brže crtanje zgrada, pregledniji prozor zgrade i demo grad. Testova: 173, svi prolaze.
 
 | Faza | Šta je urađeno | Commit |
 | --- | --- | --- |
@@ -22,11 +22,13 @@ Gotove faze 1–7 (fermentacija u dva dela), brže crtanje zgrada, pregledniji p
 | 7b | Pijaca sa tri tezge (Rice, Jang, Onggi Jars), Ripe Jang, Jang i ćupovi u kućama, Giwa House (nivo 3), overlay F5/F6 | 96ae682 |
 | nazivi | Opšti engleski nazivi, korejski pored (Village Shrine, Pottery Kiln, Fermentation Yard...) | d4028d7 |
 | 7c | Šetači sa stalnim područjem (15 polja, obilasci redom), pločice raspoloženja i potreba iznad kuća (H), bunar bez puta | c658c64 |
+| 8 | Gi mapa (pungsu): Gi iz planine, vode i grebena, uticaj zgrada, Myeongdang, overlay F7, Tiled House traži Gi 30+ | (sledeći) |
 
-## Sledeće: Faza 8, Gi mapa (pungsu)
+## Sledeće: Faza 9, prvi događaj: dokkaebi
 
-- Svako polje ima Gi (0–100), koji teče niz planinu i skuplja se u dolini; zgrade ga menjaju.
-- Overlay Gi; visok Gi pomaže kućama, nizak im smeta.
+- Noću dokkaebi kradu robu iz skladišta u četvrtima sa niskim Gi.
+- Kontra: Guardian Posts u blizini smanjuju šansu; ponuda na Village Shrine (Silver) ih umiri, pa
+  ponekad ostave srebro. Dolaze vidljivo, uz upozorenje unapred.
 
 Prvo plan, pa kod posle vlasnikovog „ok".
 
@@ -36,7 +38,7 @@ Prvo plan, pa kod posle vlasnikovog „ok".
 - `scenes/big_city.tscn` + F6: veliki grad za merenje brzine (FPS u uglu).
 - Ctrl+S snima, Ctrl+L učitava najnoviji sejv. Sejvovi iz starijih verzija (pre Faze 7b) se ne
   učitavaju; igra to kaže porukom.
-- Prečice: F1–F3 overlay-i (voda, hrana, Village Shrine), F5 Soybean Paste, F6 Clay Jars, H pločice kuća, F4 prozor Goods, klik na zgradu = prozor
+- Prečice: F1–F3 overlay-i (voda, hrana, Village Shrine), F5 Soybean Paste, F6 Clay Jars, F7 Gi, H pločice kuća, F4 prozor Goods, klik na zgradu = prozor
   zgrade (Show range, šetači, radnici).
 
 ## Utisci vlasnika posle igranja

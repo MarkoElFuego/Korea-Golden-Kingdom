@@ -11,7 +11,7 @@ const CELLS := 4 # per row and column
 ## Atlas cell of every icon (row by row from the top left).
 const INDEX := {
 	"happy": 0, "neutral": 1, "sad": 2,
-	"road": 3, "water": 4, "food": 5, "seonangdang": 6, "jang": 7, "onggi_jars": 8,
+	"road": 3, "water": 4, "food": 5, "seonangdang": 6, "jang": 7, "onggi_jars": 8, "gi": 9,
 }
 
 const PAPER := Color("#ece6d8")
@@ -37,7 +37,7 @@ static func placeholder_image() -> Image:
 		_disk(img, o + Vector2(23, 26), 4, INK)
 		_disk(img, o + Vector2(41, 26), 4, INK)
 		_mouth(img, o, {"happy": 1.0, "neutral": 0.0, "sad": -1.0}[mood])
-	for need: String in ["road", "water", "food", "seonangdang", "jang", "onggi_jars"]:
+	for need: String in ["road", "water", "food", "seonangdang", "jang", "onggi_jars", "gi"]:
 		var o := _origin(need)
 		_disk(img, o + Vector2(32, 32), 29, INK)
 		_disk(img, o + Vector2(32, 32), 26, PAPER)
@@ -63,6 +63,15 @@ static func placeholder_image() -> Image:
 				_rect(img, o + Vector2(20, 26), Vector2(24, 22), Color("#3e2616"))
 				_disk(img, o + Vector2(32, 26), 12, Color("#5a3a22"))
 				_rect(img, o + Vector2(22, 18), Vector2(20, 5), Color("#a07a55"))
+			"gi": # the taegeuk: red above, blue below, swirling into each other
+				_disk(img, o + Vector2(32, 32), 18, Color("#3d5a99"))
+				_half_disk(img, o + Vector2(32, 32), 18, Color("#3d5a99"))
+				for y in range(14, 33):
+					for x in range(14, 51):
+						if Vector2(x + 0.5, y + 0.5).distance_to(Vector2(32, 32)) <= 18:
+							img.set_pixel(int(o.x) + x, int(o.y) + y, Color("#b8473a"))
+				_disk(img, o + Vector2(23, 32), 9, Color("#b8473a"))
+				_disk(img, o + Vector2(41, 32), 9, Color("#3d5a99"))
 			"onggi_jars": # a tall onggi jar
 				_disk(img, o + Vector2(32, 36), 14, Color("#6b4a32"))
 				_rect(img, o + Vector2(24, 14), Vector2(16, 12), Color("#6b4a32"))

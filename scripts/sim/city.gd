@@ -21,6 +21,7 @@ const Settlers = preload("res://scripts/sim/settlers.gd")
 const Services = preload("res://scripts/sim/services.gd")
 const Supply = preload("res://scripts/sim/supply.gd")
 const Fermentation = preload("res://scripts/sim/fermentation.gd")
+const GiMap = preload("res://scripts/sim/gi_map.gd")
 
 signal treasury_changed(value: int)
 signal building_added(instance: Dictionary)
@@ -43,6 +44,7 @@ var settlers: Settlers
 var services: Services
 var supply: Supply # where goods are missing and why
 var fermentation: Fermentation # the Jangdokdae's jars
+var gi: GiMap # the life force of the land, 0..100 per tile
 ## The one random generator of the simulation (seeded from the map seed), so the same
 ## commands always give the same city.
 var rng := RandomNumberGenerator.new()
@@ -73,6 +75,7 @@ func _init(seed_value: int = Balance.DEFAULT_MAP_SEED) -> void:
 	services = Services.new(self)
 	supply = Supply.new(self)
 	fermentation = Fermentation.new(self)
+	gi = GiMap.new(self)
 	settlers.arrived.connect(_on_settlers_arrived)
 	clock.day_changed.connect(_on_day)
 	clock.season_changed.connect(_on_season)
@@ -153,6 +156,7 @@ func place_building(type: String, origin: Vector2i, rotation := 0) -> String:
 	carriers.on_building_added(instance)
 	houses.add_building(instance)
 	houses.clear_cache()
+	gi.mark_dirty()
 	services.on_building_added(instance)
 	_change_treasury(-data["cost"])
 	command_log.append([clock.tick, "place", type, origin, rotation])
@@ -269,6 +273,7 @@ func demolish(a: Vector2i, b: Vector2i) -> int:
 		settlers.on_building_removed(instance)
 		houses.remove_building(instance)
 		houses.clear_cache()
+		gi.mark_dirty()
 		labor.forget(instance["id"])
 		building_removed.emit(instance)
 	var removed: int = plan["roads"].size() + plan["buildings"].size()
@@ -487,4 +492,5 @@ func load_save(d: Dictionary) -> void:
 	settlers.load_save(d["settlers"])
 	services.load_save(d["services"])
 	labor.extra_workers = d["extra_workers"]
+	gi.mark_dirty()
 	labor.recompute(buildings.all(), houses, economy)

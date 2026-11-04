@@ -192,3 +192,12 @@ OVERLAY_JARS,Clay Jars
 UI_HOUSE_SIGNS_PROBLEMS,"House signs: only houses that lack something (H)."
 UI_HOUSE_SIGNS_ALL,"House signs: every house (H)."
 UI_HOUSE_SIGNS_OFF,"House signs: off (H)."
+NEED_GI,Good Gi (30 or more)
+UI_HOUSE_GI_HIGH,"Gi: %d (good fortune)."
+UI_HOUSE_GI,"Gi: %d."
+UI_HOUSE_GI_LOW,"Gi: %d (too low for a Tiled House)."
+OVERLAY_GI,Gi (pungsu)
+UI_GI_HERE,"Gi here: %d"
+UI_GI_HERE_MYEONGDANG,"Gi here: %d (Myeongdang)"
+UI_GI_RAISES,"Raises Gi nearby (+%d)."
+UI_GI_LOWERS,"Lowers Gi nearby (%d)."

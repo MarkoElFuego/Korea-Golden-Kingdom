@@ -43,6 +43,20 @@ const HUMAN_HEIGHT := 1.7 # meters
 const WORKER_SHARE := 0.4 # share of residents who work (common labour pool)
 const TAX_PER_RESIDENT := 2 # Silver per resident at the end of every season (MVP, no Tax Office)
 const HOUSE_DOWN_DAYS := 10 # days a house may miss a need before it drops a tier
+const HOUSE_DOWN_DAYS_HIGH_GI := 20 # ... and in a place of high Gi (good fortune holds)
+
+# Gi, the life force of the land (docs/koncept.md, "Pungsu i Gi"): 0..100 per tile.
+const GI_BASE := 40 # every tile
+const GI_MOUNTAIN_BONUS := 30 # right below the mountain (baesan), fading over GI_MOUNTAIN_REACH tiles
+const GI_MOUNTAIN_REACH := 20
+const GI_WATER_BONUS := 15 # next to the river or sea in front (imsu), fading over GI_WATER_REACH tiles
+const GI_WATER_REACH := 6
+const GI_ENCLOSED_BONUS := 15 # forest ridges both east and west within GI_RIDGE_REACH tiles
+const GI_RIDGE_REACH := 30 # the ridges stand at the valley's edges, half a map apart
+const GI_RIDGE_ROWS := 8 # a ridge this many rows north or south still counts
+const GI_HIGH := 70 # and above: good fortune (a house holds its tier longer)
+const GI_LOW := 30 # below: too low for a Tiled House
+const GI_MYEONGDANG := 80 # and above: the best places (the protected foot of the mountain), in gold
 const SETTLER_GROUP := 6 # people one settler walker brings at most
 const SETTLER_INTERVAL_TICKS := 20 # a new group leaves the entrance at most this often
 const SETTLER_SPEED := 1.5 # tiles per second at 1x

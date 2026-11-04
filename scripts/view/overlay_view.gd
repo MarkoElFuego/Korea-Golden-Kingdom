@@ -1,6 +1,8 @@
 extends Node3D
 ## Service overlays (CLAUDE.md, "Čitljiv interfejs"): F1 water, F2 food, F3 Seonangdang,
-## F5 Jang, F6 Onggi Jars (the last two for houses from tier 2, which want them).
+## F5 Jang, F6 Onggi Jars (the last two for houses from tier 2, which want them), and
+## F7 Gi: the ground of the whole map from red (low) through yellow to green (high),
+## the Myeongdang in gold.
 ## Buildings fade, and every settled house gets a column, Zeus style: tall and green when
 ## the service is fresh, short and red when it is missing. The water overlay also tints
 ## the ground each Well reaches. The same key closes the overlay. Only reads the city.
@@ -8,6 +10,8 @@ extends Node3D
 const Balance = preload("res://scripts/data/balance.gd")
 const Grid = preload("res://scripts/sim/grid.gd")
 const Houses = preload("res://scripts/sim/houses.gd")
+const Terrain = preload("res://scripts/data/terrain.gd")
+const TerrainView = preload("res://scripts/view/terrain_view.gd")
 
 signal changed(mode: String)
 
@@ -15,6 +19,8 @@ const GOOD := Color("#55803a")
 const MID := Color("#d9a83a")
 const BAD := Color("#b8473a")
 const WATER_TINT := Color(0.35, 0.6, 0.85, 0.45)
+const GI_GOLD := Color(1.0, 0.8, 0.2, 0.9) # the Myeongdang
+const GI_ALPHA := 0.7
 const COLUMN_WIDTH := 1.6 # meters
 const COLUMN_MAX := 10.0 # meters, a fully served house
 const REFRESH := 0.25 # seconds between redraws
@@ -25,6 +31,7 @@ var mode := ""
 var _columns: MultiMeshInstance3D
 var _ground: MultiMeshInstance3D
 var _wait := 0.0
+var _gi_drawn := -1 # gi_map version on the ground now
 
 
 func setup(city_ref, view) -> void:
@@ -66,8 +73,9 @@ func _layer(layer_name: String, mesh: Mesh, see_through: bool) -> MultiMeshInsta
 ## Shows overlay `which`, or closes it when it is already shown.
 func toggle(which: String) -> void:
 	mode = "" if mode == which else which
-	_columns.visible = mode != ""
-	_ground.visible = mode == "water"
+	_columns.visible = mode != "" and mode != "gi"
+	_ground.visible = mode == "water" or mode == "gi"
+	_gi_drawn = -1
 	city_view.set_faded(mode != "")
 	_wait = 0.0
 	changed.emit(mode)
@@ -80,6 +88,10 @@ func _process(delta: float) -> void:
 	if _wait > 0.0:
 		return
 	_wait = REFRESH
+	if mode == "gi":
+		if _gi_drawn != city.gi.version or _gi_drawn == -1:
+			_draw_gi()
+		return
 	_draw_columns()
 	if mode == "water":
 		_draw_water()
@@ -141,6 +153,33 @@ func _draw_water() -> void:
 		xforms.append(Transform3D(Basis.IDENTITY, Grid.tile_to_world(t) + Vector3(0, 0.2, 0)))
 		colors.append(WATER_TINT)
 	_fill(_ground.multimesh, xforms, colors)
+
+
+## Every tile tinted by its Gi.
+func _draw_gi() -> void:
+	var values: PackedByteArray = city.gi.values()
+	_gi_drawn = city.gi.version
+	var w: int = city.grid.width
+	var xforms: Array[Transform3D] = []
+	var colors: Array[Color] = []
+	for i in values.size():
+		@warning_ignore("integer_division")
+		var t := Vector2i(i % w, i / w)
+		var terrain: int = city.grid.get_terrain(t)
+		if terrain == Terrain.MOUNTAIN or Terrain.is_water(terrain):
+			continue # nothing is built there
+		var ground := TerrainView.ground_top(city.grid, t) + 0.25 # on top of a rocky hill too
+		xforms.append(Transform3D(Basis.IDENTITY, Grid.tile_to_world(t) + Vector3(0, ground, 0)))
+		colors.append(gi_color(values[i]))
+	_fill(_ground.multimesh, xforms, colors)
+
+
+static func gi_color(gi: int) -> Color:
+	if gi >= Balance.GI_MYEONGDANG:
+		return GI_GOLD
+	var c := _color(clampf((gi - 20) / 50.0, 0.0, 1.0)) # 20 and less red, 70 and more green
+	c.a = GI_ALPHA
+	return c
 
 
 static func _fill(mm: MultiMesh, xforms: Array[Transform3D], colors: Array[Color]) -> void:

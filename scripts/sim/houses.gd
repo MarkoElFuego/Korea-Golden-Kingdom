@@ -4,7 +4,8 @@ extends RefCounted
 ##
 ## Tier 0 is a vacant lot; settlers make it a Choga Hut (tier 1). Once a day a house rises
 ## a tier if it has every need of the next tier (needs add up tier by tier), and drops a
-## tier after missing a need of its own tier for HOUSE_DOWN_DAYS days. Tier 1 is the floor
+## tier after missing a need of its own tier for HOUSE_DOWN_DAYS days (HOUSE_DOWN_DAYS_HIGH_GI
+## where the Gi is high). A Tiled House needs Gi of at least GI_LOW. Tier 1 is the floor
 ## for a settled house.
 ##
 ## Water comes from a Well within its radius. Food and services come with walkers
@@ -95,7 +96,14 @@ func is_met(instance: Dictionary, need: String) -> bool:
 			return state[instance["id"]]["jang"] > 0
 		"onggi_jars":
 			return state[instance["id"]]["jars_until"] > _city.get_ref().clock.tick
+		"gi":
+			return gi(instance) >= Balance.GI_LOW
 	return false
+
+
+## The Gi of the land the house stands on (gi_map.gd).
+func gi(instance: Dictionary) -> int:
+	return _city.get_ref().gi.of_area(instance["origin"], instance["size"])
 
 
 ## Portions the pantry holds when full (PANTRY_DAYS for the house's people at its tier).
@@ -207,7 +215,8 @@ func daily() -> Array[Dictionary]:
 			changed.append(instance)
 		elif tier > 1 and not _all_met(instance, needs_for(tier)):
 			s["missing_days"] += 1
-			if s["missing_days"] >= Balance.HOUSE_DOWN_DAYS:
+			var grace := Balance.HOUSE_DOWN_DAYS_HIGH_GI if gi(instance) >= Balance.GI_HIGH else Balance.HOUSE_DOWN_DAYS
+			if s["missing_days"] >= grace:
 				instance["tier"] = tier - 1
 				s["missing_days"] = 0
 				s["residents"] = mini(s["residents"], capacity(tier - 1)) # the rest move away
