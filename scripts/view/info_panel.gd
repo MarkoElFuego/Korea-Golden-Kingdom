@@ -149,7 +149,12 @@ func _refresh() -> void:
 	if data.has("tiers"):
 		title = tr("HOUSE_VACANT_LOT") if instance["tier"] == 0 else tr(data["tiers"][instance["tier"] - 1]["name_key"])
 	_title.text = title
-	_subtitle.text = tr("CATEGORY_" + String(data["category"]).to_upper()) + ("" if data["korean"] == "" else "  ·  " + data["korean"])
+	# The Korean term beside the English name: "jangdokdae  ·  Fermentation".
+	var korean: String = data["korean"]
+	if data.has("tiers") and instance["tier"] > 0:
+		korean = data["tiers"][instance["tier"] - 1].get("korean", korean)
+	var category := tr("CATEGORY_" + String(data["category"]).to_upper())
+	_subtitle.text = category if korean == "" else korean + "  ·  " + category
 
 	var lines: Array[String] = []
 	var state: Dictionary = city.economy.state.get(building_id, {})

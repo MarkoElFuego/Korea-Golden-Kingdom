@@ -7,17 +7,17 @@ BUILDING_RICE_PADDY,Rice Paddy
 BUILDING_GRANARY,Granary
 BUILDING_STOREHOUSE,Storehouse
 BUILDING_MARKET,Market
-BUILDING_SEONANGDANG,Seonangdang
-BUILDING_JANGSEUNG,Jangseung
+BUILDING_SEONANGDANG,Village Shrine
+BUILDING_JANGSEUNG,Guardian Posts
 BUILDING_WOODCUTTER,Woodcutter
 BUILDING_CLAY_PIT,Clay Pit
-BUILDING_ONGGI_KILN,Onggi Kiln
+BUILDING_ONGGI_KILN,Pottery Kiln
 BUILDING_SOYBEAN_FIELD,Soybean Field
 BUILDING_SALT_PANS,Salt Pans
-BUILDING_JANGDOKDAE,Jangdokdae
-HOUSE_CHOGA_HUT,Choga Hut
-HOUSE_CHOGA_HOUSE,Choga House
-HOUSE_GIWA_HOUSE,Giwa House
+BUILDING_JANGDOKDAE,Fermentation Yard
+HOUSE_CHOGA_HUT,Thatched Hut
+HOUSE_CHOGA_HOUSE,Thatched House
+HOUSE_GIWA_HOUSE,Tiled House
 HOUSE_TIER_FORMAT,%s (Tier %d)
 TERRAIN_GRASS,Grass
 TERRAIN_FERTILE_PLAIN,Fertile Plain
@@ -48,7 +48,7 @@ CATEGORY_STORAGE,Storage
 CATEGORY_DISTRIBUTION,Distribution
 CATEGORY_RELIGION,Religion
 CATEGORY_MATERIALS,Materials
-CATEGORY_CRAFTS,Crafts
+CATEGORY_CRAFTS,Pottery & Crafts
 CATEGORY_FERMENTATION,Fermentation
 HOUSE_VACANT_LOT,Vacant Lot
 REASON_OUT_OF_BOUNDS,Outside the map
@@ -95,9 +95,9 @@ FLAVOR_GIWA_HOUSE,The first tiles on the street. The neighbors noticed.
 NEED_ROAD,Road
 NEED_WATER,Water from a Well
 NEED_FOOD,Rice
-NEED_SEONANGDANG,Seonangdang
-NEED_JANG,Jang
-NEED_ONGGI_JARS,Onggi Jars
+NEED_SEONANGDANG,Village Shrine
+NEED_JANG,Soybean Paste
+NEED_ONGGI_JARS,Clay Jars
 UI_HOUSE_RESIDENTS,"Residents: %d of %d"
 UI_HOUSE_NEXT_TIER,"To become %s:"
 UI_HOUSE_KEEP_TIER,"Missing, the house will drop a level in %d days:"
@@ -123,7 +123,7 @@ STATUS_KEEPER_RESTS,The shrine keeper sets out soon.
 UI_OVERLAY_FORMAT,"Overlay: %s   (press %s again to close)"
 OVERLAY_WATER,Water
 OVERLAY_FOOD,Food
-OVERLAY_SEONANGDANG,Seonangdang
+OVERLAY_SEONANGDANG,Village Shrine
 SAVE_DONE,Game saved.
 AUTOSAVE_DONE,Autosaved.
 SAVE_FAILED,Could not save the game. The previous save is kept.
@@ -135,14 +135,14 @@ LOAD_OLDER_VERSION,This save comes from an older version of the game and cannot 
 UI_FPS_FORMAT,"%d FPS   ·   %d draw calls   ·   %d people   ·   %d walkers"
 GOOD_SOYBEANS,Soybeans
 GOOD_SALT,Salt
-GOOD_ONGGI_JARS,Onggi Jars
+GOOD_ONGGI_JARS,Clay Jars
 STATUS_NO_WORKERS,"No workers: every pair of hands in the city already has a job. More houses, more workers."
 STATUS_PRODUCING_SLOW,"Working at %d%% speed: not enough workers. Next load: %d%%"
 STATUS_FETCHER_OUT,"The fetcher is bringing %s from a Storehouse."
 STATUS_INPUT_ON_WAY,"%s is on the way."
 STATUS_FETCHER_SOON,"Out of %s. The fetcher sets out for a Storehouse soon."
 STATUS_NO_INPUT,"No %s: none is on the way, and no Storehouse in reach by road holds any."
-STATUS_NO_JANGDOKDAE,"%s goes only to a Jangdokdae (fermentation), and there is none yet. Production stops when the store is full."
+STATUS_NO_JANGDOKDAE,"%s goes only to a Fermentation Yard, and there is none yet. Production stops when the store is full."
 NOTE_NO_MAKER,"Nothing makes it. Build a %s."
 UI_GOODS_TITLE,Goods
 UI_GOODS_TIP,"Goods (F4): what the city has, what it makes, and where it is short."
@@ -155,15 +155,15 @@ UI_GOODS_COL_STORED,Stored
 UI_GOODS_COL_CARRIED,Carried
 UI_GOODS_COL_YEAR,This year
 UI_GOODS_COL_MAKERS,Makers
-GOOD_JANG,Jang
-STATUS_JANGDOKDAE_NO_ROOM,"The Jangdokdae has no room for more %s. Production stops when the store is full."
-STATUS_NO_JARS,"No jars yet: Onggi Jars from an Onggi Kiln (or a Storehouse) become the jars of this yard."
+GOOD_JANG,Soybean Paste
+STATUS_JANGDOKDAE_NO_ROOM,"The Fermentation Yard has no room for more %s. Production stops when the store is full."
+STATUS_NO_JARS,No jars yet: Clay Jars from a Pottery Kiln (or a Storehouse) become the jars of this yard.
 STATUS_JARS_WAIT_FOR,"%d empty jars wait for %s."
-STATUS_JARS_ALL_FULL,"Every jar holds Jang (Fresh %d, Ripe %d). A jar is filled again once its Jang goes to the Market."
+STATUS_JARS_ALL_FULL,"Every jar holds Soybean Paste (Fresh %d, Ripe %d). A jar is filled again once its paste goes to the Market."
 STATUS_JANGDOKDAE,"Jars: %d of %d. Brewing %d, Fresh %d, Ripe %d."
 UI_JANG_RELEASE_FRESH,"Release: Fresh"
 UI_JANG_RELEASE_RIPE,"Release: Ripe only"
-UI_JANG_RELEASE_TIP,"Ripe Jang is worth twice as much, but takes two more seasons in the jar. Click to switch."
+UI_JANG_RELEASE_TIP,"Ripe Soybean Paste goes twice as far, but takes two more seasons in the jar. Click to switch."
 WALKER_CARRIER_DELIVER,"Carrier: taking %s to where it is needed."
 WALKER_CARRIER_RETURN,Carrier: walking home.
 WALKER_VENDOR_OUT,"Vendor: on the streets, tile %d of %d."
@@ -181,11 +181,11 @@ UI_WORKERS_MORE,More houses bring more workers.
 UI_SHOW_RANGE,Show range
 UI_HIDE_RANGE,Hide range
 UI_SHOW_RANGE_TIP,"Shows on the map what this building reaches. Houses in range: green when they have its service, red when not."
-GOOD_RIPE_JANG,Ripe Jang
+GOOD_RIPE_JANG,Ripe Soybean Paste
 STATUS_MARKET_LACKS,"No %s to sell: the Buyer finds no %s in reach by road."
-UI_HOUSE_JANG,"Jang for %d days."
-UI_HOUSE_JANG_EMPTY,No Jang in the house.
-UI_HOUSE_JARS,"Onggi Jars: %d days left."
-UI_HOUSE_JARS_NONE,No Onggi Jars in the house.
-OVERLAY_JANG,Jang
-OVERLAY_JARS,Onggi Jars
+UI_HOUSE_JANG,"Soybean Paste for %d days."
+UI_HOUSE_JANG_EMPTY,No Soybean Paste in the house.
+UI_HOUSE_JARS,"Clay Jars: %d days left."
+UI_HOUSE_JARS_NONE,No Clay Jars in the house.
+OVERLAY_JANG,Soybean Paste
+OVERLAY_JARS,Clay Jars

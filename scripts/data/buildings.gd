@@ -6,7 +6,8 @@ extends RefCounted
 ## cost: Silver. workers: from the city labour pool.
 ## roof: "giwa" (tile roof, prism), "thatch" (straw dome) or "none".
 ## terrain: allowed terrains for every footprint tile; empty = Terrain.DEFAULT_BUILDABLE.
-## korean: Revised Romanization, "" when the concept has no term.
+## korean: Revised Romanization, "" when the concept has no term. Shown beside the English
+##   name (building window, build menu tooltip); house tiers have their own.
 ## coverage (optional): {"type": "radius", "tiles": n} serves every tile within n tiles;
 ##   {"type": "walker"} serves along the roads its roaming walker can reach.
 ## market (optional): "stalls", each with goods (in the order a buyer looks for them),
@@ -51,11 +52,11 @@ const MVP_BUILDINGS: Array[Dictionary] = [
 	{"id": "common_house", "name_key": "BUILDING_COMMON_HOUSE", "korean": "minga", "category": "housing",
 		"footprint": Vector2i(2, 2), "height_class": "low", "cost": 10, "workers": 0, "roof": "thatch", "terrain": [],
 		"tiers": [
-			{"tier": 1, "name_key": "HOUSE_CHOGA_HUT", "height_class": "low", "roof": "thatch", "model": "common_tier1",
+			{"tier": 1, "name_key": "HOUSE_CHOGA_HUT", "korean": "choga", "height_class": "low", "roof": "thatch", "model": "common_tier1",
 				"residents": 6, "needs": ["road", "water", "food"], "flavor_key": "FLAVOR_CHOGA_HUT"},
-			{"tier": 2, "name_key": "HOUSE_CHOGA_HOUSE", "height_class": "low", "roof": "thatch", "model": "common_tier2",
+			{"tier": 2, "name_key": "HOUSE_CHOGA_HOUSE", "korean": "choga", "height_class": "low", "roof": "thatch", "model": "common_tier2",
 				"residents": 12, "needs": ["seonangdang"], "flavor_key": "FLAVOR_CHOGA_HOUSE"},
-			{"tier": 3, "name_key": "HOUSE_GIWA_HOUSE", "height_class": "medium", "roof": "giwa", "model": "common_tier3",
+			{"tier": 3, "name_key": "HOUSE_GIWA_HOUSE", "korean": "giwa-jip", "height_class": "medium", "roof": "giwa", "model": "common_tier3",
 				"residents": 20, "needs": ["jang", "onggi_jars"], "flavor_key": "FLAVOR_GIWA_HOUSE"},
 		]},
 	{"id": "well", "name_key": "BUILDING_WELL", "korean": "umul", "category": "infrastructure",

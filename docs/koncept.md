@@ -322,6 +322,26 @@ Najbolje mesto je **Myeongdang**.
   skladištima, na putu, napravljeno ove godine, koliko zgrada je pravi i zašto neke stoje.
 - Opis zgrade u meniju za gradnju kaže šta zgrada pravi (npr. „Clay + Wood → Onggi Jars“).
 
+## Nazivi u igri (odluka posle Faze 7b)
+
+Glavni naziv je opšti engleski, da ga igrač odmah razume; korejski termin stoji pored, manjim
+slovima (prozor zgrade, opis u meniju). U porukama i statusima ide samo engleski naziv. Korejske
+reči ostaju u lore-u i flavor tekstovima. Hangul pored latinice dolazi sa lokalizacijom.
+
+| Ranije | Naziv u igri | Korejski pored |
+| --- | --- | --- |
+| Seonangdang | Village Shrine | seonangdang |
+| Jangseung | Guardian Posts | jangseung |
+| Onggi Kiln | Pottery Kiln | onggi-gama |
+| Jangdokdae | Fermentation Yard | jangdokdae |
+| Choga Hut / Choga House | Thatched Hut / Thatched House | choga |
+| Giwa House | Tiled House | giwa-jip |
+| Onggi Jars | Clay Jars | onggi |
+| Jang / Ripe Jang | Soybean Paste / Ripe Soybean Paste | jang |
+
+Kategorija Crafts se zove Pottery & Crafts. U ovom dokumentu i u kodu ostaju stari nazivi kao
+oznake (npr. `jangdokdae`, `onggi_jars`).
+
 ## Zgrade
 
 Footprint je u poljima (4 m). Cena u Silver i radnici su *predlog* za MVP zgrade; ostalo se
