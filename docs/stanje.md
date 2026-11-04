@@ -23,7 +23,7 @@ Gotove faze 1–8 (fermentacija u tri dela), brže crtanje zgrada, pregledniji p
 | nazivi | Opšti engleski nazivi, korejski pored (Village Shrine, Pottery Kiln, Fermentation Yard...) | d4028d7 |
 | 7c | Šetači sa stalnim područjem (15 polja, obilasci redom), pločice raspoloženja i potreba iznad kuća (H), bunar bez puta | c658c64 |
 | 8 | Gi mapa (pungsu): Gi iz planine, vode i grebena, uticaj zgrada, Myeongdang, overlay F7, Tiled House traži Gi 30+ | 98f9aeb |
-| 9 | Dokkaebi: upozorenje (plavi plamen u brdu), noć, krađa iz skladišta sa niskim Gi, Guardian Posts ih vraćaju, ponuda na Village Shrine, kolona Stolen | (commit) |
+| 9 | Dokkaebi: upozorenje (plavi plamen u brdu), noć, krađa iz skladišta sa niskim Gi, Guardian Posts ih vraćaju, ponuda na Village Shrine, kolona Stolen | b1e8334 |
 
 ## Sledeće: Faza 10, MVP scenario sa tutorijalom kroz ciljeve
 
