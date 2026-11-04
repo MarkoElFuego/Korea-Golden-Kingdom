@@ -21,7 +21,7 @@ Gotove faze 1–7 (fermentacija u dva dela), brže crtanje zgrada, pregledniji p
 | demo | Demo grad (`scenes/demo_town.tscn`, F6): mala dolina sa svim lancima koji rade od starta | cc48e53 |
 | 7b | Pijaca sa tri tezge (Rice, Jang, Onggi Jars), Ripe Jang, Jang i ćupovi u kućama, Giwa House (nivo 3), overlay F5/F6 | 96ae682 |
 | nazivi | Opšti engleski nazivi, korejski pored (Village Shrine, Pottery Kiln, Fermentation Yard...) | d4028d7 |
-| 7c | Šetači sa stalnim područjem (15 polja, obilasci redom), pločice raspoloženja i potreba iznad kuća (H), bunar bez puta | (sledeći) |
+| 7c | Šetači sa stalnim područjem (15 polja, obilasci redom), pločice raspoloženja i potreba iznad kuća (H), bunar bez puta | c658c64 |
 
 ## Sledeće: Faza 8, Gi mapa (pungsu)
 
