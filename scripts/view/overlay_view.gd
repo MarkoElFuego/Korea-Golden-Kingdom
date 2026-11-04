@@ -1,5 +1,6 @@
 extends Node3D
-## Service overlays (CLAUDE.md, "Čitljiv interfejs"): F1 water, F2 food, F3 Seonangdang.
+## Service overlays (CLAUDE.md, "Čitljiv interfejs"): F1 water, F2 food, F3 Seonangdang,
+## F5 Jang, F6 Onggi Jars (the last two for houses from tier 2, which want them).
 ## Buildings fade, and every settled house gets a column, Zeus style: tall and green when
 ## the service is fresh, short and red when it is missing. The water overlay also tints
 ## the ground each Well reaches. The same key closes the overlay. Only reads the city.
@@ -90,7 +91,7 @@ func _draw_columns() -> void:
 	var colors: Array[Color] = []
 	for id: int in houses.state:
 		var instance: Dictionary = city.buildings.get_instance(id)
-		if instance["tier"] == 0:
+		if instance["tier"] == 0 or (mode in ["jang", "jars"] and not houses.wants_jang(id)):
 			continue
 		var level := _level(instance)
 		var h := maxf(0.4, level * COLUMN_MAX)
@@ -114,6 +115,10 @@ func _level(instance: Dictionary) -> float:
 			if since < 0:
 				return 0.0
 			return clampf(1.0 - since / float(Balance.SERVICE_DAYS), 0.0, 1.0)
+		"jang":
+			return clampf(houses.state[id]["jang"] / float(Houses.pantry_size(instance["tier"])), 0.0, 1.0)
+		"jars":
+			return clampf(houses.jars_days(id) / float(Balance.JARS_LAST_DAYS), 0.0, 1.0)
 	return 0.0
 
 

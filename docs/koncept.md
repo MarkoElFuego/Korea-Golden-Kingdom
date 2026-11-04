@@ -208,6 +208,22 @@ je i skladište i proizvodnja.
   a prazan ćup nema poklopac.
 - Kvarenje leti (bez senke) ostaje za posle MVP-a.
 
+**Odluke iz Faze 7b:**
+
+- Iz ćupa izlaze dve robe: **Jang** (Fresh) i **Ripe Jang**. Kad kupac uzme Jang, ćup je prazan i
+  puni se ponovo.
+- Pijaca ima tri tezge: Rice (16, kupac donosi 8), Jang (8, donosi 4, prvo Ripe) i Onggi Jars
+  (4, donosi 2). Kupac ide po robu tezge koja je najpraznija. *predlog*
+- Prodavac nosi do 4 tovara pirinča, 2 Jang-a i 1 tovar ćupova. Pirinač daje svim kućama, a Jang
+  i ćupove kućama od nivoa 2. *predlog*
+- Jang se jede kao pirinač (porcija po stanovniku dnevno, ostava za 30 dana); tovar Fresh = 320
+  porcija, Ripe = 640. Komplet ćupova traje godinu dana; jedan tovar = 4 kuće; prodavac ga
+  menja kad starom ostane manje od 30 dana. *predlog*
+- Choga House sa Jang-om i ćupovima postaje **Giwa House** (20 stanovnika); bez njih se posle
+  10 dana vraća na nivo 2.
+- Overlay F5 (Jang) i F6 (Onggi Jars); prozor kuće pokazuje dane Jang-a i ćupova; Show range na
+  pijaci boji kuće po hrani.
+
 ## Pungsu i Gi
 
 Svako polje ima Gi (0–100). Gi teče niz glavnu planinu (baesan) i skuplja se u dolini ispred

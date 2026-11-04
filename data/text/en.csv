@@ -98,7 +98,6 @@ NEED_FOOD,Rice
 NEED_SEONANGDANG,Seonangdang
 NEED_JANG,Jang
 NEED_ONGGI_JARS,Onggi Jars
-NEED_NOT_YET,(not in the valley yet)
 UI_HOUSE_RESIDENTS,"Residents: %d of %d"
 UI_HOUSE_NEXT_TIER,"To become %s:"
 UI_HOUSE_KEEP_TIER,"Missing, the house will drop a level in %d days:"
@@ -116,9 +115,8 @@ UI_HOUSE_VENDOR_PASSED,"Market vendor last passed %d days ago."
 UI_HOUSE_VENDOR_NEVER,No Market vendor walks past this house.
 UI_HOUSE_KEEPER_PASSED,"Shrine keeper last passed %d days ago."
 UI_HOUSE_KEEPER_NEVER,No shrine keeper walks past this house.
-STATUS_BUYER_OUT,The Buyer is fetching rice from a Granary.
+STATUS_BUYER_OUT,"The Buyer is fetching %s."
 STATUS_VENDORS_OUT,"Vendors on the streets: %d."
-STATUS_NO_RICE_TO_SELL,"No rice to sell: the Buyer finds no Granary with rice and workers by road."
 STATUS_MARKET_READY,A vendor sets out soon.
 STATUS_KEEPER_OUT,"Shrine keepers walking the streets: %d."
 STATUS_KEEPER_RESTS,The shrine keeper sets out soon.
@@ -183,3 +181,11 @@ UI_WORKERS_MORE,More houses bring more workers.
 UI_SHOW_RANGE,Show range
 UI_HIDE_RANGE,Hide range
 UI_SHOW_RANGE_TIP,"Shows on the map what this building reaches. Houses in range: green when they have its service, red when not."
+GOOD_RIPE_JANG,Ripe Jang
+STATUS_MARKET_LACKS,"No %s to sell: the Buyer finds no %s in reach by road."
+UI_HOUSE_JANG,"Jang for %d days."
+UI_HOUSE_JANG_EMPTY,No Jang in the house.
+UI_HOUSE_JARS,"Onggi Jars: %d days left."
+UI_HOUSE_JARS_NONE,No Onggi Jars in the house.
+OVERLAY_JANG,Jang
+OVERLAY_JARS,Onggi Jars

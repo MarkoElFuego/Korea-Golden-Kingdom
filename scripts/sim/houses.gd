@@ -9,7 +9,9 @@ extends RefCounted
 ##
 ## Water comes from a Well within its radius. Food and services come with walkers
 ## (services.gd): a Market vendor fills the pantry, which the residents eat from every day;
-## a shrine keeper's visit counts for SERVICE_DAYS days.
+## a shrine keeper's visit counts for SERVICE_DAYS days. From tier 2 the vendor also fills a
+## Jang pantry (eaten like rice; Ripe Jang lasts twice as long) and leaves a set of Onggi
+## Jars that lasts JARS_LAST_DAYS: with both, a Choga House becomes a Giwa House.
 
 const Balance = preload("res://scripts/data/balance.gd")
 const Buildings = preload("res://scripts/data/buildings.gd")
@@ -17,7 +19,8 @@ const Buildings = preload("res://scripts/data/buildings.gd")
 const HOUSE := "common_house"
 
 ## id -> {"residents": people, "incoming": people walking here, "missing_days": days,
-##        "food": portions in the pantry, "visits": {service: tick of the last walker}}
+##        "food": portions in the pantry, "jang": portions of Jang, "jars_until": tick its
+##        Onggi Jars last until, "visits": {service: tick of the last walker}}
 var state := {}
 var _city: WeakRef
 static var _needs := {} # tier -> needs_for(tier), built once
@@ -30,7 +33,8 @@ func _init(city) -> void:
 
 func add_building(instance: Dictionary) -> void:
 	if instance["type"] == HOUSE:
-		state[instance["id"]] = {"residents": 0, "incoming": 0, "missing_days": 0, "food": 0, "visits": {}}
+		state[instance["id"]] = {"residents": 0, "incoming": 0, "missing_days": 0, "food": 0, "jang": 0,
+			"jars_until": 0, "visits": {}}
 
 
 func remove_building(instance: Dictionary) -> void:
@@ -87,7 +91,11 @@ func is_met(instance: Dictionary, need: String) -> bool:
 		"seonangdang":
 			var since := days_since(instance["id"], "seonangdang")
 			return since >= 0 and since < Balance.SERVICE_DAYS
-	return false # goods that do not exist yet (Jang, Onggi Jars)
+		"jang":
+			return state[instance["id"]]["jang"] > 0
+		"onggi_jars":
+			return state[instance["id"]]["jars_until"] > _city.get_ref().clock.tick
+	return false
 
 
 ## Portions the pantry holds when full (PANTRY_DAYS for the house's people at its tier).
@@ -102,6 +110,42 @@ func give_food(id: int, portions: int) -> int:
 	var n := clampi(pantry_size(tier) - s["food"], 0, portions)
 	s["food"] += n
 	return n
+
+
+## Houses from tier 2 want Jang and Onggi Jars (the needs of the next tier).
+func wants_jang(id: int) -> bool:
+	return _city.get_ref().buildings.get_instance(id)["tier"] >= 2
+
+
+## A vendor offers `portions` of Jang; returns how many the Jang pantry took.
+func give_jang(id: int, portions: int) -> int:
+	var tier: int = _city.get_ref().buildings.get_instance(id)["tier"]
+	var s: Dictionary = state[id]
+	var n := clampi(pantry_size(tier) - s["jang"], 0, portions)
+	s["jang"] += n
+	return n
+
+
+## A vendor offers a set of Onggi Jars; true when the house took it (its old set is gone
+## or has less than JARS_RENEW_DAYS left).
+func give_jars(id: int, tick: int) -> bool:
+	var s: Dictionary = state[id]
+	if s["jars_until"] - tick > Balance.JARS_RENEW_DAYS * Balance.TICKS_PER_DAY:
+		return false
+	s["jars_until"] = tick + Balance.JARS_LAST_DAYS * Balance.TICKS_PER_DAY
+	return true
+
+
+## Days the Jang pantry lasts at the current number of residents.
+func jang_days(id: int) -> int:
+	var s: Dictionary = state[id]
+	return 0 if s["residents"] == 0 else floori(s["jang"] / float(s["residents"]))
+
+
+## Whole days the house's Onggi Jars still last (0 when it has none).
+func jars_days(id: int) -> int:
+	var left: int = state[id]["jars_until"] - _city.get_ref().clock.tick
+	return maxi(0, floori(left / float(Balance.TICKS_PER_DAY)))
 
 
 ## Days the pantry lasts at the current number of residents.
@@ -128,6 +172,7 @@ func daily() -> Array[Dictionary]:
 	var city = _city.get_ref()
 	for s: Dictionary in state.values():
 		s["food"] = maxi(0, s["food"] - s["residents"])
+		s["jang"] = maxi(0, s["jang"] - s["residents"])
 	for id: int in state:
 		var instance: Dictionary = city.buildings.get_instance(id)
 		var tier: int = instance["tier"]

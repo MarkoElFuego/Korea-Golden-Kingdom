@@ -343,7 +343,7 @@ func status(instance: Dictionary) -> Dictionary:
 
 
 ## What a building reaches, for the window's "Show range": {"tiles": {tile: true} it covers,
-## "houses": {house id: true when the house has that service now}}.
+## "houses": {house id: true when the house has that service now (a Market: food at home)}}.
 func range_of(instance: Dictionary) -> Dictionary:
 	var tiles := coverage_preview(instance["type"], instance["origin"], instance["rotation"])
 	var need: String = Buildings.get_building(instance["type"]).get("serves", "")
@@ -353,8 +353,8 @@ func range_of(instance: Dictionary) -> Dictionary:
 		if reached.has(id) or not houses.state.has(id) or buildings.get_instance(id)["tier"] == 0:
 			continue
 		var house := buildings.get_instance(id)
-		if need == "water":
-			reached[id] = houses.is_met(house, "water")
+		if need == "water" or need == "market":
+			reached[id] = houses.is_met(house, "water" if need == "water" else "food")
 		else:
 			var since := houses.days_since(id, need)
 			reached[id] = since >= 0 and since < Balance.SERVICE_DAYS
@@ -412,6 +412,7 @@ func set_ripe_only(id: int, on: bool) -> void:
 	if not economy.state.has(id) or not economy.state[id].has("ripe_only"):
 		return
 	economy.state[id]["ripe_only"] = on
+	economy.note_source(Economy.fermentation(economy.state[id]["type"])["good"]) # Fresh Jang may go again
 	command_log.append([clock.tick, "ripe_only", id, on])
 	economy.stock_changed.emit(id)
 

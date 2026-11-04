@@ -13,7 +13,8 @@ const GOODS := {
 	"soybeans": {"name_key": "GOOD_SOYBEANS", "kind": "ingredient", "color": "#c9a94a"},
 	"salt": {"name_key": "GOOD_SALT", "kind": "ingredient", "color": "#f2efe6"},
 	"onggi_jars": {"name_key": "GOOD_ONGGI_JARS", "kind": "material", "color": "#6b4a32"}, # dark glazed clay
-	"jang": {"name_key": "GOOD_JANG", "kind": "fermented", "color": "#5a3a22"}, # soybean paste
+	"jang": {"name_key": "GOOD_JANG", "kind": "fermented", "color": "#7a5232"}, # soybean paste, Fresh
+	"ripe_jang": {"name_key": "GOOD_RIPE_JANG", "kind": "fermented", "color": "#3e2616"}, # two seasons older
 }
 
 

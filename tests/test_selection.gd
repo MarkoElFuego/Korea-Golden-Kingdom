@@ -49,15 +49,16 @@ func test_a_well_shows_the_houses_it_waters() -> void:
 	check(not reach["houses"].has(far), "the far house is out of range")
 
 
-func test_a_market_shows_who_its_vendor_has_reached() -> void:
+func test_a_market_shows_which_houses_have_food() -> void:
 	var c := _city()
 	c.place_building("market", Vector2i(2, 6))
 	var market: int = c.building_at(Vector2i(2, 6))["id"]
 	var house := _house(c, Vector2i(8, 6))
-	check_eq(c.range_of(c.buildings.get_instance(market))["houses"].get(house), false, "no vendor has passed yet")
+	c.houses.state[house]["food"] = 0
+	check_eq(c.range_of(c.buildings.get_instance(market))["houses"].get(house), false, "an empty pantry")
 	c.economy.add(market, "rice", 8)
 	_days(c, 6)
-	check_eq(c.range_of(c.buildings.get_instance(market))["houses"].get(house), true, "the vendor has been by")
+	check_eq(c.range_of(c.buildings.get_instance(market))["houses"].get(house), true, "the vendor has filled it")
 
 
 func test_the_window_says_what_each_walker_does() -> void:

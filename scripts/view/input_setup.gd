@@ -19,6 +19,8 @@ const ACTIONS := {
 	"overlay_water": [KEY_F1],
 	"overlay_food": [KEY_F2],
 	"overlay_seonangdang": [KEY_F3],
+	"overlay_jang": [KEY_F5],
+	"overlay_jars": [KEY_F6],
 	"goods_window": [KEY_F4],
 }
 

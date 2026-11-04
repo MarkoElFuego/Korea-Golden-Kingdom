@@ -59,7 +59,7 @@ func test_buyer_brings_rice_from_the_granary() -> void:
 	c.clock.step()
 	check_eq(_walkers(c, "buyer").size(), 1, "the Market sends its Buyer")
 	_run_days(c, 25)
-	var loads: int = Services.market_data("market")["buyer_loads"]
+	var loads: int = Services.market_data("market")["stalls"][0]["buyer_loads"] # the rice stall
 	check_eq(c.economy.stock(granary, "rice"), 10 - loads, "one Buyer's load left the Granary")
 	check(c.economy.stock(market, "rice") + _carried_by_vendors(c) >= loads - 1, "and reached the Market")
 
@@ -77,7 +77,9 @@ func test_no_rice_no_buyer_no_vendor() -> void:
 	c.place_building("market", Vector2i(4, 6))
 	_run_days(c, 20)
 	check_eq(c.services.count(), 0, "nobody walks out")
-	check_eq(c.status(c.building_at(Vector2i(4, 6)))["key"], "STATUS_NO_RICE_TO_SELL", "the window says why")
+	var st: Dictionary = c.status(c.building_at(Vector2i(4, 6)))
+	check_eq(st["key"], "STATUS_MARKET_LACKS", "the window says why")
+	check_eq(st["args"][0], "GOOD_RICE", "no rice")
 
 
 func test_no_workers_no_walkers() -> void:

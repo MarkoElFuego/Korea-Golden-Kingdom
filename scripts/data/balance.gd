@@ -47,6 +47,11 @@ const SETTLER_INTERVAL_TICKS := 20 # a new group leaves the entrance at most thi
 const SETTLER_SPEED := 1.5 # tiles per second at 1x
 const FOOD_PORTIONS_PER_LOAD := 320 # one resident eats one portion a day: a load feeds 40 for 8 days
 const PANTRY_DAYS := 30 # a full house pantry feeds the house this many days
+const JANG_PORTIONS_FRESH := 320 # one resident uses one portion of Jang a day, as with rice
+const JANG_PORTIONS_RIPE := 640 # Ripe Jang lasts twice as long: the reward for waiting
+const JAR_SETS_PER_LOAD := 4 # a load of Onggi Jars furnishes four houses
+const JARS_LAST_DAYS := 360 # a house's set of jars lasts a year
+const JARS_RENEW_DAYS := 30 # a vendor brings new jars when the old ones have this little left
 
 # --- Models (docs/art-bible.md) ---
 const MAX_EAVE_OVERHANG := 0.6 # meters past the footprint edge

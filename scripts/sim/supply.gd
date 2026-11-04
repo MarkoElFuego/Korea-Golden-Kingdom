@@ -114,7 +114,7 @@ func stopped() -> Array[Dictionary]:
 
 
 ## One row per good for the Goods window:
-## {"good", "stored" (in Granaries and Storehouses; Jang: Fresh and Ripe in the jars),
+## {"good", "stored" (in Granaries and Storehouses; Jang and Ripe Jang: in the jars),
 ##  "moving" (on walkers' backs),
 ##  "year" (made this year), "makers" (buildings that make it), "idle" (of them stopped),
 ##  "note" (status of the first stopped maker, or a line when nothing makes it, or {})}.
@@ -132,7 +132,10 @@ func report() -> Array[Dictionary]:
 				rows[good]["stored"] += s["stock"][good]
 		if s.has("jars"):
 			var c: Dictionary = city.fermentation.counts(id)
-			rows[_made(s)]["stored"] += c["fresh"] + c["ripe"]
+			var f: Dictionary = economy.fermentation(s["type"])
+			rows[f["good"]]["stored"] += c["fresh"]
+			rows[f["ripe_good"]]["stored"] += c["ripe"]
+			rows[f["ripe_good"]]["makers"] += 1 # the same yard makes both
 		if _made(s) == "":
 			continue
 		var row: Dictionary = rows[_made(s)]
@@ -154,7 +157,8 @@ func report() -> Array[Dictionary]:
 ## Name key of the building that makes `good`.
 static func _maker_name(good: String) -> String:
 	for b in Buildings.MVP_BUILDINGS:
-		if b.get("produces", {}).get("good", "") == good or b.get("fermentation", {}).get("good", "") == good:
+		var f: Dictionary = b.get("fermentation", {})
+		if b.get("produces", {}).get("good", "") == good or f.get("good", "") == good or f.get("ripe_good", "") == good:
 			return b["name_key"]
 	return ""
 

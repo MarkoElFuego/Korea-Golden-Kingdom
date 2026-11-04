@@ -1,8 +1,10 @@
 extends RefCounted
 ## Walkers sent out by service buildings (docs/koncept.md, "Šetači i distribucija"):
-##   vendor - roaming walker from a Market; houses it passes get rice in their pantry;
+##   vendor - roaming walker from a Market; houses it passes get rice in their pantry, and
+##            houses from tier 2 also Jang (Ripe first) and a set of Onggi Jars;
 ##   keeper - roaming walker from a Seonangdang; houses it passes remember the visit;
-##   buyer  - destination walker from a Market; fetches rice from the nearest Granary.
+##   buyer  - destination walker from a Market; fetches what its emptiest stall lacks: rice
+##            from a Granary, Jang from a Jangdokdae (Ripe first), Onggi Jars from a Storehouse.
 ##            A workshop (Onggi Kiln) or Jangdokdae that has none of an input left sends
 ##            one too (the fetcher): it brings that input from the nearest Storehouse
 ##            that holds it (Onggi Jars for the Jangdokdae).
@@ -14,13 +16,15 @@ extends RefCounted
 ##
 ## A walker is a Dictionary: id, kind, home (building id), path, index, progress
 ## (see walker_motion.gd), serve_end (last path index it serves), served (last index served),
-## food (vendor: portions of rice), cargo (buyer: loads of `good`), want (buyer: loads it
+## food (vendor: portions of rice), jang_ripe / jang_fresh (vendor: portions of Jang),
+## jars (vendor: sets of Onggi Jars), cargo (buyer: loads of `good`), want (buyer: loads it
 ## goes for), reserved (fetcher: loads announced at its workshop), target (buyer: storage
 ## id), state (buyer: "fetch" or "return").
 
 const Balance = preload("res://scripts/data/balance.gd")
 const Buildings = preload("res://scripts/data/buildings.gd")
 const Coverage = preload("res://scripts/sim/coverage.gd")
+const Goods = preload("res://scripts/data/goods.gd")
 const WalkerMotion = preload("res://scripts/sim/walker_motion.gd")
 
 const NO_TILE := Vector2i(-1, -1)
@@ -57,6 +61,14 @@ static func roamer(type: String) -> String:
 
 static func market_data(type: String) -> Dictionary:
 	return Buildings.get_building(type).get("market", {})
+
+
+## Loads a Market holds in one stall (all goods of the stall together).
+func stall_stock(id: int, stall: Dictionary) -> int:
+	var n := 0
+	for good: String in stall["goods"]:
+		n += _city.get_ref().economy.stock(id, good)
+	return n
 
 
 func roamers_out(id: int) -> int:
@@ -130,11 +142,14 @@ func status(instance: Dictionary) -> Dictionary:
 	var out := roamers_out(id)
 	if roamer(instance["type"]) == "vendor":
 		if buyer_out(id):
-			return {"key": "STATUS_BUYER_OUT", "args": []}
+			var w: Dictionary = walkers[_homes[id]["buyer"]]
+			return {"key": "STATUS_BUYER_OUT", "args": [Goods.GOODS[w["good"]]["name_key"]]}
+		for stall: Dictionary in market_data(instance["type"])["stalls"]:
+			if stall_stock(id, stall) <= 0:
+				var good_name: String = Goods.GOODS[stall["goods"][-1]]["name_key"]
+				return {"key": "STATUS_MARKET_LACKS", "args": [good_name, good_name]}
 		if out > 0:
 			return {"key": "STATUS_VENDORS_OUT", "args": [out]}
-		if city.economy.stock(id, market_data(instance["type"])["good"]) <= 0:
-			return {"key": "STATUS_NO_RICE_TO_SELL", "args": []}
 		return {"key": "STATUS_MARKET_READY", "args": []}
 	if out > 0:
 		return {"key": "STATUS_KEEPER_OUT", "args": [out]}
@@ -163,29 +178,67 @@ func _dispatch() -> void:
 			_dispatch_buyer(instance, h)
 		if not roam:
 			continue
-		var food := 0
-		if kind == "vendor":
-			var m := market_data(instance["type"])
-			var loads := mini(m["vendor_loads"], city.economy.stock(id, m["good"]))
-			if loads <= 0:
-				h["next_at"] = now + Balance.BUYER_RETRY_TICKS # nothing to sell yet
-				continue
-			food = loads * Balance.FOOD_PORTIONS_PER_LOAD
-			_sell(id, m["good"], loads)
+		var w := {"id": _next_id, "kind": kind, "home": id, "path": [], "index": 0,
+			"progress": 0.0, "serve_end": -1, "served": -1, "food": 0, "jang_ripe": 0,
+			"jang_fresh": 0, "jars": 0, "cargo": 0, "target": 0, "state": ""}
+		if kind == "vendor" and not _load_vendor(w):
+			h["next_at"] = now + Balance.BUYER_RETRY_TICKS # nothing to sell yet
+			continue
 		var round_trip := _round(instance)
 		if round_trip.is_empty():
-			if food > 0:
-				@warning_ignore("integer_division")
-				_sell(id, market_data(instance["type"])["good"], -food / Balance.FOOD_PORTIONS_PER_LOAD)
+			_unload_vendor(w) # nowhere to go: the goods stay at the Market
 			h["next_at"] = now + Balance.TICKS_PER_DAY # no street to walk: look again tomorrow
 			continue
+		w["path"] = round_trip["path"]
+		w["serve_end"] = round_trip["serve_end"]
 		h["next_at"] = now + ceili(Balance.ROAMER_INTERVAL_DAYS * Balance.TICKS_PER_DAY / eff)
 		h["out"] += 1
-		var w := {"id": _next_id, "kind": kind, "home": id, "path": round_trip["path"], "index": 0,
-			"progress": 0.0, "serve_end": round_trip["serve_end"], "served": -1, "food": food,
-			"cargo": 0, "target": 0, "state": ""}
 		walkers[_next_id] = w
 		_next_id += 1
+
+
+## A vendor takes goods from every stall of its Market: rice for all houses, Jang (Ripe
+## first) and Onggi Jars for houses from tier 2. False when there is nothing to sell.
+func _load_vendor(w: Dictionary) -> bool:
+	var city = _city.get_ref()
+	var id: int = w["home"]
+	var any := false
+	for stall: Dictionary in market_data(city.buildings.get_instance(id)["type"])["stalls"]:
+		var room: int = stall["vendor_loads"]
+		for good: String in stall["goods"]:
+			var loads := mini(room, city.economy.stock(id, good))
+			if loads <= 0:
+				continue
+			_sell(id, good, loads)
+			room -= loads
+			any = true
+			match good:
+				"rice":
+					w["food"] += loads * Balance.FOOD_PORTIONS_PER_LOAD
+				"ripe_jang":
+					w["jang_ripe"] += loads * Balance.JANG_PORTIONS_RIPE
+				"jang":
+					w["jang_fresh"] += loads * Balance.JANG_PORTIONS_FRESH
+				"onggi_jars":
+					w["jars"] += loads * Balance.JAR_SETS_PER_LOAD
+	return any
+
+
+## Unsold whole loads go back to the Market's stalls.
+func _unload_vendor(w: Dictionary) -> void:
+	var portions := {"rice": [w["food"], Balance.FOOD_PORTIONS_PER_LOAD],
+		"ripe_jang": [w["jang_ripe"], Balance.JANG_PORTIONS_RIPE],
+		"jang": [w["jang_fresh"], Balance.JANG_PORTIONS_FRESH],
+		"onggi_jars": [w["jars"], Balance.JAR_SETS_PER_LOAD]}
+	for good: String in portions:
+		@warning_ignore("integer_division")
+		var loads: int = portions[good][0] / portions[good][1]
+		if loads > 0:
+			_sell(w["home"], good, -loads)
+	w["food"] = 0
+	w["jang_ripe"] = 0
+	w["jang_fresh"] = 0
+	w["jars"] = 0
 
 
 ## A Market low on goods sends its Buyer to the nearest Granary that has them; a workshop
@@ -203,9 +256,23 @@ func _dispatch_buyer(instance: Dictionary, h: Dictionary) -> void:
 			if city.economy.incoming(id, good) == 0 and room > 0:
 				wanted.append([good, mini(room, Balance.WORKSHOP_INPUT_STORE)])
 	else:
-		var m := market_data(instance["type"])
-		if city.economy.stock(id, m["good"]) <= m["capacity"] - m["buyer_loads"]:
-			wanted.append([m["good"], m["buyer_loads"]])
+		# The emptiest stall first (by share of its room), each good of it in turn.
+		# Stalls with room for a Buyer's load, the emptiest first (by share of its room; on a
+		# tie, the order of the stalls), each good of a stall in turn.
+		var open: Array = [] # [fill share, stall, loads in it]
+		for stall: Dictionary in market_data(instance["type"])["stalls"]:
+			var has := stall_stock(id, stall)
+			if has > stall["capacity"] - stall["buyer_loads"]:
+				continue
+			var share := has / float(stall["capacity"])
+			var at := open.size()
+			while at > 0 and open[at - 1][0] > share:
+				at -= 1
+			open.insert(at, [share, stall, has])
+		for item: Array in open:
+			var stall: Dictionary = item[1]
+			for good: String in stall["goods"]:
+				wanted.append([good, mini(stall["buyer_loads"], stall["capacity"] - item[2])])
 	for order: Array in wanted:
 		var source: Dictionary = {} if start == NO_TILE else city.carriers.find_source(start, order[0])
 		if source.is_empty():
@@ -288,6 +355,14 @@ func _serve(w: Dictionary, tile: Vector2i) -> void:
 		if w["kind"] == "vendor":
 			houses.visit(id, "market", now)
 			w["food"] -= houses.give_food(id, w["food"])
+			if w["jang_ripe"] + w["jang_fresh"] + w["jars"] == 0 or not houses.wants_jang(id):
+				continue
+			var took: int = houses.give_jang(id, w["jang_ripe"] + w["jang_fresh"])
+			var ripe := mini(took, w["jang_ripe"])
+			w["jang_ripe"] -= ripe
+			w["jang_fresh"] -= took - ripe
+			if w["jars"] > 0 and houses.give_jars(id, now):
+				w["jars"] -= 1
 		else:
 			houses.visit(id, "seonangdang", now)
 
@@ -316,26 +391,23 @@ func _arrive(w: Dictionary) -> void:
 	var city = _city.get_ref()
 	if w["kind"] == "buyer" and w["state"] == "fetch":
 		var good: String = w["good"]
-		var take := mini(w["want"], city.economy.stock(w["target"], good))
+		var source: Dictionary = city.buildings.get_instance(w["target"])
+		var take := mini(w["want"], city.economy.can_give(source, good))
 		if take > 0:
-			city.economy.add(w["target"], good, -take)
+			city.economy.give(w["target"], good, take, city.clock.tick)
 		w["cargo"] = take
 		w["target"] = 0
 		_go_home(w)
 		return
 	var home: Dictionary = city.buildings.get_instance(w["home"])
 	if not home.is_empty():
-		var m := market_data(home["type"])
 		if w["kind"] == "buyer":
 			_unreserve(w)
 			if w["cargo"] > 0:
 				city.economy.add(w["home"], w["good"], w["cargo"])
 				w["cargo"] = 0
 		elif w["kind"] == "vendor":
-			@warning_ignore("integer_division")
-			var loads: int = w["food"] / Balance.FOOD_PORTIONS_PER_LOAD # unsold whole loads go back
-			if loads > 0:
-				_sell(w["home"], m["good"], -loads)
+			_unload_vendor(w)
 	_drop(w)
 
 

@@ -255,6 +255,13 @@ func _walker_lines(instance: Dictionary) -> Array[String]:
 		lines.append(tr("UI_HOUSE_PANTRY") % houses.pantry_days(id))
 	else:
 		lines.append(_red(tr("UI_HOUSE_PANTRY_EMPTY")))
+	if houses.wants_jang(id):
+		if houses.state[id]["jang"] > 0:
+			lines.append(tr("UI_HOUSE_JANG") % houses.jang_days(id))
+		else:
+			lines.append(_red(tr("UI_HOUSE_JANG_EMPTY")))
+		var jars: int = houses.jars_days(id)
+		lines.append(tr("UI_HOUSE_JARS") % jars if jars > 0 else _red(tr("UI_HOUSE_JARS_NONE")))
 	lines.append(_passed_line(houses.days_since(id, "market"), "UI_HOUSE_VENDOR"))
 	lines.append(_passed_line(houses.days_since(id, "seonangdang"), "UI_HOUSE_KEEPER"))
 	return lines
@@ -273,8 +280,6 @@ func _red(text: String) -> String:
 
 func _need_line(instance: Dictionary, need: String) -> String:
 	var text := tr("NEED_" + need.to_upper())
-	if need in ["jang", "onggi_jars"]:
-		text += " " + tr("NEED_NOT_YET")
 	if city.houses.is_met(instance, need):
 		return "[color=#55703a]✓[/color] " + text
 	return "[color=%s]✗ %s[/color]" % [ACCENT.to_html(false), text]

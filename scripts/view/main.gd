@@ -23,7 +23,7 @@ const GoodsPanel = preload("res://scripts/view/goods_panel.gd")
 const SelectionView = preload("res://scripts/view/selection_view.gd")
 const SaveGame = preload("res://scripts/sim/save_game.gd")
 
-const OVERLAY_KEYS := {"water": "F1", "food": "F2", "seonangdang": "F3"}
+const OVERLAY_KEYS := {"water": "F1", "food": "F2", "seonangdang": "F3", "jang": "F5", "jars": "F6"}
 const NOTICE_SECONDS := 3.0
 
 ## Set before (re)loading this scene to play a given city (a loaded save, the big city test).

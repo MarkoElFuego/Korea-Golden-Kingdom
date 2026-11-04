@@ -4,7 +4,7 @@ Poslednje ažuriranje: 3. novembar 2026.
 
 ## Gde smo stali
 
-Gotove faze 1–6, 7a, brže crtanje zgrada, pregledniji prozor zgrade i demo grad. Testova: 154, svi prolaze.
+Gotove faze 1–7 (fermentacija u dva dela), brže crtanje zgrada, pregledniji prozor zgrade i demo grad. Testova: 161, svi prolaze.
 
 | Faza | Šta je urađeno | Commit |
 | --- | --- | --- |
@@ -19,12 +19,12 @@ Gotove faze 1–6, 7a, brže crtanje zgrada, pregledniji prozor zgrade i demo gr
 | 7a | Jangdokdae: ćupovi kao mesta, Jang Fresh → Ripe, dugme Release, ćupovi na terasi; Clay Pit stoji na brdu | 508fcc1 |
 | 7a+ | Prozor zgrade: Show range sa stubićima kuća, šetači zgrade (linije i oznake), radnici grada, okvir izabrane zgrade | 7d34cfd |
 | demo | Demo grad (`scenes/demo_town.tscn`, F6): mala dolina sa svim lancima koji rade od starta | cc48e53 |
+| 7b | Pijaca sa tri tezge (Rice, Jang, Onggi Jars), Ripe Jang, Jang i ćupovi u kućama, Giwa House (nivo 3), overlay F5/F6 | (sledeći) |
 
-## Sledeće: Faza 7b, pijaca i nivo 3
+## Sledeće: Faza 8, Gi mapa (pungsu)
 
-- Pijaca kupuje i prodaje Rice, Jang i Onggi Jars; prodavac nosi sve tri.
-- Kuća ima ostavu za Jang (Ripe traje duplo duže) i ćupove koji traju godinu dana.
-- Kuće rastu u Giwa House (nivo 3); overlay za Jang i ćupove; prozor kuće kaže šta fali.
+- Svako polje ima Gi (0–100), koji teče niz planinu i skuplja se u dolini; zgrade ga menjaju.
+- Overlay Gi; visok Gi pomaže kućama, nizak im smeta.
 
 Prvo plan, pa kod posle vlasnikovog „ok".
 
@@ -32,9 +32,9 @@ Prvo plan, pa kod posle vlasnikovog „ok".
 
 - `scenes/demo_town.tscn` + F6: gotov mali grad sa svim lancima (najbrže za probu).
 - `scenes/big_city.tscn` + F6: veliki grad za merenje brzine (FPS u uglu).
-- Ctrl+S snima, Ctrl+L učitava najnoviji sejv. Sejvovi iz starijih verzija (pre Faze 7a) se ne
+- Ctrl+S snima, Ctrl+L učitava najnoviji sejv. Sejvovi iz starijih verzija (pre Faze 7b) se ne
   učitavaju; igra to kaže porukom.
-- Prečice: F1–F3 overlay-i (voda, hrana, Seonangdang), F4 prozor Goods, klik na zgradu = prozor
+- Prečice: F1–F3 overlay-i (voda, hrana, Seonangdang), F5 Jang, F6 ćupovi, F4 prozor Goods, klik na zgradu = prozor
   zgrade (Show range, šetači, radnici).
 
 ## Utisci vlasnika posle igranja

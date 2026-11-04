@@ -4,6 +4,8 @@ extends RefCounted
 ## Every load of Onggi Jars brought to it becomes one jar (up to max_jars). Once a day, with
 ## workers, each empty jar takes one load of each input (Soybeans, Salt) and starts brewing;
 ## nature does the rest, workers or not: Fresh after fresh_days, Ripe ripe_days later.
+## A Market buyer takes Jang out of the jars (economy.give), and the jar is filled again.
+## Ripening turns a load of Jang into a load of Ripe Jang (counted as used and produced).
 ## The jars live in the Jangdokdae's economy state ("jars": [{"state", "at"}]), so they are
 ## saved with it. A jar's state is "empty", "brewing", "fresh" or "ripe"; "at" is the tick it
 ## was filled. "ripe_only" (the player's choice) keeps Fresh Jang in its jar until it is Ripe.
@@ -37,11 +39,12 @@ func daily() -> void:
 			var age: int = now - jar["at"]
 			if jar["state"] == "brewing" and age >= fresh_at:
 				jar["state"] = "fresh"
-				economy.produced[f["good"]] = economy.produced.get(f["good"], 0) + 1
-				economy.produced_year[f["good"]] = economy.produced_year.get(f["good"], 0) + 1
+				_made(economy, f["good"])
 				changed = true
 			elif jar["state"] == "fresh" and age >= ripe_at:
 				jar["state"] = "ripe"
+				economy.used[f["good"]] = economy.used.get(f["good"], 0) + 1
+				_made(economy, f["ripe_good"])
 				changed = true
 		if s["eff"] > 0.0:
 			while economy.stock(id, "onggi_jars") > 0 and s["jars"].size() < f["max_jars"]:
@@ -80,6 +83,12 @@ func ready(id: int) -> int:
 
 func ripe_only(id: int) -> bool:
 	return _city.get_ref().economy.state[id]["ripe_only"]
+
+
+static func _made(economy, good: String) -> void:
+	economy.produced[good] = economy.produced.get(good, 0) + 1
+	economy.produced_year[good] = economy.produced_year.get(good, 0) + 1
+	economy.note_source(good) # a Market buyer may find it now
 
 
 static func _has_all(economy, id: int, goods: Array) -> bool:

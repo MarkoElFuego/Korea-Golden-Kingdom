@@ -9,6 +9,8 @@ extends RefCounted
 ## korean: Revised Romanization, "" when the concept has no term.
 ## coverage (optional): {"type": "radius", "tiles": n} serves every tile within n tiles;
 ##   {"type": "walker"} serves along the roads its roaming walker can reach.
+## market (optional): "stalls", each with goods (in the order a buyer looks for them),
+##   capacity, buyer_loads (fetched when the stall has room for them) and vendor_loads.
 ## serves (optional): the house need it covers ("water", "market", "seonangdang"), for the
 ##   building window's "Show range" (which houses in range are served).
 ## near_terrain (optional): this terrain must lie within "tiles" of the footprint.
@@ -23,7 +25,8 @@ extends RefCounted
 ##   it keeps up to Balance.WORKSHOP_INPUT_STORE of each input.
 ## fermentation (optional, Jangdokdae): every Onggi Jars load brought becomes one jar, up to
 ##   "max_jars"; an empty jar takes one load of each of "inputs" and holds "good" that is
-##   Fresh after "fresh_days" and Ripe "ripe_days" later (docs/koncept.md, "Fermentacija").
+##   Fresh after "fresh_days" and becomes "ripe_good" "ripe_days" later (docs/koncept.md,
+##   "Fermentacija"). Taking the Jang out empties the jar for the next batch.
 ## storage (optional): {"accepts": goods kind, "capacity": loads} or, Storehouse-style,
 ##   {"accepts": kind, "slots": n, "slot_size": loads}, one good per slot (as in Zeus).
 
@@ -71,7 +74,11 @@ const MVP_BUILDINGS: Array[Dictionary] = [
 	{"id": "market", "name_key": "BUILDING_MARKET", "korean": "sijang", "category": "distribution",
 		"footprint": Vector2i(3, 3), "height_class": "low", "cost": 40, "workers": 6, "roof": "thatch", "terrain": [],
 		"coverage": {"type": "walker"}, "roamer": "vendor", "serves": "market",
-		"market": {"good": "rice", "capacity": 16, "buyer_loads": 8, "vendor_loads": 4}},
+		"market": {"stalls": [
+			{"goods": ["rice"], "capacity": 16, "buyer_loads": 8, "vendor_loads": 4},
+			{"goods": ["ripe_jang", "jang"], "capacity": 8, "buyer_loads": 4, "vendor_loads": 2},
+			{"goods": ["onggi_jars"], "capacity": 4, "buyer_loads": 2, "vendor_loads": 1},
+		]}},
 	{"id": "seonangdang", "name_key": "BUILDING_SEONANGDANG", "korean": "seonangdang", "category": "religion",
 		"footprint": Vector2i(1, 1), "height_class": "low", "cost": 25, "workers": 2, "roof": "none", "terrain": [],
 		"coverage": {"type": "walker"}, "roamer": "keeper", "service": "seonangdang", "serves": "seonangdang"},
@@ -99,7 +106,7 @@ const MVP_BUILDINGS: Array[Dictionary] = [
 		"produces": {"good": "salt", "days": 6}},
 	{"id": "jangdokdae", "name_key": "BUILDING_JANGDOKDAE", "korean": "jangdokdae", "category": "fermentation",
 		"footprint": Vector2i(2, 2), "height_class": "low", "cost": 50, "workers": 4, "roof": "none", "terrain": [],
-		"fermentation": {"inputs": ["soybeans", "salt"], "good": "jang", "max_jars": 8, "fresh_days": 10,
+		"fermentation": {"inputs": ["soybeans", "salt"], "good": "jang", "ripe_good": "ripe_jang", "max_jars": 8, "fresh_days": 10,
 			"ripe_days": 60}},
 ]
 

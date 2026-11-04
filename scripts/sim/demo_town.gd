@@ -2,7 +2,8 @@ extends RefCounted
 ## The demo town (scenes/demo_town.tscn): a small working town on a hand-made valley, for
 ## trying the game without building from scratch. Every chain runs from the start:
 ## Rice Paddies -> Granary -> Markets -> houses; Clay Pit and Woodcutter -> Onggi Kiln ->
-## Onggi Jars -> Jangdokdae; Soybean Fields and Salt Pans -> Jangdokdae -> Jang.
+## Onggi Jars -> Jangdokdae; Soybean Fields and Salt Pans -> Jangdokdae -> Jang; Markets
+## sell rice, Jang and Onggi Jars, so Choga Houses can become Giwa Houses.
 ## Houses start lived in (some already Choga Houses), a few lots wait for settlers, and
 ## there is Silver to build on.
 
@@ -36,9 +37,9 @@ static func build() -> City:
 	# North of the valley road: fields, and Salt Pans on the shore.
 	for x in [1, 4, 7, 10]:
 		_place(c, "rice_paddy", Vector2i(x, 7))
-	for x in [13, 16]:
+	for x in [13, 16, 19, 22]:
 		_place(c, "soybean_field", Vector2i(x, 7))
-	for x in [55, 58]:
+	for x in [55, 58, 61]:
 		_place(c, "salt_pans", Vector2i(x, 7))
 
 	# South of the valley road: the workshops and the town center.

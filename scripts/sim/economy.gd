@@ -73,8 +73,8 @@ func remove_building(instance: Dictionary) -> void:
 	for good: String in s.get("stock", {}):
 		lost[good] = lost.get(good, 0) + s["stock"][good]
 	for jar: Dictionary in s.get("jars", []):
-		if jar["state"] == "fresh" or jar["state"] == "ripe":
-			var made: String = fermentation(instance["type"])["good"]
+		var made := jar_good(instance["type"], jar["state"])
+		if made != "":
 			lost[made] = lost.get(made, 0) + 1
 	state.erase(instance["id"])
 	waiting.erase(instance["id"])
@@ -100,6 +100,52 @@ static func inputs(type: String) -> Array:
 
 static func fermentation(type: String) -> Dictionary:
 	return Buildings.get_building(type).get("fermentation", {})
+
+
+## The good a Jangdokdae jar in `jar_state` holds ("" while empty or brewing).
+static func jar_good(type: String, jar_state: String) -> String:
+	match jar_state:
+		"fresh":
+			return fermentation(type)["good"]
+		"ripe":
+			return fermentation(type)["ripe_good"]
+	return ""
+
+
+## Loads of `good` a staffed building can hand out to a buyer: a storage's stock, or a
+## Jangdokdae's jars of that Jang (Fresh only when the player lets Fresh Jang go).
+func can_give(instance: Dictionary, good: String) -> int:
+	var s: Dictionary = state[instance["id"]]
+	if s["eff"] <= 0.0:
+		return 0
+	if s.has("jars"):
+		if good == fermentation(s["type"]).get("good", "") and s["ripe_only"]:
+			return 0
+		var n := 0
+		for jar: Dictionary in s["jars"]:
+			if jar_good(s["type"], jar["state"]) == good:
+				n += 1
+		return n
+	return s["stock"].get(good, 0) if accepts(s["type"], good) else 0
+
+
+## A buyer takes `loads` of `good` (at most can_give). Jars it takes from are empty again.
+func give(id: int, good: String, loads: int, tick: int) -> void:
+	var s: Dictionary = state[id]
+	if not s.has("jars"):
+		add(id, good, -loads)
+		return
+	for jar: Dictionary in s["jars"]:
+		if loads > 0 and jar_good(s["type"], jar["state"]) == good:
+			jar["state"] = "empty"
+			jar["at"] = tick
+			loads -= 1
+	stock_changed.emit(id)
+
+
+## A load of `good` became available somewhere a fetcher may look (see source_version).
+func note_source(good: String) -> void:
+	_added[good] = _added.get(good, 0) + 1
 
 
 static func storage(type: String) -> Dictionary:

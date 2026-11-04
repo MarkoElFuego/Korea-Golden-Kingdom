@@ -16,3 +16,10 @@ func test_demo_town_is_built_whole_and_works() -> void:
 	check(c.economy.produced.get("onggi_jars", 0) > 0, "the kiln makes jars")
 	check(c.economy.produced.get("jang", 0) > 0, "Jang is made")
 	check(c.population() > 200, "the town lives on (%d people)" % c.population())
+	for i in 30 * Balance.TICKS_PER_DAY:
+		c.clock.step()
+	var giwa := 0
+	for instance: Dictionary in c.buildings.all():
+		if instance["type"] == "common_house" and instance["tier"] == 3:
+			giwa += 1
+	check(giwa > 0, "Giwa Houses after 90 days (%d)" % giwa)

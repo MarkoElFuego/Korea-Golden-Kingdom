@@ -117,8 +117,8 @@ func find_storage(start: Vector2i, good: String) -> Dictionary:
 	return found
 
 
-## Nearest staffed storage (by road) that holds `good`: {"id", "path"}, or {}
-## (Market buyers, workshop fetchers). Workshops are never a source.
+## Nearest staffed storage (by road) that holds `good`, or Jangdokdae with that Jang ready:
+## {"id", "path"}, or {} (Market buyers, workshop fetchers). Workshops are never a source.
 func find_source(start: Vector2i, good: String) -> Dictionary:
 	var city = _city.get_ref()
 	if not city.grid.is_road(start):
@@ -131,8 +131,7 @@ func find_source(start: Vector2i, good: String) -> Dictionary:
 	if _no_source.get(good, {}).get(start, []) == version:
 		return {}
 	var found := _search(start, func(instance: Dictionary) -> bool:
-		return economy.accepts(instance["type"], good) and economy.state[instance["id"]]["eff"] > 0.0 \
-			and economy.stock(instance["id"], good) > 0)
+		return economy.can_give(instance, good) > 0)
 	if found.is_empty():
 		if not _no_source.has(good):
 			_no_source[good] = {}
@@ -206,6 +205,10 @@ func _ensure_index() -> void:
 		for good: String in Goods.ids():
 			if economy.accepts(instance["type"], good):
 				takes.append(good)
+				_stores[good] = _stores.get(good, 0) + 1
+		var f: Dictionary = economy.fermentation(instance["type"])
+		for good: String in [f.get("good", ""), f.get("ripe_good", "")]:
+			if good != "":
 				_stores[good] = _stores.get(good, 0) + 1
 		for good: String in takes:
 			_takers[good] = _takers.get(good, 0) + 1

@@ -99,6 +99,8 @@ func _process(_delta: float) -> void:
 				_add("body", _body(frame), VENDOR_COLOR)
 				var basket: String = Goods.GOODS["rice"]["color"] if w["food"] > 0 else BASKET_COLOR
 				_add("basket", frame.translated_local(Vector3(0, Balance.HUMAN_HEIGHT + 0.11, 0)), basket)
+				if w["jang_ripe"] + w["jang_fresh"] > 0: # a small crock of Jang on top
+					_add("load", frame.translated_local(Vector3(0, Balance.HUMAN_HEIGHT + 0.35, 0)).scaled_local(Vector3.ONE * 0.45), Goods.GOODS["jang"]["color"])
 			"keeper":
 				var frame := _walker_frame(w, roamer_ahead)
 				_add("body", _body(frame), KEEPER_COLOR)
