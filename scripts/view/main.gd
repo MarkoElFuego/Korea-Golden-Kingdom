@@ -21,6 +21,7 @@ const InfoPanel = preload("res://scripts/view/info_panel.gd")
 const OverlayView = preload("res://scripts/view/overlay_view.gd")
 const GoodsPanel = preload("res://scripts/view/goods_panel.gd")
 const SelectionView = preload("res://scripts/view/selection_view.gd")
+const HouseSigns = preload("res://scripts/view/house_signs.gd")
 const SaveGame = preload("res://scripts/sim/save_game.gd")
 
 const OVERLAY_KEYS := {"water": "F1", "food": "F2", "seonangdang": "F3", "jang": "F5", "jars": "F6"}
@@ -37,6 +38,7 @@ var camera_rig: CameraRig
 var build_tool: BuildTool
 var overlay: OverlayView
 var goods_panel: GoodsPanel
+var house_signs: HouseSigns
 var _overlay_label: Label
 var _notice: Label
 var _notice_time := 0.0
@@ -69,6 +71,11 @@ func _ready() -> void:
 	walker_view.name = "Walkers"
 	add_child(walker_view)
 	walker_view.setup(city)
+
+	house_signs = HouseSigns.new()
+	house_signs.name = "HouseSigns"
+	add_child(house_signs)
+	house_signs.setup(city)
 
 	var selection := SelectionView.new()
 	selection.name = "Selection"
@@ -253,6 +260,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		city.clock.set_speed(3)
 	elif event.is_action_pressed("goods_window", false, true):
 		goods_panel.toggle()
+	elif event.is_action_pressed("house_signs", false, true):
+		notice(tr("UI_HOUSE_SIGNS_" + house_signs.next_mode().to_upper()))
 	else:
 		for mode: String in OVERLAY_KEYS:
 			if event.is_action_pressed("overlay_" + mode, false, true):

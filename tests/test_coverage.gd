@@ -30,13 +30,37 @@ func test_walker_needs_a_road() -> void:
 	check(c.coverage_preview("market", Vector2i(5, 5)).is_empty(), "no road, no walker coverage")
 
 
-func test_walker_walks_at_most_30_road_tiles() -> void:
+func test_walker_area_is_15_road_tiles() -> void:
 	var c := _flat_city(64)
 	c.build_road(Vector2i(0, 4), Vector2i(60, 4))
-	# Seonangdang at (0, 5), touching the road tile (0, 4).
+	# Village Shrine at (0, 5), touching the road tile (0, 4).
 	var roads := Coverage.walker_roads(c.grid, Vector2i(0, 5), Vector2i.ONE)
-	check_eq(roads.size(), Balance.WALKER_MAX_ROAD_TILES, "30 road tiles")
-	check(roads.has(Vector2i(29, 4)) and not roads.has(Vector2i(30, 4)), "turns back after 30")
+	check_eq(roads.size(), Balance.WALKER_AREA_ROAD_TILES, "15 road tiles")
+	check(roads.has(Vector2i(14, 4)) and not roads.has(Vector2i(15, 4)), "the area ends after 15")
+
+
+func test_rounds_walk_every_street_of_the_area() -> void:
+	var c := _flat_city(64)
+	for y in [4, 8, 12]:
+		c.build_road(Vector2i(0, y), Vector2i(30, y))
+	for x in [0, 10, 20]:
+		c.build_road(Vector2i(x, 4), Vector2i(x, 12))
+	var area := Coverage.walker_area(c.grid, Vector2i(10, 9), Vector2i(2, 2))
+	var roads: Dictionary = area["parent"]
+	var rounds := Coverage.walker_rounds(area)
+	check(rounds.size() > 1, "a big area takes several rounds (%d)" % rounds.size())
+	var served := {}
+	for r: Dictionary in rounds:
+		var path: Array = r["path"]
+		check_eq(path[0], area["start"], "a round starts at the door")
+		check_eq(path[-1], area["start"], "and ends there")
+		for i in path.size():
+			check(roads.has(path[i]), "never leaves the area")
+			if i > 0:
+				check_eq((path[i] - path[i - 1]).length_squared(), 1, "one road tile at a time")
+			if i <= r["serve_end"]:
+				served[path[i]] = true
+	check_eq(served.size(), roads.size(), "together the rounds serve every street of the area")
 
 
 func test_walker_serves_2_tiles_from_road() -> void:

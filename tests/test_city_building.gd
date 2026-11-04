@@ -149,3 +149,11 @@ func test_same_commands_same_city() -> void:
 	check(a.grid.occupant == b.grid.occupant, "same tiles")
 	check_eq(b.treasury, a.treasury, "same treasury")
 	check_eq(b.buildings.count(), a.buildings.count(), "same buildings")
+
+
+func test_a_well_needs_no_road() -> void:
+	var c := _flat_city()
+	c.place_building("well", Vector2i(8, 8))
+	check_eq(c.status(c.building_at(Vector2i(8, 8)))["key"], "", "no road warning for a Well")
+	c.place_building("granary", Vector2i(12, 8))
+	check_eq(c.status(c.building_at(Vector2i(12, 8)))["key"], "STATUS_NO_ROAD_CARRIERS", "a Granary still needs one")

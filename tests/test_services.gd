@@ -2,6 +2,7 @@ extends "res://tests/test_base.gd"
 ## Market Buyer and Vendor, the shrine keeper, house pantries and visits (phase 4b).
 
 const Balance = preload("res://scripts/data/balance.gd")
+const Coverage = preload("res://scripts/sim/coverage.gd")
 const Grid = preload("res://scripts/sim/grid.gd")
 const City = preload("res://scripts/sim/city.gd")
 const Services = preload("res://scripts/sim/services.gd")
@@ -173,15 +174,21 @@ func test_seonangdang_visit_lasts_30_days() -> void:
 	check(not c.houses.is_met(house, "seonangdang"), "gone after 30 days")
 
 
-func test_roaming_walker_turns_home_after_30_road_tiles() -> void:
+func test_keepers_take_the_rounds_of_their_area_in_turn() -> void:
 	var c := _city(63)
 	c.place_building("seonangdang", Vector2i(32, 6))
+	var shrine := c.building_at(Vector2i(32, 6))
+	var area := Coverage.walker_roads(c.grid, shrine["origin"], shrine["size"])
 	c.clock.step()
 	var keepers := _walkers(c, "keeper")
 	check_eq(keepers.size(), 1, "one keeper sets out")
 	var w := keepers[0]
-	check_eq(w["serve_end"], Balance.WALKER_MAX_ROAD_TILES - 1, "serves 30 road tiles")
-	check_eq(w["path"][-1], w["path"][0], "then walks back to the door")
+	check_eq(w["round"], 1, "on the first round")
+	check_eq(w["path"][-1], w["path"][0], "and walks back to the door")
+	for t in w["path"]:
+		check(area.has(t), "never leaving the shrine's area")
+	_run_days(c, Balance.ROAMER_INTERVAL_DAYS)
+	check_eq(_walkers(c, "keeper").back()["round"], 2, "the next keeper takes the next round")
 	_run_days(c, 60)
 	check(c.services.count() <= Balance.ROAMER_MAX_OUT, "at most four out at once")
 
@@ -231,3 +238,31 @@ func test_same_seed_same_rounds() -> void:
 	check(a.services.count() > 0, "walkers out (%d)" % a.services.count())
 	check_eq(b.services.walkers, a.services.walkers, "same walkers on the same tiles")
 	check_eq(b.houses.state, a.houses.state, "same pantries and visits")
+
+
+func test_every_house_in_the_area_is_visited_within_30_days() -> void:
+	var c := _city(30)
+	for y in [9, 13, 17]:
+		c.build_road(Vector2i(0, y), Vector2i(30, y))
+	for x in [0, 15, 30]:
+		c.build_road(Vector2i(x, 5), Vector2i(x, 17))
+	c.place_building("seonangdang", Vector2i(16, 10))
+	var shrine := c.building_at(Vector2i(16, 10))
+	var houses: Array[int] = []
+	for y in [6, 10, 14]:
+		for x in range(2, 14, 3):
+			houses.append(_settled_house(c, Vector2i(x, y)))
+		for x in range(18, 29, 3):
+			if not (y == 10 and x == 18):
+				houses.append(_settled_house(c, Vector2i(x, y)))
+	var reach := c.coverage_preview("seonangdang", shrine["origin"], shrine["rotation"])
+	_run_days(c, 35)
+	var in_area := 0
+	for id in houses:
+		var h: Dictionary = c.buildings.get_instance(id)
+		if not reach.has(h["origin"]):
+			continue
+		in_area += 1
+		var since: int = c.houses.days_since(id, "seonangdang")
+		check(since >= 0 and since < Balance.SERVICE_DAYS, "house at %s visited %d days ago" % [h["origin"], since])
+	check(in_area >= 10, "most houses lie in the shrine's area (%d)" % in_area)

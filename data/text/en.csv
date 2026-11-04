@@ -74,7 +74,7 @@ UI_DEMOLISH_TOOLTIP,"Demolish (X). Click or drag over an area. Silver is not ret
 UI_DEMOLISH_PREVIEW_FORMAT,"Demolish: %d"
 UI_TOOL_HINT,"R rotate · Esc or right click cancel"
 REASON_NEEDS_ROAD,Must stand on a road
-HINT_JANGSEUNG,"Stands on a road. Turns back roaming walkers (vendors, shrine keepers). Carriers, buyers and settlers pass."
+HINT_JANGSEUNG,"Stands on a road. Ends the area of Markets and shrines: their vendors and keepers turn back here. Carriers, buyers and settlers pass."
 GOOD_RICE,Rice
 GOOD_WOOD,Wood
 GOOD_CLAY,Clay
@@ -166,9 +166,9 @@ UI_JANG_RELEASE_RIPE,"Release: Ripe only"
 UI_JANG_RELEASE_TIP,"Ripe Soybean Paste goes twice as far, but takes two more seasons in the jar. Click to switch."
 WALKER_CARRIER_DELIVER,"Carrier: taking %s to where it is needed."
 WALKER_CARRIER_RETURN,Carrier: walking home.
-WALKER_VENDOR_OUT,"Vendor: on the streets, tile %d of %d."
+WALKER_VENDOR_OUT,"Vendor: walking round %d of %d of this Market's area."
 WALKER_VENDOR_HOME,Vendor: walking home.
-WALKER_KEEPER_OUT,"Shrine keeper: on the streets, tile %d of %d."
+WALKER_KEEPER_OUT,"Shrine keeper: walking round %d of %d of this shrine's area."
 WALKER_KEEPER_HOME,Shrine keeper: walking home.
 WALKER_BUYER_FETCH,"Buyer: going for %s."
 WALKER_BUYER_RETURN,"Buyer: bringing %d loads of %s home."
@@ -189,3 +189,6 @@ UI_HOUSE_JARS,"Clay Jars: %d days left."
 UI_HOUSE_JARS_NONE,No Clay Jars in the house.
 OVERLAY_JANG,Soybean Paste
 OVERLAY_JARS,Clay Jars
+UI_HOUSE_SIGNS_PROBLEMS,"House signs: only houses that lack something (H)."
+UI_HOUSE_SIGNS_ALL,"House signs: every house (H)."
+UI_HOUSE_SIGNS_OFF,"House signs: off (H)."

@@ -28,7 +28,8 @@ const WORKSHOP_INPUT_STORE := 2 # loads of each input a workshop (Onggi Kiln) ke
 # --- Walkers (docs/koncept.md, "Šetači") ---
 const CARRIER_SPEED := 1.5 # tiles per second at 1x (one load on the jige)
 const CARRIER_RETRY_TICKS := 10 # a building with no storage in reach asks again after this long
-const WALKER_MAX_ROAD_TILES := 30 # a roaming walker turns back after this many road tiles
+const WALKER_AREA_ROAD_TILES := 15 # a Market's or shrine's area: streets this many road tiles from it
+const WALKER_ROUND_TILES := 30 # one walker's round covers about this many road tiles of the area
 const WALKER_SERVICE_RANGE := 2 # tiles from the road a walker serves
 const ROAMER_SPEED := 1.5 # tiles per second at 1x (Market vendor, shrine keeper)
 const ROAMER_INTERVAL_DAYS := 5 # a service building sends a roaming walker this often (full staff)

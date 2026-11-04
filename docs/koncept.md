@@ -141,11 +141,13 @@ Zgrade bez dovoljno radnika rade sporije, a prozor zgrade to kaže.
 
 Roba putuje fizički. Dva tipa šetača:
 
-- **Roaming walkers** (lutajući): prodavci sa pijace i šetači službi (hram, lekar, stražar,
-  muzika). Kreću iz zgrade, idu putem, na raskrsnicama biraju pravac, i služe svaku zgradu
-  pored koje prođu (domet 2 polja od puta, *predlog*). Posle 30 polja puta (*predlog*) vraćaju se.
+- **Roaming walkers** (šetači službi): prodavci sa pijace i šetači službi (hram, lekar, stražar,
+  muzika). Zgrada ima **stalno područje**: ulice do 15 polja puta od nje (*predlog*), a Jangseung
+  ga završava. Područje je podeljeno na obilaske od oko 30 polja; svaki novi šetač uzima sledeći
+  obilazak, redom, i služi svaku zgradu pored koje prođe (domet 2 polja od puta). Šetač nikad ne
+  izlazi iz svog područja i ne bira nasumično (odluka posle Faze 7b, umesto Zeusovog lutanja).
 - **Destination walkers** (sa ciljem): nosači i kupci. Idu najkraćim putem do cilja.
-- **Jangseung** je blokada: lutajuće šetače okreće nazad, a šetače sa ciljem propušta.
+- **Jangseung** je granica: završava područje šetača službi, a šetače sa ciljem propušta.
 - Nema šetača koji traže radnike (kao u Zeusu): radnici dolaze iz zajedničkog fonda.
 
 Tok robe:
@@ -289,9 +291,9 @@ Najbolje mesto je **Myeongdang**.
   radnicima hrani oko 40 stanovnika. Ostava drži hranu za 30 dana. Potreba „Rice" važi dok ostava
   nije prazna. *predlog*
 - Šetač Seonangdang-a (shrine keeper): poseta važi 30 dana; isto pravilo važi za buduće službe. *predlog*
-- Lutajući šetači: na raskrsnici biraju ulicu kojom nisu prošli (slučajno, iz jednog seed-a), kod
-  slepe ulice ili Jangseung-a se okreću, posle 30 polja idu kući najkraćim putem i usput više ne
-  služe. Zgrada šalje novog na 5 dana (sporije sa manje radnika), najviše 4 napolju. *predlog*
+- (Zamenjeno posle Faze 7b: šetači službi imaju stalno područje i obilaze ga redom, vidi
+  „Šetači i distribucija“.) Zgrada šalje novog na 5 dana (sporije sa manje radnika), najviše 4
+  napolju. *predlog*
 - Overlay: F1 voda, F2 hrana, F3 Seonangdang; zgrade blede, kuće dobijaju stubiće (zeleno = ima,
   crveno = nema). Prozor kuće kaže koliko dana traje ostava i kad je koji šetač poslednji put prošao.
 
@@ -321,6 +323,15 @@ Najbolje mesto je **Myeongdang**.
   robe koja fali; prozor **Goods** (F4 ili dugme u gornjoj traci) za svaku robu kaže koliko je u
   skladištima, na putu, napravljeno ove godine, koliko zgrada je pravi i zašto neke stoje.
 - Opis zgrade u meniju za gradnju kaže šta zgrada pravi (npr. „Clay + Wood → Onggi Jars“).
+
+## Raspoloženje kuća (odluka posle Faze 7b)
+
+- Iznad kuće je pločica sa licem: zeleno (ima sve, može da raste), žuto (ima sve za svoj nivo,
+  fali joj nešto za sledeći), crveno (fali joj nešto za njen nivo: pašće ili se ljudi sele).
+- Pored lica su ikonice onoga što fali: put, voda (kap), hrana (činija pirinča), Village Shrine,
+  Soybean Paste (ćup paste), Clay Jars (glineni ćup).
+- Podrazumevano se vide samo žute i crvene kuće; taster H: samo problemi / sve kuće / isključeno.
+- Bunar ne traži put i ne dobija upozorenje „No road access“.
 
 ## Nazivi u igri (odluka posle Faze 7b)
 

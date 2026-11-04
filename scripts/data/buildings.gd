@@ -12,6 +12,7 @@ extends RefCounted
 ##   {"type": "walker"} serves along the roads its roaming walker can reach.
 ## market (optional): "stalls", each with goods (in the order a buyer looks for them),
 ##   capacity, buyer_loads (fetched when the stall has room for them) and vendor_loads.
+## needs_road (optional, default true): false for a building that works without a road (Well).
 ## serves (optional): the house need it covers ("water", "market", "seonangdang"), for the
 ##   building window's "Show range" (which houses in range are served).
 ## near_terrain (optional): this terrain must lie within "tiles" of the footprint.
@@ -61,7 +62,7 @@ const MVP_BUILDINGS: Array[Dictionary] = [
 		]},
 	{"id": "well", "name_key": "BUILDING_WELL", "korean": "umul", "category": "infrastructure",
 		"footprint": Vector2i(1, 1), "height_class": "low", "cost": 15, "workers": 0, "roof": "giwa", "terrain": [],
-		"coverage": {"type": "radius", "tiles": 3}, "serves": "water"},
+		"coverage": {"type": "radius", "tiles": 3}, "serves": "water", "needs_road": false},
 	{"id": "rice_paddy", "name_key": "BUILDING_RICE_PADDY", "korean": "non", "category": "food",
 		"footprint": Vector2i(3, 3), "height_class": "flat", "cost": 40, "workers": 6, "roof": "none",
 		"terrain": [Terrain.FERTILE_PLAIN],
@@ -127,6 +128,11 @@ static func get_building(id: String) -> Dictionary:
 		for b in MVP_BUILDINGS:
 			_by_id[b["id"]] = b
 	return _by_id.get(id, {})
+
+
+## Whether the building needs a road to work (and warns when it has none).
+static func needs_road(id: String) -> bool:
+	return get_building(id).get("needs_road", true)
 
 
 ## Terrains allowed under this building.

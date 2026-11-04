@@ -112,6 +112,28 @@ func give_food(id: int, portions: int) -> int:
 	return n
 
 
+## How the house feels, for the sign over it: {"mood", "missing": needs it lacks}.
+##   "sad"     - it lacks a need of its own tier (it will drop a tier, or nobody moves in);
+##   "neutral" - it has its tier's needs but lacks some of the next tier's;
+##   "happy"   - it has everything (or is at the top tier with all it needs).
+## A vacant lot has no mood: {"mood": "", "missing": []}.
+func mood(instance: Dictionary) -> Dictionary:
+	var tier: int = instance["tier"]
+	if tier == 0:
+		return {"mood": "", "missing": []}
+	var missing: Array[String] = []
+	for need in needs_for(tier):
+		if not is_met(instance, need):
+			missing.append(need)
+	if not missing.is_empty():
+		return {"mood": "sad", "missing": missing}
+	if tier < max_tier():
+		for need: String in tier_data(tier + 1)["needs"]:
+			if not is_met(instance, need):
+				missing.append(need)
+	return {"mood": "neutral" if not missing.is_empty() else "happy", "missing": missing}
+
+
 ## Houses from tier 2 want Jang and Onggi Jars (the needs of the next tier).
 func wants_jang(id: int) -> bool:
 	return _city.get_ref().buildings.get_instance(id)["tier"] >= 2

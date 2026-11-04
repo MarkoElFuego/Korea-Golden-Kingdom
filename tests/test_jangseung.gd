@@ -35,7 +35,7 @@ func test_tile_stays_a_road() -> void:
 func test_turns_back_roaming_walkers() -> void:
 	var c := _city_with_street()
 	var before := Coverage.walker_roads(c.grid, Vector2i(0, 11), Vector2i.ONE)
-	check(before.has(Vector2i(20, 10)), "without a Jangseung the walker goes far")
+	check(before.has(Vector2i(14, 10)), "without a Jangseung the area reaches 15 tiles")
 	c.place_building("jangseung", Vector2i(8, 10))
 	var after := Coverage.walker_roads(c.grid, Vector2i(0, 11), Vector2i.ONE)
 	check(after.has(Vector2i(7, 10)), "reaches the Jangseung")

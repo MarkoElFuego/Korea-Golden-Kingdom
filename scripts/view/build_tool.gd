@@ -124,7 +124,7 @@ func _preview_building(tile: Vector2i) -> void:
 	var bad := reason != ""
 	if bad:
 		lines.append(tr(reason))
-	elif not _has_road_access(origin, size):
+	elif Buildings.needs_road(building_type) and not _has_road_access(origin, size):
 		lines.append(tr("WARN_NO_ROAD_ACCESS"))
 	lines.append(tr("UI_TOOL_HINT"))
 	_show_note("\n".join(lines), bad)

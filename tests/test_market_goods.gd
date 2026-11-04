@@ -137,6 +137,10 @@ func test_a_choga_house_with_jang_and_jars_becomes_a_giwa_house() -> void:
 	check_eq(Houses.capacity(3), 20, "room for twenty")
 	c.houses.state[house]["jang"] = 0
 	c.economy.add(market, "ripe_jang", -c.economy.stock(market, "ripe_jang"))
+	for w in c.services.all(): # and the vendors out have none left either
+		if w["kind"] == "vendor":
+			w["jang_ripe"] = 0
+			w["jang_fresh"] = 0
 	_days(c, Balance.HOUSE_DOWN_DAYS + 1)
 	check_eq(c.buildings.get_instance(house)["tier"], 2, "without Jang it falls back")
 

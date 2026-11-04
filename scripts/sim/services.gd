@@ -9,13 +9,15 @@ extends RefCounted
 ##            one too (the fetcher): it brings that input from the nearest Storehouse
 ##            that holds it (Onggi Jars for the Jangdokdae).
 ##
-## A roaming walker plans its whole round when it sets out: along the streets, at each
-## crossing it takes a street it has not walked yet (a random one among them, from the
-## city's seeded generator), turns back at a dead end or a Jangseung, and after
-## WALKER_MAX_ROAD_TILES road tiles walks home the shortest way. It serves only on the way out.
+## Roaming walkers keep to their building's area (coverage.gd: the streets up to
+## WALKER_AREA_ROAD_TILES road tiles away, ended by Guardian Posts). The area is split into
+## rounds that together walk every street of it; each walker the building sends takes the
+## next round, in turn, so every house in the area is visited regularly and nobody wanders
+## off. A walker serves on its round and walks home without serving.
 ##
 ## A walker is a Dictionary: id, kind, home (building id), path, index, progress
 ## (see walker_motion.gd), serve_end (last path index it serves), served (last index served),
+## round / rounds (roaming walker: which of its building's rounds it walks, 1-based),
 ## food (vendor: portions of rice), jang_ripe / jang_fresh (vendor: portions of Jang),
 ## jars (vendor: sets of Onggi Jars), cargo (buyer: loads of `good`), want (buyer: loads it
 ## goes for), reserved (fetcher: loads announced at its workshop), target (buyer: storage
@@ -33,11 +35,12 @@ const DIRS: Array[Vector2i] = [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vecto
 var walkers := {} # id -> walker
 var _next_id := 1
 ## Service building or workshop id -> {"kind": roaming walker it sends ("workshop": none),
-## "next_at": tick of the next one, "out": roaming walkers out, "buyer": buyer walker id or 0,
-## "buyer_retry": tick to look again}
+## "next_at": tick of the next one, "out": roaming walkers out, "round": rounds sent so far,
+## "buyer": buyer walker id or 0, "buyer_retry": tick to look again}
 var _homes := {}
 var _city: WeakRef
 var _near := {} # road tile -> ids of houses within WALKER_SERVICE_RANGE (cleared when a house comes or goes)
+var _rounds := {} # building id -> its rounds (cleared when roads or Guardian Posts change)
 
 
 func _init(city) -> void:
@@ -99,6 +102,7 @@ func on_building_added(instance: Dictionary) -> void:
 	if instance["type"] == "common_house":
 		_near.clear()
 	if Buildings.get_building(instance["type"]).get("on_road", false):
+		_rounds.clear() # a Guardian Post ends areas
 		_turn_back_at(instance["origin"])
 	var kind := roamer(instance["type"])
 	var data := Buildings.get_building(instance["type"])
@@ -106,7 +110,7 @@ func on_building_added(instance: Dictionary) -> void:
 		return
 	var city = _city.get_ref()
 	_homes[instance["id"]] = {"kind": kind if kind != "" else "workshop", "next_at": city.clock.tick,
-		"out": 0, "buyer": 0, "buyer_retry": 0}
+		"out": 0, "round": 0, "buyer": 0, "buyer_retry": 0}
 
 
 func on_building_removed(instance: Dictionary) -> void:
@@ -114,6 +118,7 @@ func on_building_removed(instance: Dictionary) -> void:
 	if instance["type"] == "common_house":
 		_near.clear()
 	_homes.erase(id)
+	_rounds.clear()
 	for w in all():
 		if w["home"] == id:
 			_drop(w) # nobody to go back to
@@ -122,6 +127,7 @@ func on_building_removed(instance: Dictionary) -> void:
 
 
 func on_roads_changed() -> void:
+	_rounds.clear()
 	var city = _city.get_ref()
 	for w in all():
 		if not city.grid.is_road(WalkerMotion.here(w)):
@@ -184,13 +190,15 @@ func _dispatch() -> void:
 		if kind == "vendor" and not _load_vendor(w):
 			h["next_at"] = now + Balance.BUYER_RETRY_TICKS # nothing to sell yet
 			continue
-		var round_trip := _round(instance)
+		var round_trip := _round(instance, h)
 		if round_trip.is_empty():
 			_unload_vendor(w) # nowhere to go: the goods stay at the Market
 			h["next_at"] = now + Balance.TICKS_PER_DAY # no street to walk: look again tomorrow
 			continue
 		w["path"] = round_trip["path"]
 		w["serve_end"] = round_trip["serve_end"]
+		w["round"] = round_trip["round"]
+		w["rounds"] = round_trip["rounds"]
 		h["next_at"] = now + ceili(Balance.ROAMER_INTERVAL_DAYS * Balance.TICKS_PER_DAY / eff)
 		h["out"] += 1
 		walkers[_next_id] = w
@@ -291,51 +299,23 @@ func _dispatch_buyer(instance: Dictionary, h: Dictionary) -> void:
 	h["buyer_retry"] = city.clock.tick + Balance.BUYER_RETRY_TICKS # enough for now, or nothing to fetch
 
 
-## The round of a roaming walker: {"path", "serve_end"}, or {} when no street leads out.
-func _round(instance: Dictionary) -> Dictionary:
-	var city = _city.get_ref()
-	var grid = city.grid
-	var start: Vector2i = city.carriers.access_road(instance)
-	if start == NO_TILE or grid.is_blocked(start):
-		start = NO_TILE
-		for t in Coverage.adjacent_roads(grid, instance["origin"], instance["size"]):
-			if not grid.is_blocked(t):
-				start = t
-				break
-	if start == NO_TILE:
+## The next round of a roaming walker: {"path", "serve_end", "round", "rounds"}, or {} when
+## no street leads out. Rounds are taken in turn (h["round"] counts the ones sent).
+func _round(instance: Dictionary, h: Dictionary) -> Dictionary:
+	var id: int = instance["id"]
+	if not _rounds.has(id):
+		var grid = _city.get_ref().grid
+		_rounds[id] = Coverage.walker_rounds(Coverage.walker_area(grid, instance["origin"], instance["size"], instance["rotation"]))
+	var rounds: Array[Dictionary] = _rounds[id]
+	if rounds.is_empty():
 		return {}
-	var path: Array[Vector2i] = [start]
-	var seen := {start: true}
-	var prev := NO_TILE
-	var here := start
-	for i in Balance.WALKER_MAX_ROAD_TILES - 1:
-		var fresh: Array[Vector2i] = []
-		var walked: Array[Vector2i] = []
-		for d in DIRS:
-			var n := here + d
-			if n == prev or not grid.is_road(n) or grid.is_blocked(n):
-				continue
-			if seen.has(n):
-				walked.append(n)
-			else:
-				fresh.append(n)
-		var choices := fresh
-		if choices.is_empty():
-			choices = walked
-		var next := prev # dead end or a Jangseung: turn back
-		if not choices.is_empty():
-			next = choices[city.rng.randi_range(0, choices.size() - 1)]
-		if next == NO_TILE:
-			break # a lone road tile
-		prev = here
-		here = next
-		path.append(here)
-		seen[here] = true
-	var serve_end := path.size() - 1
-	var back: Array[Vector2i] = city.network.path(here, start)
-	if back.size() > 1:
-		path.append_array(back.slice(1))
-	return {"path": path, "serve_end": serve_end}
+	var k: int = h["round"] % rounds.size()
+	h["round"] += 1
+	var result: Dictionary = rounds[k].duplicate()
+	result["path"] = result["path"].duplicate()
+	result["round"] = k + 1
+	result["rounds"] = rounds.size()
+	return result
 
 
 # --- On the way ---
@@ -514,3 +494,4 @@ func load_save(d: Dictionary) -> void:
 	_next_id = d["next_id"]
 	_homes = d["homes"]
 	_near.clear()
+	_rounds.clear()

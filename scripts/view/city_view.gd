@@ -328,10 +328,10 @@ func _rebuild_roads() -> void:
 		_update_warning(instance)
 
 
-## A red "!" floats over a building that no road touches.
+## A red "!" floats over a building that needs a road and has none (a Well does not).
 func _update_warning(instance: Dictionary) -> void:
 	var id: int = instance["id"]
-	var needs_warning: bool = instance["type"] != "road" and not city.has_road_access(instance)
+	var needs_warning: bool = Buildings.needs_road(instance["type"]) and not city.has_road_access(instance)
 	if needs_warning and not _warnings.has(id):
 		var marker := Label3D.new()
 		marker.text = "!"

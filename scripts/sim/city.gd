@@ -166,7 +166,7 @@ func coverage_preview(type: String, origin: Vector2i, rotation := 0) -> Dictiona
 	var data := Buildings.get_building(type)
 	if data.is_empty():
 		return {}
-	return Coverage.for_building(grid, data, origin, Grid.rotated_size(data["footprint"], rotation))
+	return Coverage.for_building(grid, data, origin, Grid.rotated_size(data["footprint"], rotation), posmod(rotation, 4))
 
 
 func has_road_access(instance: Dictionary) -> bool:
@@ -337,7 +337,7 @@ func status(instance: Dictionary) -> Dictionary:
 		if not has_road_access(instance):
 			return {"key": "STATUS_NO_ROAD_CARRIERS", "args": []}
 		return {"key": "STATUS_STORAGE_FULL" if used >= cap else "STATUS_STORAGE", "args": [used, cap]}
-	if not has_road_access(instance):
+	if Buildings.needs_road(instance["type"]) and not has_road_access(instance):
 		return {"key": "WARN_NO_ROAD_ACCESS", "args": []}
 	return {"key": "", "args": []}
 
@@ -380,7 +380,7 @@ func walkers_of(id: int) -> Array[Dictionary]:
 			"vendor", "keeper":
 				var out: bool = w["index"] <= w["serve_end"]
 				var key := ("WALKER_VENDOR_" if w["kind"] == "vendor" else "WALKER_KEEPER_") + ("OUT" if out else "HOME")
-				result.append({"id": w["id"], "key": key, "args": [w["index"] + 1, w["serve_end"] + 1] if out else []})
+				result.append({"id": w["id"], "key": key, "args": [w["round"], w["rounds"]] if out else []})
 			"buyer":
 				var who := "WALKER_FETCHER_" if fetcher else "WALKER_BUYER_"
 				var good: String = Goods.GOODS[w["good"]]["name_key"]

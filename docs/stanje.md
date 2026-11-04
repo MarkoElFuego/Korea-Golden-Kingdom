@@ -4,7 +4,7 @@ Poslednje ažuriranje: 3. novembar 2026.
 
 ## Gde smo stali
 
-Gotove faze 1–7 (fermentacija u dva dela), brže crtanje zgrada, pregledniji prozor zgrade i demo grad. Testova: 161, svi prolaze.
+Gotove faze 1–7 (fermentacija u dva dela), brže crtanje zgrada, pregledniji prozor zgrade i demo grad. Testova: 167, svi prolaze.
 
 | Faza | Šta je urađeno | Commit |
 | --- | --- | --- |
@@ -19,7 +19,9 @@ Gotove faze 1–7 (fermentacija u dva dela), brže crtanje zgrada, pregledniji p
 | 7a | Jangdokdae: ćupovi kao mesta, Jang Fresh → Ripe, dugme Release, ćupovi na terasi; Clay Pit stoji na brdu | 508fcc1 |
 | 7a+ | Prozor zgrade: Show range sa stubićima kuća, šetači zgrade (linije i oznake), radnici grada, okvir izabrane zgrade | 7d34cfd |
 | demo | Demo grad (`scenes/demo_town.tscn`, F6): mala dolina sa svim lancima koji rade od starta | cc48e53 |
-| 7b | Pijaca sa tri tezge (Rice, Jang, Onggi Jars), Ripe Jang, Jang i ćupovi u kućama, Giwa House (nivo 3), overlay F5/F6 | (sledeći) |
+| 7b | Pijaca sa tri tezge (Rice, Jang, Onggi Jars), Ripe Jang, Jang i ćupovi u kućama, Giwa House (nivo 3), overlay F5/F6 | 96ae682 |
+| nazivi | Opšti engleski nazivi, korejski pored (Village Shrine, Pottery Kiln, Fermentation Yard...) | d4028d7 |
+| 7c | Šetači sa stalnim područjem (15 polja, obilasci redom), pločice raspoloženja i potreba iznad kuća (H), bunar bez puta | (sledeći) |
 
 ## Sledeće: Faza 8, Gi mapa (pungsu)
 
@@ -34,7 +36,7 @@ Prvo plan, pa kod posle vlasnikovog „ok".
 - `scenes/big_city.tscn` + F6: veliki grad za merenje brzine (FPS u uglu).
 - Ctrl+S snima, Ctrl+L učitava najnoviji sejv. Sejvovi iz starijih verzija (pre Faze 7b) se ne
   učitavaju; igra to kaže porukom.
-- Prečice: F1–F3 overlay-i (voda, hrana, Seonangdang), F5 Jang, F6 ćupovi, F4 prozor Goods, klik na zgradu = prozor
+- Prečice: F1–F3 overlay-i (voda, hrana, Village Shrine), F5 Soybean Paste, F6 Clay Jars, H pločice kuća, F4 prozor Goods, klik na zgradu = prozor
   zgrade (Show range, šetači, radnici).
 
 ## Utisci vlasnika posle igranja

@@ -105,6 +105,28 @@ materijal. Zato se animacija i hijerarhija u `.glb` ne vide u gradu. Animirani d
 - Bez teksta na modelu u igri; natpisi (Label3D) samo u galeriji privremenih modela.
 - Ako postoji `art/.../<id>.glb`, igra učitava njega umesto privremenog.
 
+## Ikonice kuća
+
+Pločice iznad kuća (raspoloženje i potrebe) čitaju jednu sliku: `art/ui/house_icons.png`,
+256 × 256 px, 4 × 4 polja po 64 px, providna pozadina (PNG sa alfom). Ikonica je okrugla
+pločica (hanji papir sa tankim tamnim rubom), mirne boje, bez sjaja. Raspored, red po red
+od gornjeg levog ugla:
+
+| Polje | Ikonica |
+| --- | --- |
+| 0 | lice: zadovoljno (zelena pločica) |
+| 1 | lice: ravnodušno (žuta) |
+| 2 | lice: tužno (crvena) |
+| 3 | put |
+| 4 | voda (kap) |
+| 5 | hrana (činija pirinča) |
+| 6 | Village Shrine (kamena gomila sa trakama) |
+| 7 | Soybean Paste (ćup paste) |
+| 8 | Clay Jars (onggi ćup) |
+| 9–15 | slobodno, za buduće potrebe (lekar, hram, muzika...) |
+
+Dok slika ne postoji, igra crta privremene ikonice istog rasporeda (`scripts/view/house_icons.gd`).
+
 ## Provera modela (kasnije, faza 11)
 
 Skripta `tools/check_models.gd` proverava modele u `art/` prema ovom dokumentu: pivot, mere

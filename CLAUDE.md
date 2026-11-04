@@ -99,8 +99,9 @@ proveri da je ne kršiš.
 4. **Čitljiv interfejs.** Minimapa, rotacija kamere, overlay za svaku uslugu (voda, hram, pijaca,
    Gi...), prozor kuće koji kaže tačno šta joj fali za sledeći nivo, opisi na prelazu mišem,
    prečice. Najvažnije radnje na najviše 2 klika.
-5. **Šetači kao u Zeusu** (vidi koncept), uz vidljivost: domet se prikazuje pri postavljanju
-   zgrade, a overlay pokazuje ko je pokriven.
+5. **Šetači sa stalnim područjem** (vidi koncept): zgrada pokriva ulice u svom dometu, a njeni
+   šetači ih obilaze redom, bez nasumičnog lutanja. Domet se prikazuje pri postavljanju zgrade,
+   overlay pokazuje ko je pokriven, a iznad kuća se vidi raspoloženje i šta im fali.
 6. **Borba je laka i jasna**: zidovi, kule, kasarna, heroji. Bez polovičnog RTS-a.
 7. **Čuda rastu pred igračem**, u fazama, a radnici vidljivo nose materijal.
 8. **Ekonomija je čitljiva**: većina lanaca ima jedan korak prerade, a igra uvek kaže gde je

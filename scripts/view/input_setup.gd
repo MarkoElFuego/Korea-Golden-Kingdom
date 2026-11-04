@@ -21,6 +21,7 @@ const ACTIONS := {
 	"overlay_seonangdang": [KEY_F3],
 	"overlay_jang": [KEY_F5],
 	"overlay_jars": [KEY_F6],
+	"house_signs": [KEY_H],
 	"goods_window": [KEY_F4],
 }
 
