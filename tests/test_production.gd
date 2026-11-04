@@ -48,7 +48,7 @@ func _accounted(c: City, good: String) -> int:
 	for s: Dictionary in c.economy.state.values():
 		n += s["stock"].get(good, 0)
 	return n + c.carriers.carried(good) + c.services.carried(good) + c.economy.used.get(good, 0) \
-		+ c.economy.sold.get(good, 0) + c.economy.lost.get(good, 0)
+		+ c.economy.sold.get(good, 0) + c.economy.lost.get(good, 0) + c.economy.stolen.get(good, 0)
 
 
 # --- The kiln ---

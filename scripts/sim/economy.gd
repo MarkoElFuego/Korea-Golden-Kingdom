@@ -30,6 +30,7 @@ var produced := {} # good -> loads produced since the start
 var lost := {} # good -> loads destroyed with demolished buildings
 var sold := {} # good -> loads Market vendors took out to the houses
 var used := {} # good -> loads workshops used up as inputs
+var stolen := {} # good -> loads dokkaebi carried away (dokkaebi.gd)
 var produced_year := {} # good -> loads produced since the year began (Goods window)
 ## Producers with a load waiting and no carrier out: id -> true.
 var waiting := {}
@@ -381,7 +382,7 @@ static func _incoming(s: Dictionary, good: String) -> int:
 
 func to_save() -> Dictionary:
 	return {"state": state, "produced": produced, "lost": lost, "sold": sold, "waiting": waiting,
-		"schedule": _schedule, "used": used, "produced_year": produced_year}
+		"schedule": _schedule, "used": used, "produced_year": produced_year, "stolen": stolen}
 
 
 func load_save(d: Dictionary) -> void:
@@ -393,6 +394,7 @@ func load_save(d: Dictionary) -> void:
 	_schedule = d["schedule"]
 	used = d["used"]
 	produced_year = d["produced_year"]
+	stolen = d["stolen"]
 	_consumers.clear()
 	for s: Dictionary in state.values():
 		for good: String in inputs(s["type"]):

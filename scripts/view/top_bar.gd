@@ -26,6 +26,9 @@ var _speed_buttons := {} # 0 = pause, 1..3 = speeds
 func setup(city_ref) -> void:
 	city = city_ref
 	city.clock.day_changed.connect(func(_d: int) -> void: refresh())
+	city.clock.ticked.connect(func(_t: int) -> void:
+		if city.dokkaebi.is_night() or not city.dokkaebi.raids.is_empty():
+			_refresh_advice())
 	city.population_changed.connect(_refresh_people)
 	city.clock.speed_changed.connect(func(_s: int, _p: bool) -> void: _refresh_speed())
 	city.treasury_changed.connect(func(_v: int) -> void: _refresh_treasury())
@@ -102,7 +105,22 @@ func _refresh_speed() -> void:
 func _refresh_people() -> void:
 	_population_label.text = tr("UI_POPULATION_FORMAT") % _thousands(city.population())
 	_workers_label.text = tr("UI_WORKFORCE_FORMAT") % [city.labor.workforce, city.labor.needed]
-	_advice_label.text = "" if city.settlers.entrance_connected else tr("ADVICE_CONNECT_ENTRANCE")
+	_refresh_advice()
+
+
+## The advisor's line: the valley entrance first, then dokkaebi warnings and news.
+func _refresh_advice() -> void:
+	if not city.settlers.entrance_connected:
+		_advice_label.text = tr("ADVICE_CONNECT_ENTRANCE")
+		return
+	var advice: Dictionary = city.dokkaebi.advice()
+	if advice.is_empty():
+		_advice_label.text = ""
+		return
+	var args := []
+	for a in advice["args"]:
+		args.append(tr(a) if a is String else a)
+	_advice_label.text = tr(advice["key"]) % args if not args.is_empty() else tr(advice["key"])
 
 
 func _refresh_treasury() -> void:

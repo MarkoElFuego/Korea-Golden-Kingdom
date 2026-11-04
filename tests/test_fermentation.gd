@@ -164,7 +164,7 @@ func test_jars_and_goods_are_all_accounted_for() -> void:
 		var n := 0
 		for s: Dictionary in c.economy.state.values():
 			n += s["stock"].get(good, 0)
-		n += c.carriers.carried(good) + c.services.carried(good) + c.economy.used.get(good, 0) + c.economy.lost.get(good, 0)
+		n += c.carriers.carried(good) + c.services.carried(good) + c.economy.used.get(good, 0) + c.economy.lost.get(good, 0) + c.economy.stolen.get(good, 0)
 		check_eq(n, c.economy.produced.get(good, 0) + (5 if good == "onggi_jars" else 0), good + " all accounted for")
 	var n: Dictionary = c.fermentation.counts(_yard(c))
 	check_eq(n["brewing"] + n["fresh"] + n["ripe"], c.economy.used.get("salt", 0), "one jar of Jang per Salt used")

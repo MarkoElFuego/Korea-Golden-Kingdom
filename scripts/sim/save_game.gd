@@ -13,7 +13,7 @@ extends RefCounted
 
 const City = preload("res://scripts/sim/city.gd")
 
-const VERSION := 5 # raise when the saved data changes shape
+const VERSION := 6 # raise when the saved data changes shape
 const MAGIC := "KGKS"
 const HEADER_SIZE := 44 # magic 4 + version 4 + length 4 + SHA-256 32
 const SAVE_DIR := "user://saves"

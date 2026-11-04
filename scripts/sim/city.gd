@@ -22,6 +22,7 @@ const Services = preload("res://scripts/sim/services.gd")
 const Supply = preload("res://scripts/sim/supply.gd")
 const Fermentation = preload("res://scripts/sim/fermentation.gd")
 const GiMap = preload("res://scripts/sim/gi_map.gd")
+const Dokkaebi = preload("res://scripts/sim/dokkaebi.gd")
 
 signal treasury_changed(value: int)
 signal building_added(instance: Dictionary)
@@ -45,6 +46,7 @@ var services: Services
 var supply: Supply # where goods are missing and why
 var fermentation: Fermentation # the Jangdokdae's jars
 var gi: GiMap # the life force of the land, 0..100 per tile
+var dokkaebi: Dokkaebi # night thieves, and the offerings that appease them
 ## The one random generator of the simulation (seeded from the map seed), so the same
 ## commands always give the same city.
 var rng := RandomNumberGenerator.new()
@@ -76,6 +78,7 @@ func _init(seed_value: int = Balance.DEFAULT_MAP_SEED) -> void:
 	supply = Supply.new(self)
 	fermentation = Fermentation.new(self)
 	gi = GiMap.new(self)
+	dokkaebi = Dokkaebi.new(self)
 	settlers.arrived.connect(_on_settlers_arrived)
 	clock.day_changed.connect(_on_day)
 	clock.season_changed.connect(_on_season)
@@ -94,6 +97,7 @@ func _on_tick(_tick: int) -> void:
 	carriers.tick()
 	settlers.tick()
 	services.tick()
+	dokkaebi.tick()
 
 
 # --- Buildings ---
@@ -269,6 +273,7 @@ func demolish(a: Vector2i, b: Vector2i) -> int:
 			grid.vacate(instance["origin"], instance["size"])
 		refund += floori(Buildings.get_building(instance["type"])["cost"] * Balance.DEMOLISH_REFUND)
 		services.on_building_removed(instance)
+		dokkaebi.on_building_removed(instance)
 		carriers.on_building_removed(instance)
 		settlers.on_building_removed(instance)
 		houses.remove_building(instance)
@@ -311,6 +316,8 @@ func apply_command(command: Array) -> void:
 			demolish(command[2], command[3])
 		"ripe_only":
 			set_ripe_only(command[2], command[3])
+		"offering":
+			make_offering(command[2])
 
 
 ## Replays a command log from the start: runs ticks up to each command's tick, then the
@@ -442,6 +449,24 @@ func _on_season(_season: int) -> void:
 	var silver := houses.tax()
 	if silver > 0:
 		_change_treasury(silver)
+	dokkaebi.season_start()
+
+
+## The player makes a buckwheat-jelly offering at a Village Shrine (OFFERING_COST Silver):
+## for OFFERING_DAYS dokkaebi steal nothing in its area. Returns "" or the reason it failed.
+func make_offering(id: int) -> String:
+	var reason := dokkaebi.check_offering(id)
+	if reason != "":
+		return reason
+	_change_treasury(-Balance.OFFERING_COST)
+	dokkaebi.start_offering(id)
+	command_log.append([clock.tick, "offering", id])
+	return ""
+
+
+## Silver appeased dokkaebi left behind.
+func receive_gift(silver: int) -> void:
+	_change_treasury(silver)
 
 
 func _recompute_labor() -> void:
@@ -468,6 +493,7 @@ func to_save() -> Dictionary:
 		"grid": grid.to_save(), "buildings": buildings.to_save(), "economy": economy.to_save(),
 		"carriers": carriers.to_save(), "extra_workers": labor.extra_workers,
 		"houses": houses.to_save(), "settlers": settlers.to_save(), "services": services.to_save(),
+		"dokkaebi": dokkaebi.to_save(),
 	}
 
 
@@ -491,6 +517,7 @@ func load_save(d: Dictionary) -> void:
 	houses.load_save(d["houses"])
 	settlers.load_save(d["settlers"])
 	services.load_save(d["services"])
+	dokkaebi.load_save(d["dokkaebi"])
 	labor.extra_workers = d["extra_workers"]
 	gi.mark_dirty()
 	labor.recompute(buildings.all(), houses, economy)

@@ -12,7 +12,7 @@ const WOOD := Color("#8a5c35")
 const INK := Color("#3a2e22")
 const ACCENT := Color("#b8473a")
 const REFRESH := 1.0 # seconds
-const COLUMNS := [190, 80, 80, 100, 150] # good, stored, carried, this year, makers
+const COLUMNS := [190, 80, 80, 100, 80, 150] # good, stored, carried, this year, stolen, makers
 
 var city # scripts/sim/city.gd
 var _rows: VBoxContainer
@@ -50,7 +50,7 @@ func _ready() -> void:
 	close.add_theme_color_override("font_color", INK)
 	close.pressed.connect(toggle)
 	header.add_child(close)
-	var names := ["UI_GOODS_COL_GOOD", "UI_GOODS_COL_STORED", "UI_GOODS_COL_CARRIED", "UI_GOODS_COL_YEAR", "UI_GOODS_COL_MAKERS"]
+	var names := ["UI_GOODS_COL_GOOD", "UI_GOODS_COL_STORED", "UI_GOODS_COL_CARRIED", "UI_GOODS_COL_YEAR", "UI_GOODS_COL_STOLEN", "UI_GOODS_COL_MAKERS"]
 	var heads := HBoxContainer.new()
 	for i in names.size():
 		var l := _label(tr(names[i]), 16)
@@ -94,11 +94,11 @@ func refresh() -> void:
 		name_box.add_child(swatch)
 		name_box.add_child(_label(" " + tr(Goods.GOODS[good]["name_key"]), 18))
 		line.add_child(name_box)
-		var cells := [str(row["stored"]), str(row["moving"]), str(row["year"]), _makers(row)]
+		var cells := [str(row["stored"]), str(row["moving"]), str(row["year"]), str(row["stolen"]) if row["stolen"] > 0 else "—", _makers(row)]
 		for i in cells.size():
 			var cell := _label(cells[i], 18)
 			cell.custom_minimum_size.x = COLUMNS[i + 1]
-			if i == 3 and row["idle"] > 0:
+			if (i == 4 and row["idle"] > 0) or (i == 3 and row["stolen"] > 0):
 				cell.add_theme_color_override("font_color", ACCENT)
 			line.add_child(cell)
 		_rows.add_child(line)

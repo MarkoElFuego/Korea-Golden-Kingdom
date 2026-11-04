@@ -365,6 +365,27 @@ reči ostaju u lore-u i flavor tekstovima. Hangul pored latinice dolazi sa lokal
 Kategorija Crafts se zove Pottery & Crafts. U ovom dokumentu i u kodu ostaju stari nazivi kao
 oznake (npr. `jangdokdae`, `onggi_jars`).
 
+## Dokkaebi (odluke iz Faze 9)
+
+Prvi događaj. Pravila za pretnje: dolaze fizički, uz upozorenje unapred, sa jasnom kontrom i
+vidljivom posledicom. Brojevi su u `balance.gd` (DOKKAEBI_*, OFFERING_*).
+
+- **Kada:** na početku svakog godišnjeg doba, od druge godine i kad grad ima bar 50 stanovnika.
+  Svako skladište sa robom (Granary, Storehouse) može da ih privuče. Gi 50 i više: nikad.
+  Ispod 50 šansa raste 2,5% po poenu Gi-ja (Gi 40: 25%, Gi 30: 50%), najviše 75%. Svaki
+  Guardian Post do 4 polja od skladišta prepolovi šansu. Najviše jedna dokkaebi noć u isto vreme.
+- **Upozorenje:** 5 dana ranije u brdu ili šumi najbližoj skladištu lebde plavi plamenovi
+  (dokkaebibul), a savetnik u gornjoj traci kaže za koje skladište i za koliko dana.
+- **Noć:** grad potamni u plavičastu noć. 2 do 3 dokkaebija idu putem od brda do skladišta.
+  Guardian Posts na njihovom putu ih vraćaju nazad. U skladištu svaki uzme do 2 tovara robe
+  koje ima najviše i odnese je u brda. Ukradena roba se broji (prozor Goods, kolona Stolen).
+- **Ponuda:** dugme na Village Shrine-u, memilmuk (buckwheat jelly) za 50 Silver, traje godinu
+  dana. Dokkaebiji koji dođu do skladišta u području tog svetilišta ne kradu, a u pola slučajeva
+  ostave 30 Silver.
+- **Posle:** prozor skladišta 30 dana kaže kako je prošla noć (odneli, vraćeni kipovima, umireni,
+  ostavili srebro); savetnik to kaže 5 dana.
+- Kasnije: Ssireum Ring, gde ih igrač pobedi u rvanju i postanu saveznici.
+
 ## Zgrade
 
 Footprint je u poljima (4 m). Cena u Silver i radnici su *predlog* za MVP zgrade; ostalo se

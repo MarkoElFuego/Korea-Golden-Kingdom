@@ -57,6 +57,26 @@ const GI_RIDGE_ROWS := 8 # a ridge this many rows north or south still counts
 const GI_HIGH := 70 # and above: good fortune (a house holds its tier longer)
 const GI_LOW := 30 # below: too low for a Tiled House
 const GI_MYEONGDANG := 80 # and above: the best places (the protected foot of the mountain), in gold
+
+# --- Dokkaebi (phase 9): night thieves of low-Gi quarters ---
+const DOKKAEBI_SAFE_GI := 50 # a storage on Gi this high or higher is never visited
+const DOKKAEBI_CHANCE_PER_GI := 0.025 # chance per season for each point of Gi below DOKKAEBI_SAFE_GI
+const DOKKAEBI_MAX_CHANCE := 0.75
+const DOKKAEBI_POST_TILES := 4 # each Guardian Post this close to a storage halves the chance
+const DOKKAEBI_MIN_POPULATION := 50 # a small village is left alone
+const DOKKAEBI_FIRST_YEAR := 2 # no dokkaebi in the first year
+const DOKKAEBI_WARNING_DAYS := 5 # dokkaebi fires show in the hills this long before they come
+const DOKKAEBI_COUNT_MIN := 2
+const DOKKAEBI_COUNT_MAX := 3
+const DOKKAEBI_LOADS := 2 # loads each dokkaebi carries away
+const DOKKAEBI_SPEED := 2.0 # tiles per second at 1x
+const DOKKAEBI_SPACING_TICKS := 6 # the second one sets off this much later, and so on
+const DOKKAEBI_HILL_REACH := 40 # tiles to look for the hill or forest they come from
+const DOKKAEBI_NOTE_DAYS := 30 # the storage window tells of the night this long
+const OFFERING_COST := 50 # Silver for buckwheat jelly (memilmuk) at a Village Shrine
+const OFFERING_DAYS := 120 # an offering lasts a year
+const OFFERING_GIFT := 30 # Silver appeased dokkaebi may leave
+const OFFERING_GIFT_CHANCE := 0.5
 const SETTLER_GROUP := 6 # people one settler walker brings at most
 const SETTLER_INTERVAL_TICKS := 20 # a new group leaves the entrance at most this often
 const SETTLER_SPEED := 1.5 # tiles per second at 1x

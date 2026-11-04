@@ -124,7 +124,7 @@ func report() -> Array[Dictionary]:
 	var rows := {}
 	for good: String in Goods.ids():
 		rows[good] = {"good": good, "stored": 0, "moving": city.carriers.carried(good) + city.services.carried(good),
-			"year": economy.produced_year.get(good, 0), "makers": 0, "idle": 0, "note": {}}
+			"year": economy.produced_year.get(good, 0), "stolen": economy.stolen.get(good, 0), "makers": 0, "idle": 0, "note": {}}
 	for id: int in economy.state:
 		var s: Dictionary = economy.state[id]
 		if not economy.storage(s["type"]).is_empty():

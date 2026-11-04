@@ -43,6 +43,8 @@ pravim modelima.
   `noble_tier2.glb`. Prazan plac pre doseljenika: `art/houses/vacant_lot.glb` (ravna klasa).
 - Teren: `art/terrain/<terrain_id>.glb` (npr. `grass.glb`, `forest.glb`).
 - Ljudi: `art/walkers/<walker_id>.glb` (npr. `carrier.glb`, `vendor.glb`).
+- Dokkaebi: `art/walkers/dokkaebi.glb`, zdepast, oko 2,2 m (1,3 × čovek), jedan rog. Plavi
+  plamen (dokkaebibul) je efekat u igri, ne deo modela.
 - Izvorni fajlovi (.max, .blend, .psd) idu u `art_src/`, šabloni u `art_templates/`.
 - Format za igru: glTF binarni (`.glb`).
 

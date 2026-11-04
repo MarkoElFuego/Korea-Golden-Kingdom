@@ -17,6 +17,7 @@ const TextLoader = preload("res://scripts/view/text_loader.gd")
 const SceneSetup = preload("res://scripts/view/scene_setup.gd")
 const UiTheme = preload("res://scripts/view/ui_theme.gd")
 const WalkerView = preload("res://scripts/view/walker_view.gd")
+const DokkaebiView = preload("res://scripts/view/dokkaebi_view.gd")
 const InfoPanel = preload("res://scripts/view/info_panel.gd")
 const OverlayView = preload("res://scripts/view/overlay_view.gd")
 const GoodsPanel = preload("res://scripts/view/goods_panel.gd")
@@ -71,6 +72,11 @@ func _ready() -> void:
 	walker_view.name = "Walkers"
 	add_child(walker_view)
 	walker_view.setup(city)
+
+	var dokkaebi_view := DokkaebiView.new()
+	dokkaebi_view.name = "Dokkaebi"
+	add_child(dokkaebi_view)
+	dokkaebi_view.setup(city, get_node("Sun"), get_node("WorldEnvironment").environment)
 
 	house_signs = HouseSigns.new()
 	house_signs.name = "HouseSigns"

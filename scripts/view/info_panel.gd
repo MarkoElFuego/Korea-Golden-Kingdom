@@ -26,6 +26,8 @@ var _status: Label
 var _workers: Label
 var _house: RichTextLabel # residents, flavor line and needs with ✓ / ✗
 var _release: Button # Jangdokdae: release Jang when Fresh, or only when Ripe
+var _night: Label # a storage: how the last dokkaebi night went
+var _offering: Button # Village Shrine: offer buckwheat jelly to the dokkaebi
 var _city_workers: Label # the labour pool of the whole city
 var _walkers: Label # one line per walker of this building
 var _range: Button # Show range / Hide range
@@ -98,6 +100,17 @@ func _ready() -> void:
 	_release.pressed.connect(func() -> void:
 		city.set_ripe_only(building_id, not city.fermentation.ripe_only(building_id)))
 	box.add_child(_release)
+	_night = _label(17)
+	_night.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_night.custom_minimum_size.x = 348
+	_night.add_theme_color_override("font_color", Color("#3d5a99")) # dokkaebi blue
+	box.add_child(_night)
+	_offering = Button.new()
+	_offering.focus_mode = Control.FOCUS_NONE
+	_offering.tooltip_text = tr("UI_OFFERING_TIP")
+	_offering.add_theme_font_size_override("font_size", 18)
+	_offering.pressed.connect(func() -> void: city.make_offering(building_id))
+	box.add_child(_offering)
 	_walkers = _label(16)
 	_walkers.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_walkers.custom_minimum_size.x = 348
@@ -184,6 +197,16 @@ func _refresh() -> void:
 	_release.visible = data.has("fermentation")
 	if _release.visible:
 		_release.text = tr("UI_JANG_RELEASE_RIPE" if city.fermentation.ripe_only(building_id) else "UI_JANG_RELEASE_FRESH")
+
+	var night: Dictionary = city.dokkaebi.note(building_id)
+	_night.visible = not night.is_empty()
+	if _night.visible:
+		_night.text = status_text(self, night)
+	_offering.visible = instance["type"] == "seonangdang"
+	if _offering.visible:
+		var days: int = city.dokkaebi.offering_days(building_id)
+		_offering.disabled = days > 0 or city.treasury < Balance.OFFERING_COST
+		_offering.text = tr("UI_OFFERING_MADE") % days if days > 0 else tr("UI_OFFERING_MAKE") % Balance.OFFERING_COST
 
 	var sends_walkers: bool = data.has("produces") or data.has("roamer") or data.has("workshop") \
 		or data.has("fermentation")

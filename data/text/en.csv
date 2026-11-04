@@ -74,7 +74,7 @@ UI_DEMOLISH_TOOLTIP,"Demolish (X). Click or drag over an area. Silver is not ret
 UI_DEMOLISH_PREVIEW_FORMAT,"Demolish: %d"
 UI_TOOL_HINT,"R rotate · Esc or right click cancel"
 REASON_NEEDS_ROAD,Must stand on a road
-HINT_JANGSEUNG,"Stands on a road. Ends the area of Markets and shrines: their vendors and keepers turn back here. Carriers, buyers and settlers pass."
+HINT_JANGSEUNG,"Stands on a road. Ends the area of Markets and shrines: their vendors and keepers turn back here. Carriers, buyers and settlers pass. Dokkaebi turn back here too, and storages near it draw them less."
 GOOD_RICE,Rice
 GOOD_WOOD,Wood
 GOOD_CLAY,Clay
@@ -201,3 +201,15 @@ UI_GI_HERE,"Gi here: %d"
 UI_GI_HERE_MYEONGDANG,"Gi here: %d (Myeongdang)"
 UI_GI_RAISES,"Raises Gi nearby (+%d)."
 UI_GI_LOWERS,"Lowers Gi nearby (%d)."
+REASON_OFFERING_MADE,The offering is already made
+UI_GOODS_COL_STOLEN,Stolen
+UI_OFFERING_MAKE,"Offer buckwheat jelly (%d Silver)"
+UI_OFFERING_MADE,"Offering made: %d more days"
+UI_OFFERING_TIP,"An offering of buckwheat jelly (memilmuk) for a year. Dokkaebi who come to storages in this shrine's area play instead of stealing, and sometimes leave Silver."
+ADVICE_DOKKAEBI_COMING,"Dokkaebi fires flicker in the hills near the %s. They will come in %d days."
+ADVICE_DOKKAEBI_NIGHT,"Dokkaebi night: they are coming for the %s."
+DOKKAEBI_NOTE_TOOK,"Dokkaebi came in the night and carried off %d loads, most of it %s."
+DOKKAEBI_NOTE_TURNED,"Dokkaebi came in the night, but the Guardian Posts turned them back."
+DOKKAEBI_NOTE_APPEASED,"Dokkaebi came in the night, found the shrine's offering and left in good spirits."
+DOKKAEBI_NOTE_GIFT,"Dokkaebi came in the night, found the shrine's offering and left %d Silver."
+DOKKAEBI_NOTE_NOTHING,"Dokkaebi came in the night but found nothing to take."

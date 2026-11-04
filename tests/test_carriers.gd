@@ -36,7 +36,7 @@ func _total_stock(c: City, good: String) -> int:
 func _check_conservation(c: City, label: String) -> void:
 	for good in Goods.ids():
 		var produced: int = c.economy.produced.get(good, 0)
-		var accounted: int = _total_stock(c, good) + c.carriers.carried(good) + c.services.carried(good) 			+ c.economy.sold.get(good, 0) + c.economy.lost.get(good, 0)
+		var accounted: int = _total_stock(c, good) + c.carriers.carried(good) + c.services.carried(good) 			+ c.economy.sold.get(good, 0) + c.economy.lost.get(good, 0) + c.economy.stolen.get(good, 0)
 		check_eq(accounted, produced, "%s: %s conserved" % [label, good])
 
 

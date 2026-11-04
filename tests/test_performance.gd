@@ -118,3 +118,31 @@ func test_big_city_ticks_and_saves_fast() -> void:
 	check(ms < TICK_BUDGET_MS, "tick takes %.2f ms (budget %.1f ms)" % [ms, TICK_BUDGET_MS])
 	check_eq(loaded["error"], "", "the big city loads")
 	check(save_ms + load_ms < 1000.0, "save and load take under a second (%.0f ms)" % (save_ms + load_ms))
+
+
+## A dokkaebi night in the big city (phase 9): choosing the storage and the night itself
+## stay cheap.
+func test_big_city_dokkaebi_night_is_fast() -> void:
+	var c := BigCity.build()
+	for i in 10 * Balance.TICKS_PER_DAY:
+		c.clock.step()
+	var start := Time.get_ticks_usec()
+	c.clock.tick = Balance.DAYS_PER_SEASON * Balance.SEASONS_PER_YEAR * Balance.TICKS_PER_DAY
+	c.dokkaebi.season_start()
+	var season_ms := (Time.get_ticks_usec() - start) / 1000.0
+	if c.dokkaebi.raids.is_empty():
+		for instance: Dictionary in c.buildings.all():
+			if instance["type"] == "granary" and c.economy.total_stock(instance["id"]) > 0 and c.dokkaebi.plan_raid(instance):
+				break
+	check_eq(c.dokkaebi.raids.size(), 1, "dokkaebi come for a storage")
+	for i in Balance.DOKKAEBI_WARNING_DAYS * Balance.TICKS_PER_DAY:
+		c.clock.step()
+	check(c.dokkaebi.is_night(), "night falls on the big city")
+	var ticks := 100
+	start = Time.get_ticks_usec()
+	for i in ticks:
+		c.clock.step()
+	var ms := (Time.get_ticks_usec() - start) / 1000.0 / ticks
+	print("        big city dokkaebi: season check %.1f ms, %.2f ms per night tick" % [season_ms, ms])
+	check(season_ms < 50.0, "the season check is quick (%.1f ms)" % season_ms)
+	check(ms < TICK_BUDGET_MS, "night tick takes %.2f ms (budget %.1f ms)" % [ms, TICK_BUDGET_MS])

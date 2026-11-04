@@ -161,7 +161,7 @@ func test_jang_is_all_accounted_for() -> void:
 			for jar: Dictionary in s.get("jars", []):
 				if c.economy.jar_good(s["type"], jar["state"]) == good:
 					n += 1
-		n += c.services.carried(good) + c.economy.sold.get(good, 0) + c.economy.used.get(good, 0) + c.economy.lost.get(good, 0)
+		n += c.services.carried(good) + c.economy.sold.get(good, 0) + c.economy.used.get(good, 0) + c.economy.lost.get(good, 0) + c.economy.stolen.get(good, 0)
 		var start := 3 if good == "jang" else 2
 		check_eq(n, start + c.economy.produced.get(good, 0), good + " all accounted for")
 
