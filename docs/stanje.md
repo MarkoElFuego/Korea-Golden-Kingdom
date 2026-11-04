@@ -26,8 +26,8 @@ Gotove faze 1–8 (fermentacija u tri dela), brže crtanje zgrada, pregledniji p
 | 9 | Dokkaebi: upozorenje (plavi plamen u brdu), noć, krađa iz skladišta sa niskim Gi, Guardian Posts ih vraćaju, ponuda na Village Shrine, kolona Stolen | b1e8334 |
 | 10 | MVP scenario: mapa 128 × 128, 9 ciljeva sa savetnikom, zgrade se otključavaju, zakazana prva dokkaebi noć, pobeda, početni ekran | 542ea7c |
 | 10b | Savetnik pokazuje: zlatni sjaj dugmadi, strelica i obris na mapi, „Show me“ | 38f5ae6 |
-| 10c | Tutorijal vodi za ruku: plan prvog grada na mapi (zlatni put, placevi, bunar), put do zgrade odsečene od grada („Needs a road“), traka „Next step“, jači sjaj dugmadi i strelica ▼ | (commit) |
-| 10d | Savetnik gleda grad: radnici, broj kuća za cilj, voda, pijaca, gladne kuće (Granary daleko / premalo polja), roba, Silver; prodavac koji luta → Guardian Post; put 30 polja; hrana traje duže | (commit) |
+| 10c | Tutorijal vodi za ruku: plan prvog grada na mapi (zlatni put, placevi, bunar), put do zgrade odsečene od grada („Needs a road“), traka „Next step“, jači sjaj dugmadi i strelica ▼ | cd955e2 |
+| 10d | Savetnik gleda grad: radnici, broj kuća za cilj, voda, pijaca, gladne kuće (Granary daleko / premalo polja), roba, Silver; prodavac koji luta → Guardian Post; put 30 polja; hrana traje duže | cd955e2 |
 
 ## Sledeće: Faza 11, art pipeline
 
