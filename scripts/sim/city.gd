@@ -23,6 +23,7 @@ const Supply = preload("res://scripts/sim/supply.gd")
 const Fermentation = preload("res://scripts/sim/fermentation.gd")
 const GiMap = preload("res://scripts/sim/gi_map.gd")
 const Dokkaebi = preload("res://scripts/sim/dokkaebi.gd")
+const Objectives = preload("res://scripts/sim/objectives.gd")
 
 signal treasury_changed(value: int)
 signal building_added(instance: Dictionary)
@@ -30,6 +31,7 @@ signal building_removed(instance: Dictionary)
 signal roads_changed()
 signal house_changed(instance: Dictionary) # tier or residents changed
 signal population_changed()
+signal goal_changed() # the scenario moved on to its next goal (or was won)
 
 var map_seed: int
 var grid: Grid
@@ -47,6 +49,8 @@ var supply: Supply # where goods are missing and why
 var fermentation: Fermentation # the Jangdokdae's jars
 var gi: GiMap # the life force of the land, 0..100 per tile
 var dokkaebi: Dokkaebi # night thieves, and the offerings that appease them
+## The scenario's goals and unlocked buildings; null in free play (demo town, big city).
+var objectives: Objectives = null
 ## The one random generator of the simulation (seeded from the map seed), so the same
 ## commands always give the same city.
 var rng := RandomNumberGenerator.new()
@@ -107,6 +111,8 @@ func check_building(type: String, origin: Vector2i, rotation := 0) -> String:
 	var data := Buildings.get_building(type)
 	if data.is_empty() or type == "road":
 		return "REASON_UNKNOWN_BUILDING"
+	if not is_unlocked(type):
+		return "REASON_LOCKED"
 	var size := Grid.rotated_size(data["footprint"], rotation)
 	if data.get("on_road", false):
 		return _check_on_road(data, origin, size)
@@ -318,6 +324,8 @@ func apply_command(command: Array) -> void:
 			set_ripe_only(command[2], command[3])
 		"offering":
 			make_offering(command[2])
+		"scenario":
+			start_scenario()
 
 
 ## Replays a command log from the start: runs ticks up to each command's tick, then the
@@ -429,9 +437,23 @@ func set_ripe_only(id: int, on: bool) -> void:
 	economy.stock_changed.emit(id)
 
 
-## Once a day jars ripen and houses rise or fall a tier.
+## Plays the MVP scenario (scripts/data/scenario.gd): goals, and buildings unlocked by them.
+func start_scenario() -> void:
+	objectives = Objectives.new(self)
+	command_log.append([clock.tick, "scenario"])
+	goal_changed.emit()
+
+
+## False when the scenario has not unlocked this building yet (free play: always true).
+func is_unlocked(type: String) -> bool:
+	return objectives == null or objectives.is_unlocked(type)
+
+
+## Once a day jars ripen, houses rise or fall a tier, and the scenario looks at its goal.
 func _on_day(_day: int) -> void:
 	fermentation.daily()
+	if objectives != null and objectives.daily():
+		goal_changed.emit()
 	var changed := houses.daily()
 	if changed.is_empty():
 		return
@@ -493,7 +515,7 @@ func to_save() -> Dictionary:
 		"grid": grid.to_save(), "buildings": buildings.to_save(), "economy": economy.to_save(),
 		"carriers": carriers.to_save(), "extra_workers": labor.extra_workers,
 		"houses": houses.to_save(), "settlers": settlers.to_save(), "services": services.to_save(),
-		"dokkaebi": dokkaebi.to_save(),
+		"dokkaebi": dokkaebi.to_save(), "objectives": objectives.to_save() if objectives != null else {},
 	}
 
 
@@ -518,6 +540,10 @@ func load_save(d: Dictionary) -> void:
 	settlers.load_save(d["settlers"])
 	services.load_save(d["services"])
 	dokkaebi.load_save(d["dokkaebi"])
+	objectives = null
+	if not d["objectives"].is_empty():
+		objectives = Objectives.new(self)
+		objectives.load_save(d["objectives"])
 	labor.extra_workers = d["extra_workers"]
 	gi.mark_dirty()
 	labor.recompute(buildings.all(), houses, economy)

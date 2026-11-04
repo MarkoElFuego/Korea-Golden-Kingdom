@@ -24,19 +24,24 @@ Gotove faze 1–8 (fermentacija u tri dela), brže crtanje zgrada, pregledniji p
 | 7c | Šetači sa stalnim područjem (15 polja, obilasci redom), pločice raspoloženja i potreba iznad kuća (H), bunar bez puta | c658c64 |
 | 8 | Gi mapa (pungsu): Gi iz planine, vode i grebena, uticaj zgrada, Myeongdang, overlay F7, Tiled House traži Gi 30+ | 98f9aeb |
 | 9 | Dokkaebi: upozorenje (plavi plamen u brdu), noć, krađa iz skladišta sa niskim Gi, Guardian Posts ih vraćaju, ponuda na Village Shrine, kolona Stolen | b1e8334 |
+| 10 | MVP scenario: mapa 128 × 128, 9 ciljeva sa savetnikom, zgrade se otključavaju, zakazana prva dokkaebi noć, pobeda, početni ekran | (commit) |
 
-## Sledeće: Faza 10, MVP scenario sa tutorijalom kroz ciljeve
+## Sledeće: Faza 11, art pipeline
 
-- Test mapa (nije misija iz kampanje), ciljevi i saveti savetnika umesto zida teksta.
-- Tada razgovarati o većoj mapi (vlasnik je to tražio).
+- Vlasnikovi modeli (`art/.../<id>.glb`) umesto privremenih, provera modela (razmera, pivot,
+  markeri, budžeti iz `docs/art-bible.md`).
+- Otvoreno iz Faze 10: u demo gradu je so daleko od Fermentation Yard-a (oko 40 polja), pa je
+  pasta spora i kuće nivoa 3 se teško drže. Vlasnik odlučuje: drugačiji raspored ili pravilo.
 
 Prvo plan, pa kod posle vlasnikovog „ok".
 
 ## Kako se testira
 
+- F5 u Godotu: početni ekran. New game = scenario sa ciljevima; Continue = najnoviji sejv;
+  Demo town = demo grad.
 - `scenes/demo_town.tscn` + F6: gotov mali grad sa svim lancima (najbrže za probu).
 - `scenes/big_city.tscn` + F6: veliki grad za merenje brzine (FPS u uglu).
-- Ctrl+S snima, Ctrl+L učitava najnoviji sejv. Sejvovi iz starijih verzija (pre Faze 9) se ne
+- Ctrl+S snima, Ctrl+L učitava najnoviji sejv. Sejvovi iz starijih verzija (pre Faze 10) se ne
   učitavaju; igra to kaže porukom.
 - Dokkaebi dolaze tek od druge godine (na 3× brzini oko 40 sekundi od starta demo grada).
 - Prečice: F1–F3 overlay-i (voda, hrana, Village Shrine), F5 Soybean Paste, F6 Clay Jars, F7 Gi, H pločice kuća, F4 prozor Goods, klik na zgradu = prozor
@@ -52,6 +57,5 @@ Posle Faze 4b:
 - Tempo je brži od Zeusa i tako odgovara; ne usporavati.
 - Stanovnici mnogo jedu, ali je to u redu: rešenje je više njiva. Grad od oko 130 ljudi tražio je
   dve pijace.
-- Kasnije će verovatno trebati veća mapa (sada 64 × 64). Plodno polje je u centru mape.
-  Razgovarati o tome kod Faze 10 (MVP scenario).
+- Veća mapa: od Faze 10 je 128 × 128 (vlasnik odabrao). Plodno polje je u centru mape.
 - Brojeve balansa vlasnik podešava sam dok igra (`scripts/data/balance.gd`, `buildings.gd`).

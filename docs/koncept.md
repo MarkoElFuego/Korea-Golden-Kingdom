@@ -90,7 +90,7 @@ gumiho, Bulgasari, invazije) mogu da prekinu krug na bilo kom koraku.
 
 ## Mapa i teren
 
-- Kvadratni grid, polje 4 × 4 m. MVP mapa: 64 × 64 polja (*predlog*).
+- Kvadratni grid, polje 4 × 4 m. MVP mapa: 128 × 128 polja, oko 512 m (odluka iz Faze 10).
 - Tereni: **Grass**, **Fertile Plain** (pirinač, soja, povrće), **River**, **Sea**, **Shore**, **Forest**,
   **Mountain** (ne gradi se, osim rudnika i Sansingak-a), **Rocky Hill** (kamenolom, glina).
 - MVP mapa prati ideal pungsu-a (baesan-imsu): planine na severu, reka na jugu teče sa zapada i
@@ -520,6 +520,31 @@ plague, spirits...), ne od konkretnih naroda.
 **Kraj:** kralj Munmu je po predanju želeo da posle smrti postane morski zmaj i čuva kraljevstvo.
 Ako je Gi grada visok, Imugi u finalu postaje taj zmaj i odlučuje poslednju bitku.
 Ending line (EN): *The king became the sea, and the sea kept the kingdom.*
+
+## MVP scenario (odluke iz Faze 10)
+
+„The Valley of Seorabeol“: probni scenario, nije misija iz kampanje. Nova igra počinje njim,
+na mapi 128 × 128. Ciljevi idu jedan po jedan (podaci u `scripts/data/scenario.gd`):
+
+| # | Cilj (EN) | Otključava | Uslov |
+| --- | --- | --- | --- |
+| 1 | A road into the valley | (put, kuća, bunar od starta) | 10 polja puta spojena sa ulazom |
+| 2 | First homes | — | 6 kuća, bunar, 30 stanovnika |
+| 3 | Rice for everyone | Rice Paddy, Granary, Market | Market, 10 kuća sa hranom |
+| 4 | The shrine | Village Shrine, Guardian Posts | 10 Thatched House-ova |
+| 5 | Clay and fire | Woodcutter, Clay Pit, Pottery Kiln, Storehouse | prvi Clay Jars, jedna kuća sa ćupovima |
+| 6 | Patience in a jar | Soybean Field, Salt Pans, Fermentation Yard | 5 kuća sa Soybean Paste |
+| 7 | Good land | — | 5 Tiled House-ova (uči Gi i F7) |
+| 8 | A night of goblins | — | prva dokkaebi noć je prošla |
+| 9 | The valley breathes | — | 300 stanovnika, 10 Tiled House-ova |
+
+- Savetnik: na početku svakog cilja papirna poruka (šta da se radi, koji taster pomaže); „?“ je
+  ponovo otvara. Posle 20 dana na istom cilju panel kaže šta fali, iz prozora Goods.
+- Zaključane zgrade se vide u meniju, posivljene, sa ciljem koji ih otključava.
+- Prve dokkaebije šalje scenario: 5 dana posle početka cilja 8, na skladište sa najnižim Gi.
+  Do tada nasumični dokkaebi ne dolaze.
+- Posle cilja 9: prozor pobede sa brojevima grada, pa slobodna igra.
+- Početni ekran: New game, Continue, Demo town, Quit. Demo grad i veliki grad nemaju ciljeve.
 
 ## MVP
 

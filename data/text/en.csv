@@ -213,3 +213,67 @@ DOKKAEBI_NOTE_TURNED,"Dokkaebi came in the night, but the Guardian Posts turned 
 DOKKAEBI_NOTE_APPEASED,"Dokkaebi came in the night, found the shrine's offering and left in good spirits."
 DOKKAEBI_NOTE_GIFT,"Dokkaebi came in the night, found the shrine's offering and left %d Silver."
 DOKKAEBI_NOTE_NOTHING,"Dokkaebi came in the night but found nothing to take."
+REASON_LOCKED,Not yet: a goal of the scenario unlocks it
+UI_LOCKED_TIP,"Unlocks with goal %d: %s"
+UI_START_SUBTITLE,The Valley of Seorabeol
+UI_START_NEW,New game
+UI_START_NEW_TIP,"Found Seorabeol in an empty valley. The advisor leads you goal by goal."
+UI_START_CONTINUE,Continue
+UI_START_CONTINUE_TIP,Load the newest save.
+UI_START_DEMO,Demo town
+UI_START_DEMO_TIP,"A small town with every chain already working, to try things out. No goals."
+UI_START_QUIT,Quit
+UI_ADVISOR,Advisor
+UI_ADVISOR_OK,Understood
+UI_GOAL_NUMBER,"Goal %d of %d"
+UI_GOAL_ADVICE_TIP,Hear the advisor again.
+UI_GOAL_UNLOCKED,"Now you can build: %s."
+UI_GOAL_STUCK,"Advisor: %s"
+UI_VICTORY_TITLE,The valley breathes
+UI_VICTORY_TEXT,"Seorabeol is a town now: %d people, %d Tiled Houses, %d loads of goods made since the first road. Year %d.
+
+The goals are done. Build on as you like."
+UI_VICTORY_CONTINUE,Keep building
+COND_ROAD_TILES,Road joined to the valley entrance
+COND_POPULATION,Residents
+COND_BUILDINGS,%s built
+COND_HOUSES_TIER,%s or better
+COND_HOUSES_WITH,Houses with %s
+COND_PRODUCED,%s made
+COND_DOKKAEBI_NIGHT,The dokkaebi night has passed
+GOAL_ROAD_TITLE,A road into the valley
+GOAL_ROAD_ADVICE,"Welcome to the valley, governor. Settlers will come from the west, through the pass in the forest, but only along a road. Lay a road from the valley entrance into the open land: click Road, then drag.
+
+Q and E turn the view, the mouse wheel zooms, WASD moves."
+GOAL_HOMES_TITLE,First homes
+GOAL_HOMES_ADVICE,"Mark out house lots beside the road. Settlers will build Thatched Huts on them. Every home needs water: a Well serves the houses around it.
+
+Space pauses the game; 1, 2 and 3 set the speed."
+GOAL_RICE_TITLE,Rice for everyone
+GOAL_RICE_ADVICE,"People eat every day. Rice Paddies grow rice on the fertile plain by the river, carriers take it to a Granary, and a Market buys it there. Its vendor walks the streets near the Market and fills the pantries.
+
+Click any building to see what it is doing and what it lacks. F2 shows which houses have food."
+GOAL_SHRINE_TITLE,The shrine
+GOAL_SHRINE_ADVICE,"A Village Shrine keeps the neighborhood's spirits at peace. Its keeper walks the streets near it, and houses visited by the keeper grow into Thatched Houses.
+
+Guardian Posts stand on a road and mark where a walker's round ends: use them to keep vendors and keepers on the streets that need them."
+GOAL_CLAY_TITLE,Clay and fire
+GOAL_CLAY_ADVICE,"Thatched Houses want Clay Jars to keep their food. Dig clay with a Clay Pit on a rocky hill, cut wood with a Woodcutter by the forest, and fire both in a Pottery Kiln. A Storehouse keeps clay, wood and jars; the Market sells the jars.
+
+F4 opens the Goods window: what the city has, and where it is short."
+GOAL_JANG_TITLE,Patience in a jar
+GOAL_JANG_ADVICE,"Soybean Paste is the soul of the kitchen. Soybean Fields and Salt Pans on the shore send soybeans and salt to a Fermentation Yard, where the paste rests in clay jars. Fresh paste is ready in ten days; Ripe paste lasts twice as long but needs two more seasons.
+
+Keep the yard close to the fields and the salt: every load is carried on someone's back."
+GOAL_GI_TITLE,Good land
+GOAL_GI_ADVICE,"A Tiled House needs good Gi, the life force of the land. Gi is high below the mountain, near water and between the forest ridges; Clay Pits, Kilns and Woodcutters lower it, Village Shrines and Guardian Posts raise it.
+
+Press F7 to see the Gi of the valley. Gold marks the Myeongdang, the best places of all."
+GOAL_DOKKAEBI_TITLE,A night of goblins
+GOAL_DOKKAEBI_ADVICE,"The hill folk talk of dokkaebi: mischievous goblins who come at night to storages where the Gi is low. Watch for their blue fires in the hills: they come five days later.
+
+Guardian Posts on the road turn them back. An offering of buckwheat jelly at a Village Shrine appeases them, and pleased dokkaebi sometimes leave Silver."
+GOAL_BREATHES_TITLE,The valley breathes
+GOAL_BREATHES_ADVICE,"You know everything Seorabeol needs. Now let it grow: 300 people and ten Tiled Houses, with rice, paste and jars reaching every street.
+
+When something is short, the Goods window and the building windows say where and why."

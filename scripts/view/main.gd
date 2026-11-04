@@ -6,6 +6,7 @@ extends Node3D
 
 const Balance = preload("res://scripts/data/balance.gd")
 const City = preload("res://scripts/sim/city.gd")
+const Grid = preload("res://scripts/sim/grid.gd")
 const CameraRig = preload("res://scripts/view/camera_rig.gd")
 const TerrainView = preload("res://scripts/view/terrain_view.gd")
 const CityView = preload("res://scripts/view/city_view.gd")
@@ -24,6 +25,7 @@ const GoodsPanel = preload("res://scripts/view/goods_panel.gd")
 const SelectionView = preload("res://scripts/view/selection_view.gd")
 const HouseSigns = preload("res://scripts/view/house_signs.gd")
 const SaveGame = preload("res://scripts/sim/save_game.gd")
+const GoalsPanel = preload("res://scripts/view/goals_panel.gd")
 
 const OVERLAY_KEYS := {"water": "F1", "food": "F2", "seonangdang": "F3", "jang": "F5", "jars": "F6", "gi": "F7"}
 const NOTICE_SECONDS := 3.0
@@ -55,6 +57,7 @@ func _ready() -> void:
 		pending_city = null
 	else:
 		city = City.new(Balance.DEFAULT_MAP_SEED)
+		city.start_scenario() # a new game is the MVP scenario
 
 	SceneSetup.add_environment(self)
 
@@ -99,6 +102,9 @@ func _ready() -> void:
 	var size := Vector2(city.grid.width, city.grid.height) * Balance.TILE_SIZE
 	camera_rig.set_bounds(Vector2.ZERO, size)
 	camera_rig.focus_on(Vector3(size.x * 0.5, 0, size.y * 0.5))
+	if city.objectives != null and city.buildings.all().is_empty():
+		# A new scenario: start where the settlers come in.
+		camera_rig.focus_on(Grid.tile_to_world(city.entrance + Vector2i(12, 0)))
 
 	var ui := CanvasLayer.new()
 	ui.name = "UI"
@@ -141,6 +147,11 @@ func _ready() -> void:
 	goods_panel.city = city
 	ui_root.add_child(goods_panel)
 	bar.goods_requested.connect(goods_panel.toggle)
+
+	var goals := GoalsPanel.new()
+	goals.name = "Goals"
+	ui_root.add_child(goals)
+	goals.setup(city)
 
 	_overlay_label = _paper_label("OverlayLabel", 72)
 	ui_root.add_child(_overlay_label)

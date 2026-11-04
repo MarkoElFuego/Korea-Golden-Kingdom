@@ -5,6 +5,8 @@ extends PanelContainer
 const Buildings = preload("res://scripts/data/buildings.gd")
 const BuildTool = preload("res://scripts/view/build_tool.gd")
 const Goods = preload("res://scripts/data/goods.gd")
+const Objectives = preload("res://scripts/sim/objectives.gd")
+const Scenario = preload("res://scripts/data/scenario.gd")
 
 const PAPER := Color("#ece6d8")
 const PAPER_DARK := Color("#d3cbb8")
@@ -14,11 +16,27 @@ const ACCENT := Color("#b8473a")
 
 var tool: BuildTool
 var _buttons := {} # "road", "demolish" or building id -> Button
+var _tooltips := {} # building id -> its usual tooltip
 
 
 func setup(build_tool: BuildTool) -> void:
 	tool = build_tool
 	tool.mode_changed.connect(_on_mode_changed)
+	tool.city.goal_changed.connect(refresh_locks)
+	refresh_locks()
+
+
+## The scenario keeps some buildings locked until their goal: greyed, with the goal named.
+func refresh_locks() -> void:
+	for id: String in _tooltips:
+		var b: Button = _buttons[id]
+		var locked: bool = not tool.city.is_unlocked(id)
+		b.disabled = locked
+		b.tooltip_text = _tooltips[id]
+		if locked:
+			var goal := Objectives.unlocked_by(id)
+			var goal_name := tr("GOAL_%s_TITLE" % String(Scenario.GOALS[goal]["id"]).to_upper()) if goal >= 0 else ""
+			b.tooltip_text = tr("UI_LOCKED_TIP") % [goal + 1, goal_name] + "\n\n" + _tooltips[id]
 
 
 func _ready() -> void:
@@ -56,8 +74,9 @@ func _ready() -> void:
 				row.add_child(VSeparator.new())
 				last_category = category
 			var id: String = b["id"]
+			_tooltips[id] = _tooltip(b)
 			_add_button(row, id, "%s\n%s" % [tr(b["name_key"]), tr("UI_COST_FORMAT") % b["cost"]],
-				_tooltip(b), func() -> void: tool.start_build(id))
+				_tooltips[id], func() -> void: tool.start_build(id))
 	row.add_child(VSeparator.new())
 	_add_button(row, "demolish", tr("UI_DEMOLISH"), tr("UI_DEMOLISH_TOOLTIP"), func() -> void: tool.start_demolish())
 
@@ -105,6 +124,8 @@ func _add_button(row: HBoxContainer, key: String, text: String, tooltip: String,
 	b.add_theme_stylebox_override("hover", _style(PAPER_DARK))
 	b.add_theme_stylebox_override("pressed", _style(ACCENT))
 	b.add_theme_stylebox_override("hover_pressed", _style(ACCENT))
+	b.add_theme_stylebox_override("disabled", _style(PAPER_DARK))
+	b.add_theme_color_override("font_disabled_color", Color(INK, 0.4))
 	b.pressed.connect(func() -> void:
 		if b.button_pressed:
 			action.call()

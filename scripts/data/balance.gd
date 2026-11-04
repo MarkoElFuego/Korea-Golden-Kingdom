@@ -4,8 +4,8 @@ extends RefCounted
 
 # --- Map ---
 const TILE_SIZE := 4.0 # meters per tile side
-const MAP_WIDTH := 64 # tiles, west -> east (+X)
-const MAP_HEIGHT := 64 # tiles, north -> south (+Z)
+const MAP_WIDTH := 128 # tiles, west -> east (+X)
+const MAP_HEIGHT := 128 # tiles, north -> south (+Z)
 const DEFAULT_MAP_SEED := 20261101
 
 # --- Time ---

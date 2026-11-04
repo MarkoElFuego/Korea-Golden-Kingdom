@@ -149,6 +149,8 @@ func season_start() -> void:
 	var city = _city.get_ref()
 	if city.clock.get_year() < Balance.DOKKAEBI_FIRST_YEAR or city.population() < Balance.DOKKAEBI_MIN_POPULATION:
 		return
+	if city.objectives != null and not city.objectives.dokkaebi_allowed():
+		return # the scenario brings the first ones itself
 	if not raids.is_empty():
 		return # one night at a time
 	var drawn: Array[Dictionary] = []
@@ -193,13 +195,15 @@ func tick() -> void:
 		if w["wait"] > 0:
 			w["wait"] -= 1
 			continue
-		if not WalkerMotion.path_still_open(w, city.grid):
-			_vanish(w) # the road is gone: back into the dark
-			continue
 		var done := WalkerMotion.advance(w, step)
-		if w["state"] == "go" and not done and city.grid.is_blocked(w["path"][w["index"] + 1]):
-			_turn_back(w) # a Guardian Post stands ahead
-			continue
+		if not done:
+			var ahead: Vector2i = w["path"][w["index"] + 1]
+			if not city.grid.is_road(ahead):
+				_vanish(w) # the road ahead is gone: back into the dark
+				continue
+			if w["state"] == "go" and city.grid.is_blocked(ahead):
+				_turn_back(w) # a Guardian Post stands ahead
+				continue
 		if done:
 			if w["state"] == "go":
 				_at_storage(w)
